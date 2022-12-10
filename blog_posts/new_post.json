@@ -1,0 +1,6 @@
+{
+  "id" : 0,
+  "title" : "My First Post",
+  "content" : "This is some content",
+  "slugs" : ["HTML", "JavaScript"]
+}
