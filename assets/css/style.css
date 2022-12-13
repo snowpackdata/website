@@ -56,7 +56,7 @@
   --bs-font-sans-serif: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", "Liberation Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
   --bs-font-monospace: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
   --bs-gradient: linear-gradient(180deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0));
-  --bs-body-font-family: Roboto Slab, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji;
+  --bs-body-font-family: Raleway, Barlow, Roboto Slab, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol, Noto Color Emoji;
   --bs-body-font-size: 1rem;
   --bs-body-font-weight: 400;
   --bs-body-line-height: 1.5;
@@ -340,11 +340,11 @@ label {
   display: inline-block;
 }
 
-button {
+#mybutton {
   border-radius: 0;
 }
 
-button:focus:not(:focus-visible) {
+#mybutton:focus:not(:focus-visible) {
   outline: 0;
 }
 
@@ -359,7 +359,7 @@ textarea {
   line-height: inherit;
 }
 
-button,
+#mybutton,
 select {
   text-transform: none;
 }
@@ -379,13 +379,13 @@ select:disabled {
   display: none;
 }
 
-button,
+#mybutton,
 [type=button],
 [type=reset],
 [type=submit] {
   -webkit-appearance: button;
 }
-button:not(:disabled),
+#mybutton:not(:disabled),
 [type=button]:not(:disabled),
 [type=reset]:not(:disabled),
 [type=submit]:not(:disabled) {
@@ -7779,6 +7779,7 @@ textarea.form-control-lg {
 .text-muted {
   --bs-text-opacity: 1;
   color: #6c757d !important;
+  font-family: "Barlow", 'Roboto Slab', 'Sans serif';
 }
 
 .text-black-50 {
@@ -11310,16 +11311,20 @@ p {
   padding: 6rem 0;
 }
 .page-section h2.section-heading, .page-section .section-heading.h2 {
-  font-size: 2.5rem;
-  margin-top: 0;
+  font-size: 4rem;
+  margin-top: 1em;
   margin-bottom: 1rem;
+  font-family: 'Raleway', "Roboto Slab", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  color: #00143D;
+  font-weight: 900;
+
 }
 .page-section h3.section-subheading, .page-section .section-subheading.h3 {
-  font-size: 1rem;
+  font-size: 1.6rem;
   font-weight: 400;
   font-style: italic;
-  font-family: "Roboto Slab", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-  margin-bottom: 4rem;
+  font-family: "Barlow", "Roboto Slab", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  margin-bottom: 8rem;
 }
 
 @media (min-width: 768px) {
@@ -11413,48 +11418,181 @@ p {
 }
 header.masthead {
   padding-top: 10.5rem;
-  padding-bottom: 6rem;
-  text-align: center;
-  color: #fff;
-  background-image: url("../img/snowpack-splash.jpg");
-  background-repeat: no-repeat;
-  background-attachment: scroll;
-  background-position: center center;
-  background-size: cover;
+  padding-bottom: 2rem;
+  padding-left:30em;
+  padding-right:30em;
+  text-align: left;
+  color: #D6E4FF;
+  font-family: 'Raleway';
+  background-image: linear-gradient(hsla(220, 100%, 12%, .75),hsla(220, 100%, 12%, 1)), url("../img/fade.jpg");
   text-shadow: 1px 1px 4px black;
+  height: 100vh;
+}
+
+@media (max-width: 992px) {
+  header.masthead {
+    padding-left:5em;
+    padding-right:5em;
+  }
+  header.masthead .masthead-heading {
+    padding-bottom:.5em;
+  }
+}
+
+
+header.masthead .container .subheader {
+  font-size: 17px;
+  text-align: center;
+  font-weight: 400;
+  padding-top:3em;
+  color: #D6E4FF;
+  font-family: 'Barlow';
+}
+header.masthead .container .subheader-two {
+  font-size: 17px;
+  text-align: center;
+  font-weight: 400;
+  opacity: 80%;
+  padding-top:1em;
+  font-family: 'Barlow';
+}
+#logo {
+  padding-right: 12em;
+  width: 80%;
+  min-width:50%;
+  position: relative;
+  bottom:1em;
+}
+#logo .layer-1 {
+  background-color:#5A8781; 
+  width: 100%; 
+  height: 60px; 
+  opacity: 100%;
+  border-radius: 20px;
+}
+#logo .layer-2 {
+  background-color:#5A8781; 
+  width: 75%; 
+  height: 60px; 
+  opacity: 55%;
+  margin-top:20px;
+  border-radius: 20px;
+}
+#logo .layer-3 {
+  background-color:#5A8781; 
+  width: 35%; 
+  height: 60px; 
+  opacity: 25%;
+  margin-top:20px;
+  border-radius: 20px;
+}
+#contact-btn {
+  position:absolute; 
+  top:2em; 
+  right:15em; 
+  padding: 5px 20px 5px 20px; 
+  border-radius: 50px; 
+  font-family: 'Barlow'; 
+  font-weight:400; 
+  font-size: 16px; 
+  /* background-color: #C2D7FF; */
+  /* background-color: #0047CC; */
+  background-color: #fff;
+  text-shadow: none;
+  color: #00143D;
+  cursor: pointer;
+}
+#read-btn {
+  padding: 10px 30px 10px 30px; 
+  border-radius: 50px; 
+  font-family: 'Barlow'; 
+  font-weight:300; 
+  font-size: 18px; 
+  background-color: #fff;
+  text-shadow: none;
+  color: #00143D;
+  cursor: pointer;
+  margin-right: 6px;
+  margin-left: 6px;
+  margin-top:1px;
+  border: none;
+  outline: none;
+  position: relative;
+  z-index: 0;
+  text-decoration: none;
+}
+#read-btn-two {
+  padding: 10px 30px 10px 30px; 
+  border-radius: 50px; 
+  font-family: 'Barlow'; 
+  font-weight:300; 
+  font-size: 18px; 
+  background-color: #5A8781;
+  text-shadow: none;
+  color: #fff;
+  cursor: pointer;
+  margin-right: 6px;
+  margin-left: 6px;
+  border: none;
+  outline: none;
+  position: relative;
+  z-index: 0;
+  text-decoration: none;
+}
+
+#read-btn:hover {
+  background-color: #5A8781;
+}
+#contact-btn:hover {
+  background-color: #5A8781;
 }
 header.masthead .masthead-subheading {
   font-size: 1.5rem;
   font-style: italic;
   line-height: 1.5rem;
-  margin-bottom: 25px;
-  font-family: "Roboto Slab", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  margin-bottom: 2em;
+  font-family: "Raleway" ,"Roboto Slab", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
 }
 header.masthead .masthead-heading {
-  font-size: 3.25rem;
-  font-weight: 700;
+  color: #fff;
+  font-size: 4rem;
+  font-weight: 600;
   line-height: 3.25rem;
-  margin-bottom: 2rem;
-  font-family: "Montserrat", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  margin-bottom: 1rem;
+  margin-left: 4px;
+  font-family: "Raleway" ,"Montserrat", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
 }
 
 @media (min-width: 768px) {
   header.masthead {
     padding-top: 17rem;
     padding-bottom: 12.5rem;
+    
   }
   header.masthead .masthead-subheading {
     font-size: 2.25rem;
     font-style: italic;
     line-height: 2.25rem;
-    margin-bottom: 2rem;
+    margin-bottom: 4rem;
   }
   header.masthead .masthead-heading {
     font-size: 4.5rem;
-    font-weight: 700;
+    font-weight: 600;
     line-height: 4.5rem;
     margin-bottom: 4rem;
+    text-shadow: none;
   }
+}
+
+/* @media (max-width: 768) {
+  header.masthead .masthead-heading {
+    padding-right: 5em;
+    padding-left: 5em;
+  }
+} */
+
+#services-list {
+  padding-bottom:2em;
 }
 #portfolio .portfolio-item {
   max-width: 26rem;
@@ -11595,9 +11733,9 @@ header.masthead .masthead-heading {
   margin-left: 0;
   text-align: center;
   color: white;
-  border: 7px solid var(--custom-blue-three);
+  border: none;
   border-radius: 100%;
-  background-color: var(--custom-blue-four);
+  background-color: #5A8781;
 }
 .timeline > li .timeline-image h4, .timeline > li .timeline-image .h4 {
   font-size: 10px;
@@ -11675,9 +11813,9 @@ header.masthead .masthead-heading {
     padding: 0 20px 20px;
   }
   .timeline > li .timeline-image {
-    width: 150px;
-    height: 150px;
-    margin-left: -75px;
+    width: 100px;
+    height: 100px;
+    margin-left: -50px;
   }
   .timeline > li .timeline-image h4, .timeline > li .timeline-image .h4 {
     font-size: 18px;
@@ -11696,9 +11834,9 @@ header.masthead .masthead-heading {
     padding: 0 20px 20px 100px;
   }
   .timeline > li .timeline-image {
-    width: 170px;
-    height: 170px;
-    margin-left: -85px;
+    width: 100px;
+    height: 100px;
+    margin-left: -50px;
   }
   .timeline > li .timeline-image h4, .timeline > li .timeline-image .h4 {
     margin-top: 40px;
@@ -11726,10 +11864,10 @@ header.masthead .masthead-heading {
 }
 
 section#contact {
-  background-color: #212529;
-  background-image: url("./assets/img/snowpack-splash.jpg");
+  background-color: #001233;
+  /* background-image: url("./assets/img/m_4.jpg");
   background-repeat: no-repeat;
-  background-position: center;
+  background-position: center; */
 }
 section#contact .section-heading {
   color: #fff;
