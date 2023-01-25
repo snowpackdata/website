@@ -2,8 +2,6 @@ package main
 
 import (
 	"context"
-	"encoding/json"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -14,45 +12,16 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func loadBlogs() map[int64]Post {
-	// Create a map to hold our data
-	var postsMap = make(map[int64]Post)
-
-	// iterate through all posts in our blog
-	files, err := ioutil.ReadDir("./blog_posts")
-	if err != nil {
-		log.Fatal(err)
-	}
-	// for every file in the articles folder
-	for _, file := range files {
-		// The following line reads the file we are on
-		pageFile, err := ioutil.ReadFile("blog_posts/" + file.Name())
-		if err != nil {
-			log.Fatal(err)
-		}
-		var post Post
-		// Unmarshal the json found in the file we read into the page.
-		err = json.Unmarshal(pageFile, &post)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		// add posts to our hashmap with the ID as the key
-		postsMap[post.ID] = post
-	}
-	return postsMap
-}
-
 func main() {
 	var wait time.Duration
-	// posts := loadBlogs()
 	// SET ROUTES HERE
 	r := mux.NewRouter()
 	// Define a subrouter to handle files at static for accessing static content
 	static := r.PathPrefix("/assets").Subrouter()
 	static.Handle("/{*}/{*}", http.StripPrefix("/assets/", http.FileServer(http.Dir("./assets"))))
 
-	r.HandleFunc("/", index)
+	r.HandleFunc("/", indexHandler)
+	r.HandleFunc("/blog/{slug}", blogHandler)
 
 	// Logging for web server
 	f, _ := os.Create("/var/log/golang/golang-server.log")

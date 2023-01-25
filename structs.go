@@ -5,5 +5,6 @@ type Post struct {
 	ID      int64    `json:"id"`
 	Title   string   `json:"title"`
 	Content string   `json:"content"`
-	Slugs   []string `json:"slugs"`
+	Slug    string   `json:"slug"`
+	Tags    []string `json:"tags"`
 }
