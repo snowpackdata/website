@@ -11435,7 +11435,7 @@ header.blogmasthead {
   font-family: 'Raleway';
   background-image: linear-gradient(hsla(220, 100%, 12%, .75),hsla(220, 100%, 12%, 1)), url("../img/snowpack-splash.jpg");
   text-shadow: 1px 1px 4px black;
-  height: 40vh;
+  height: 20vh;
 }
 
 @media (max-width: 992px) {

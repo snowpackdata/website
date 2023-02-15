@@ -1,10 +1,10 @@
 {
   "id" : 0,
-  "title" : "Why We Started Snowpack",
-  "subtitle": "Or how we learned to embrace the data journey",
+  "title" : "Data Instrumentation Shootout",
+  "subtitle": "Dagster, Airflow, Astronomer, what are they and what do they do?",
   "splash" : "snowpack-splash.jpg",
   "author" : "Nate Robinson",
-  "slug" : "why-we-started-snowpack",
+  "slug" : "dagster-vs-airflow",
   "tags" : ["HTML", "JavaScript"],
   "date" : "Jan, 1, 2022",
   "content" : "why-we-started-snowpack.html"
