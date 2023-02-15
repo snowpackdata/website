@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"html/template"
 	"io/ioutil"
 	"log"
@@ -50,10 +49,6 @@ func blogHandler(w http.ResponseWriter, req *http.Request) {
 	var slugText = vars["slug"]
 	blogPosts := loadBlogs()
 	displayPost := blogPosts[slugText]
-	blogTemplate, err := template.ParseFiles("./templates/blog_template.gohtml")
-	if err != nil {
-		panic(err)
-	}
-	fmt.Print(displayPost.RenderContent())
+	blogTemplate, _ := template.ParseFiles("./templates/blog_template.gohtml")
 	blogTemplate.Execute(w, displayPost)
 }

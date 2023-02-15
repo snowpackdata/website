@@ -9,7 +9,7 @@
 <meta name="author" content="Snowpack Data LLC" />
 <title>Snowpack Data</title>
 <!-- Favicon-->
-<link rel="icon" type="image/x-icon" href="../assets/favicon.ico" />
+<link rel="icon" type="image/x-icon" href="../../assets/favicon.ico" />
 <!-- Font Awesome icons (free version)-->
 <script src="https://use.fontawesome.com/releases/v6.1.0/js/all.js" crossorigin="anonymous"></script>
 <!-- Google fonts-->
@@ -18,6 +18,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@200;300;400;800;900&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@200;300;400;800;900&family=Raleway:wght@200;300;400;700;800;900&display=swap" rel="stylesheet">
 <!-- Core theme CSS (includes Bootstrap)-->
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js" integrity="sha384-oBqDVmMz9ATKxIep9tiCxS/Z9fNfEXiDAYTujMAeBAsjFuCZSmKbSSUnQlmh/jp3" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.min.js" integrity="sha384-cuYeSxntonz0PPNlHhBs68uyIAVpIIOZZ5JqeqvYYIcEL727kskC66kF92t6Xl2V" crossorigin="anonymous"></script>
 <!-- Latest compiled and minified CSS -->
@@ -56,20 +57,16 @@
   </nav> -->
   <!-- Masthead-->
   <header class="blogmasthead">
-      <div class="container">
-          </div>
-
-      </div>
   </header>
-  <!-- Services-->
   <section class="page-section" id="services">
+    <h2 class="blog-title">{{.Title}}</h2>
       <div class="container">
           <div class="text-center">
-              <h2 class="section-heading text-uppercase">{{.Title}}</h2>
-              <h3 class="section-subheading text-muted" style="margin-bottom: 1rem;">{{ .Subtitle }}</h3>
+              <h3 class="blog-subtitle text-muted" style="margin-bottom: 1rem;">{{ .Subtitle }}</h3>
               <span class="">{{.Author}} | {{.Date}}</span>
           </div>
-          <div class="row text-center" style="height:1000px;">
+          <hr class="solid" style="margin:5vh;">
+          <div class="row blog-body">
             {{ .RenderContent }}
           </div>
       </div>

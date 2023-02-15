@@ -11435,7 +11435,7 @@ header.blogmasthead {
   font-family: 'Raleway';
   background-image: linear-gradient(hsla(220, 100%, 12%, .75),hsla(220, 100%, 12%, 1)), url("../img/snowpack-splash.jpg");
   text-shadow: 1px 1px 4px black;
-  height: 20vh;
+  height: 15vh;
 }
 
 @media (max-width: 992px) {
@@ -11930,4 +11930,55 @@ section#contact form#contactForm :-ms-input-placeholder {
   text-align: center;
   font-size: 0.9rem;
   font-family: "Montserrat", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+}
+
+
+.splash-container {
+    position: relative;
+}
+
+.splash-container div {
+   position: absolute;
+   top: 10px;
+   text-align:
+
+   padding: 5px;
+   background-color: white;
+   border: 2px solid red;
+}
+
+.splash-container img {
+  width:100%;
+  height:200px;
+  filter: brightness(50%);
+}
+
+h2.blog-title {
+  text-align:center;
+  font-size: 4rem;
+  margin-top: .25em;
+  margin-bottom: .5rem;
+  font-family: 'Raleway', "Roboto Slab", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  color: #00143D;
+  font-weight: 900;
+
+}
+h3.blog-subtitle,  {
+  font-size: 1.6rem;
+  font-weight: 400;
+  font-style: italic;
+  font-family: "Barlow", "Roboto Slab", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  margin-bottom: 8rem;
+}
+
+.blog-body {
+  margin-left:10vw;
+  margin-right:10vw;
+}
+
+.blog-body h2 {
+  font-size: 18pt;
+}
+.blog-body p {
+  font-size:12pt;
 }
