@@ -1,6 +1,7 @@
 {
   "id" : 0,
   "title" : "Why We Started Snowpack",
+  "splash" : "snowpack-splash.jpg",
   "author" : "Nate Robinson",
   "slug" : "why-we-started-snowpack",
   "tags" : ["HTML", "JavaScript"],

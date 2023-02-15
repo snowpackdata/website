@@ -4,6 +4,7 @@ package main
 type Post struct {
 	ID      int64    `json:"id"`
 	Title   string   `json:"title"`
+	Splash  string   `json:"splash"`
 	Content string   `json:"content"`
 	Slug    string   `json:"slug"`
 	Tags    []string `json:"tags"`

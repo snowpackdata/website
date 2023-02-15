@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -48,5 +49,6 @@ func blogHandler(w http.ResponseWriter, req *http.Request) {
 	var slugText = vars["slug"]
 	blogPosts := loadBlogs()
 	displayPost := blogPosts[slugText]
-	json.NewEncoder(w).Encode(displayPost)
+	fmt.Printf("%s", displayPost.Title)
+	http.ServeFile(w, req, "./templates/blog_template.html")
 }

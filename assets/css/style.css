@@ -11429,6 +11429,15 @@ header.masthead {
   height: 100vh;
 }
 
+header.blogmasthead {
+  text-align: left;
+  color: #D6E4FF;
+  font-family: 'Raleway';
+  background-image: linear-gradient(hsla(220, 100%, 12%, .75),hsla(220, 100%, 12%, 1)), url("../img/snowpack-splash.jpg");
+  text-shadow: 1px 1px 4px black;
+  height: 40vh;
+}
+
 @media (max-width: 992px) {
   header.masthead {
     padding-left:5em;
@@ -11464,37 +11473,37 @@ header.masthead .container .subheader-two {
   bottom:1em;
 }
 #logo .layer-1 {
-  background-color:#5A8781; 
-  width: 100%; 
-  height: 60px; 
+  background-color:#5A8781;
+  width: 100%;
+  height: 60px;
   opacity: 100%;
   border-radius: 20px;
 }
 #logo .layer-2 {
-  background-color:#5A8781; 
-  width: 75%; 
-  height: 60px; 
+  background-color:#5A8781;
+  width: 75%;
+  height: 60px;
   opacity: 55%;
   margin-top:20px;
   border-radius: 20px;
 }
 #logo .layer-3 {
-  background-color:#5A8781; 
-  width: 35%; 
-  height: 60px; 
+  background-color:#5A8781;
+  width: 35%;
+  height: 60px;
   opacity: 25%;
   margin-top:20px;
   border-radius: 20px;
 }
 #contact-btn {
-  position:absolute; 
-  top:2em; 
-  right:15em; 
-  padding: 5px 20px 5px 20px; 
-  border-radius: 50px; 
-  font-family: 'Barlow'; 
-  font-weight:400; 
-  font-size: 16px; 
+  position:absolute;
+  top:2em;
+  right:15em;
+  padding: 5px 20px 5px 20px;
+  border-radius: 50px;
+  font-family: 'Barlow';
+  font-weight:400;
+  font-size: 16px;
   /* background-color: #C2D7FF; */
   /* background-color: #0047CC; */
   background-color: #fff;
@@ -11503,11 +11512,11 @@ header.masthead .container .subheader-two {
   cursor: pointer;
 }
 #read-btn {
-  padding: 10px 30px 10px 30px; 
-  border-radius: 50px; 
-  font-family: 'Barlow'; 
-  font-weight:300; 
-  font-size: 18px; 
+  padding: 10px 30px 10px 30px;
+  border-radius: 50px;
+  font-family: 'Barlow';
+  font-weight:300;
+  font-size: 18px;
   background-color: #fff;
   text-shadow: none;
   color: #00143D;
@@ -11522,11 +11531,11 @@ header.masthead .container .subheader-two {
   text-decoration: none;
 }
 #read-btn-two {
-  padding: 10px 30px 10px 30px; 
-  border-radius: 50px; 
-  font-family: 'Barlow'; 
-  font-weight:300; 
-  font-size: 18px; 
+  padding: 10px 30px 10px 30px;
+  border-radius: 50px;
+  font-family: 'Barlow';
+  font-weight:300;
+  font-size: 18px;
   background-color: #5A8781;
   text-shadow: none;
   color: #fff;
@@ -11567,7 +11576,7 @@ header.masthead .masthead-heading {
   header.masthead {
     padding-top: 17rem;
     padding-bottom: 12.5rem;
-    
+
   }
   header.masthead .masthead-subheading {
     font-size: 2.25rem;
