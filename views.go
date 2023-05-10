@@ -44,6 +44,12 @@ func indexHandler(w http.ResponseWriter, req *http.Request) {
 	http.ServeFile(w, req, "./templates/index.html")
 }
 
+func blogLandingHandler(w http.ResponseWriter, req *http.Request) {
+	blogPosts := loadBlogs()
+	landingTemplate, _ := template.ParseFiles("./templates/blog_landing.gohtml")
+	landingTemplate.Execute(w, blogPosts)
+}
+
 func blogHandler(w http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	var slugText = vars["slug"]

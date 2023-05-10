@@ -21,6 +21,7 @@ func main() {
 	static.Handle("/{*}/{*}", http.StripPrefix("/assets/", http.FileServer(http.Dir("./assets"))))
 
 	r.HandleFunc("/", indexHandler)
+	r.HandleFunc("/blog", blogLandingHandler)
 	r.HandleFunc("/blog/{slug}", blogHandler)
 
 	// Logging for web server

@@ -3,9 +3,9 @@
   "title" : "Why We Started Snowpack",
   "subtitle": "Or how we learned to embrace the data journey",
   "splash" : "snowpack-splash.jpg",
-  "author" : "Anonymous",
+  "author" : "Nate Robinson",
   "slug" : "why-we-started-snowpack",
-  "tags" : ["HTML", "JavaScript"],
+  "tags" : ["mission statement", "data services", "consulting", "launch"],
   "date" : "Jan, 1, 2022",
   "content" : "why-we-started-snowpack.html"
 }

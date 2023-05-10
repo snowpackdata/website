@@ -11511,6 +11511,18 @@ header.masthead .container .subheader-two {
   color: #00143D;
   cursor: pointer;
 }
+
+#blog-btn {
+  position:absolute;
+  top:2em;
+  right:10em;
+  padding: 5px 20px 5px 20px;
+  font-family: 'Barlow';
+  font-weight:400;
+  font-size: 16px;
+  text-shadow: none;
+  cursor: pointer;
+}
 #read-btn {
   padding: 10px 30px 10px 30px;
   border-radius: 50px;
