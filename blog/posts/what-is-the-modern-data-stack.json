@@ -1,0 +1,11 @@
+{
+  "id" : 2,
+  "title" : "What is the modern data stack?",
+  "subtitle": "and why are so many people talking about it?",
+  "splash" : "snowpack-splash.jpg",
+  "author" : "Kevin Koenitzer",
+  "slug" : "what-is-the-mds",
+  "tags" : ["modern data stack", "data services", "consulting", "launch"],
+  "date" : "June, 13, 2023",
+  "content" : "what-is-the-modern-data-stack.html"
+}
