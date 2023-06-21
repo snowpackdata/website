@@ -9,7 +9,7 @@
 <meta name="author" content="Snowpack Data LLC" />
 <title>Snowpack Data</title>
 <!-- Favicon-->
-<link rel="icon" type="image/x-icon" href="../../assets/favicon.ico" />
+<link rel="shortcut icon" type="icon" href="assets/img/favicon.ico">
 <!-- Font Awesome icons (free version)-->
 <script src="https://use.fontawesome.com/releases/v6.1.0/js/all.js" crossorigin="anonymous"></script>
 <!-- Google fonts-->
@@ -31,33 +31,55 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@3.4.1/dist/js/bootstrap.min.js" integrity="sha384-aJ21OjlMXNL5UyIl/XNwTMqvzeRMZH2w8c5cRVpzpU8Y5bApTppSuUkhZXN0VxHd" crossorigin="anonymous"></script>
 
 <link type="text/css" rel="stylesheet" href="../assets/css/style.css">
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-TRLQYPPXKE"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-TRLQYPPXKE');
+</script>
 <style>
 </style>
 </head>
 <body>
   <!-- Navigation-->
-  <nav class="navbar navbar-expand-lg navbar-dark fixed-top" id="mainNav">
+  <header class="blogmasthead" style="height:80px;">
       <div class="container">
-          <div class="collapse navbar-collapse" id="navbarResponsive">
-              <ul class="navbar-nav text-uppercase ms-auto py-4 py-lg-0">
-                  <!-- <li class="nav-item"><a class="nav-link" href="#services">Services</a></li>
-                  <li class="nav-item"><a class="nav-link" href="#portfolio">Portfolio</a></li> -->
-                  <li class="nav-item"><a class="nav-link" href="#about">About</a></li>
-                  <li class="nav-item"><a class="nav-link" href="#contact">Contact</a></li>
-              </ul>
-          </div>
+          <a href="/"><div class="masthead-heading "><span style="font-weight:900;">SNOWPACK</span> ANALYTICS</div></a>
+          <div id="contact-btn" class="text-uppercase"><a href="https://mail.google.com/mail/?view=cm&fs=1&tf=1&to=info@snowpack-data.io" target="_blank" style="text-decoration: none; color: #00143D;">contact</a></div>
+          <div id="blog-btn" class=""><a href="/blog" style="color:white;">Blog</a></div>
+
       </div>
-  </nav>
-  <!-- Masthead-->
-  <header class="blogmasthead">
   </header>
-  <h1>Blogs</h1>
-  <section class="page-section" id="services">
-        {{range .blogPosts}}
-        <p>{{ . }}</p>
-        {{end}}
+  <h1 class="blog-header">Articles</h1>
+  <div>
+  {{range . }}
+  <div class="card">
+    <div class="card-header">
+      <a href="/blog/{{ .Slug}}">
+        <h2 class="card-title">{{ .Title }}</h2>
+      </a>
+      <h5 class="card-subtitle">{{.Author}} | {{ .Date}}</h5>
+    </div>
+    <div class="card-body">
+      <div class="col-sm-6 col-md-2 col-lg-2 col-xl-2">
+        <div class="card-img">
+          <a href="/blog/{{ .Slug}}">
+          <img src="assets/img/{{ .Splash}}" height="100px" width="175px">
+          </a>
+        </div>
       </div>
-  </section>
+      <div class=" col-sm-6 col-md-10 col-lg-10 col-xl-10">
+      <h4 style="margin-top:15px">{{ .Subtitle}}</h4>
+      {{ range .Tags}}
+        <span class="badge">{{ . }}</span>
+      {{end}}
+    </div>
+  </div>
+  {{end}}
+</div>
     <!-- Footer-->
   <footer class="footer py-4">
       <div class="container">
