@@ -2,7 +2,7 @@
   "id" : 1,
   "title" : "Data Instrumentation Shootout",
   "subtitle": "Dagster, Airflow, Astronomer, what are they and what do they do?",
-  "splash" : "mammoth.jpg",
+  "splash" : "snowpack-splash.jpg",
   "author" : "Nate Robinson",
   "slug" : "dagster-vs-airflow",
   "tags" : ["data orchestration", "airflow", "dagster"],

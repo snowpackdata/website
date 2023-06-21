@@ -11457,16 +11457,6 @@ header.masthead .container .subheader {
   color: #D6E4FF;
   font-family: 'Barlow';
 }
-
-header.blogmasthead .container .subheader {
-  font-size: 17px;
-  text-align: center;
-  font-weight: 400;
-  padding-top:3em;
-  color: #D6E4FF;
-  font-family: 'Barlow';
-}
-
 header.masthead .container .subheader-two {
   font-size: 17px;
   text-align: center;
@@ -11594,16 +11584,6 @@ header.masthead .masthead-heading {
   font-family: "Raleway" ,"Montserrat", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
 }
 
-header.blogmasthead .masthead-heading {
-  color: #fff;
-  font-size: 3rem;
-  font-weight: 600;
-  line-height: 3.25rem;
-  margin-top: 1.5rem;
-  margin-left: 4px;
-  font-family: "Raleway" ,"Montserrat", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-}
-
 @media (min-width: 768px) {
   header.masthead {
     padding-top: 17rem;
@@ -11621,13 +11601,6 @@ header.blogmasthead .masthead-heading {
     font-weight: 600;
     line-height: 4.5rem;
     margin-bottom: 4rem;
-    text-shadow: none;
-  }
-  header.blogmasthead .masthead-heading {
-    font-size: 3rem;
-    font-weight: 600;
-    line-height: 4.5rem;
-    margin-top: 1.5rem;
     text-shadow: none;
   }
 }
@@ -12020,11 +11993,4 @@ h3.blog-subtitle,  {
 }
 .blog-body p {
   font-size:12pt;
-}
-
-.blog-header {
-  font-size: 24pt;
-  padding:2%;
-  text-align:center;
-
 }
