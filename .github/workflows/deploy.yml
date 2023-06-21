@@ -25,6 +25,7 @@ jobs:
       uses: 'google-github-actions/auth@v1'
       with:
         service_account: 'snowpack-368423@appspot.gserviceaccount.com' 
+        credentials_json: ${{ secrets.GCP_SERVICE_CREDENTIALS }}
     
     - name: Deploy to App Engine
       id: deploy
