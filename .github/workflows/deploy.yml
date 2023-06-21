@@ -22,6 +22,7 @@ jobs:
         env:
           GOOGLE_SERVICE_ACCOUNT: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
           PROJECT_ID : ${{ secret.PROJECT_ID }}
+        run: echo $GOOGLE_SERVICE_ACCOUNT | base64 -di > key.json
       
       - name: Set up gcloud CLI
         uses: google-github-actions/setup-gcloud@v0.3.0
@@ -29,7 +30,7 @@ jobs:
           version: 'latest'
       
       - name: Authenticate with Google Cloud
-        run: echo $GOOGLE_SERVICE_ACCOUNT | base64 -di > key.json && gcloud auth activate-service-account --key-file=key.json
+        run: gcloud auth activate-service-account --key-file=key.json
 
       - name: Build and deploy
         run: |
