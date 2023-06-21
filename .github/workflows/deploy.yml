@@ -11,32 +11,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v2
-
-      - name: Set up Go
-        uses: actions/setup-go@v2
-        with:
-          go-version: '1.14'
-
-      - name: Create Google Services JSON File
-        env:
-          GOOGLE_SERVICE_ACCOUNT: ${{ secrets.GCP_SERVICE_CREDENTIALS }}
-          PROJECT_ID : ${{ secrets.PROJECT_ID }}
-        run: echo $GOOGLE_SERVICE_ACCOUNT > key.json
-      
-      - name: Set up gcloud CLI
-        uses: google-github-actions/setup-gcloud@v0.3.0
-        with:
-          version: 'latest'
+        uses: actions/checkout@v3
       
       - name: 'Authenticate to Google Cloud'
         uses: 'google-github-actions/auth@v1'
         with:
           credentials_json: '${{ secrets.GCP_SERVICE_CREDENTIALS }}'
 
-      - name: Build and deploy
-        run: |
-          gcloud app deploy --project $PROJECT_ID --version main
-
-      - name: Clean up
-        run: rm -f key.json
+      - name: 'Deploy to GAE'
+        uses: 'google-github-actions/deploy-appengine@v1'
