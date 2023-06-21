@@ -20,7 +20,7 @@ jobs:
 
       - name: Create Google Services JSON File
         env:
-          GOOGLE_SERVICE_ACCOUNT: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
+          GOOGLE_SERVICE_ACCOUNT: ${{ secrets.GCP_SERVICE_CREDENTIALS }}
           PROJECT_ID : ${{ secrets.PROJECT_ID }}
         run: echo $GOOGLE_SERVICE_ACCOUNT > key.json
       
@@ -32,7 +32,7 @@ jobs:
       - name: 'Authenticate to Google Cloud'
         uses: 'google-github-actions/auth@v1'
         with:
-          credentials_json: '${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}'
+          credentials_json: '${{ secrets.GCP_SERVICE_CREDENTIALS }}'
 
       - name: Build and deploy
         run: |
