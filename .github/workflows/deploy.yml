@@ -29,8 +29,10 @@ jobs:
         with:
           version: 'latest'
       
-      - name: Authenticate with Google Cloud
-        run: gcloud auth activate-service-account --key-file=key.json
+      - name: 'Authenticate to Google Cloud'
+        uses: 'google-github-actions/auth@v1'
+        with:
+          credentials_json: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
 
       - name: Build and deploy
         run: |
