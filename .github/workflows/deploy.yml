@@ -21,12 +21,12 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v2
     
-    - id: 'auth'
+    - name: 'auth'
       uses: 'google-github-actions/auth@v1'
       with:
         service_account: 'snowpack-368423@appspot.gserviceaccount.com' 
-   
-   - name: Deploy to App Engine
+    
+    - name: Deploy to App Engine
       id: deploy
       uses: google-github-actions/deploy-appengine@v0.2.0
       with:
