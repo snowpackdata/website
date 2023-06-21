@@ -22,10 +22,12 @@ jobs:
         uses: google-github-actions/setup-gcloud@v0.3.0
         with:
           version: 'latest'
-
       - name: Authenticate with Google Cloud
-        run: gcloud auth activate-service-account --key-file=${{ secrets.GCP_SERVICE_CREDENTIALS }}
+        run: echo "${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}" > key.json && gcloud auth activate-service-account --key-file=key.json
 
       - name: Build and deploy
         run: |
-          gcloud app deploy --project ${{ secrets.PROJECT_ID }} --version master
+          gcloud app deploy --project ${{ secrets.PROJECT_ID }} --version main
+
+      - name: Clean up
+        run: rm -f key.json
