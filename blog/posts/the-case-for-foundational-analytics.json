@@ -1,0 +1,11 @@
+{
+  "id" : 1,
+  "title" : "Why Foundational Analytics",
+  "subtitle": "Why we invest in structure, and remain flexible on interface tooling",
+  "splash" : "mammoth.jpg",
+  "author" : "Nate Robinson",
+  "slug" : "the-case-for-foudational-analytics",
+  "tags" : ["analytics purpose", "tooling", "excel", "bi tools"],
+  "date" : "June, 26, 2023",
+  "content" : "the-case-for-foundational-analytics.html"
+}
