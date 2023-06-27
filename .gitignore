@@ -1,4 +1,6 @@
 # Binaries for programs and plugins
+.gcloudignore
+*.gcloudignore
 *.exe
 *.exe~
 *.dll

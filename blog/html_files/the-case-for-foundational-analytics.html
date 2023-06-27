@@ -1,0 +1,26 @@
+<h2>Motivation</h2>
+<p>
+One of the core tenets of (non-software) engineering is “use the right tool for the right job”. This adage certainly applies to data analytics and is the same motivation you wouldn’t want to use an offline Access file to store all of your transaction data, or build a predictive neural net in an excel notebook (<a href="https://www.youtube.com/watch?v=JDUHS14y15Y">though you certainly could if you were so inclined</a>).
+</p>
+<p>
+But, this adage highlights an interesting paradox that data teams often overlook, that in understanding what are the right tools for each job, we must accept that some tools are better suited to certain tasks, a realization that data teams may find both frustrating, and enlightening.
+</p>
+<h2>Understanding our Consumers</h2>
+<p>
+Why might this be frustrating? Well, the age old analytics nemesis, excel and by proxy google sheets, must be accepted for what it is and leveraged to its full potential. I’ve seen the gripes and groans firsthand, that reporting belongs in Looker, Tableau, that offline formats are inherently unmanageable, that load times are a blocker, and that row limits render certain analytics impossible. All of these are limitations undoubtedly, but what is often overlooked is the tools that Excel is right for. At any reasonably sized organization the majority of analysts aren’t going to be familiar with SQL, let alone Python, R, Spark, Julia or whatever the language of choice is this month. But, every single one of them is fluent in Excel.
+</p>
+<p>
+Similar to using a crowbar over a hammer when prying large nails, we can consider the additional leverage gained by using the right tool for the problem. Finance teams run off excel, and they often power the reporting of a company. Financial metric reporting, basic forecasting, headcount planning all happen via finance teams in excel, and despite the best efforts of modern data visualization softwares, there is no end in sight. By making the experience seamless for these users, and leaning into, not running from these use cases, we can accelerate the productivity of our org.
+</p>
+<h2>Speed to Insight</h2>
+<p>
+So how do we enable these excel users as data leaders? We focus on structuring easily accessible and clearly outlined semantic models that facilitate clear communication between our reporting database, and the teams that are doing the reporting, however that may be. In the same manner that we think about structuring clear semantic outputs for data visualization in modern tools like Looker, PowerBI, and Tableau, we should be structuring clear output tables that can be “dumped” to excel for analysis. Imagine how powerful a finance organization could be if a simple <code>select * from</code> query would get them all the data needed for any given analysis they perform.
+</p>
+<p>
+How we get there is a bit more tricky, establishing a strong foundational infrastructure is something that takes thought, and isn’t identical from business to business, but the core tenets are. First we establish clear ingestions of all data so we’re working with our key data sources. Next we need to establish clear domain modeling and output semantic layers, these layers are “meaningful” data outputs that can operate standalone, and while typically used synonymously with data visualization tools, should also be our API for interacting with offline users in Excel and Google Sheets. Finally and often overlooked is the metrics layer. The metrics layer is the established source of truth across the business for key metrics and assures us that all our teams are marching to the same beat. When your finance team downloads all the transaction data and submits a new P&L report, they can very quickly and easily verify the outputs against the metric source of truth to ensure that everyone is speaking the same language.
+</p>
+<p>
+  <strong>
+    The case for foundational analytics is the case for speed to insight across consumer groups. You will never get all teams speaking the same output language, but they can all speak to the same foundational reporting database, and that is the gold standard.
+  </strong>
+</p>
