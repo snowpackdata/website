@@ -1,11 +1,11 @@
 {
-  "id" : 2,
+  "id" : 3,
   "title" : "Speed to Insights",
   "subtitle": "The Value of Modern Data Tooling for Finance Organizations",
   "splash" : "snowpack-splash.jpg",
   "author" : "David Shore",
   "slug" : "speed-to-insights",
-  "tags" : ["modern data tooling", "speed to insights", "data services", "consulting", "launch"],
+  "tags" : ["modern data tooling", "speed to insights", "data services", "consulting"],
   "date" : "July 5, 2023",
   "content" : "speed-to-insights.html"
 }
