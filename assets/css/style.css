@@ -11979,8 +11979,7 @@ section#contact form#contactForm :-ms-input-placeholder {
 .splash-container div {
    position: absolute;
    top: 10px;
-   text-align:
-
+   text-align: center;
    padding: 5px;
    background-color: white;
    border: 2px solid red;
@@ -12002,7 +12001,7 @@ h2.blog-title {
   font-weight: 900;
 
 }
-h3.blog-subtitle,  {
+h3.blog-subtitle  {
   font-size: 1.6rem;
   font-weight: 400;
   font-style: italic;
