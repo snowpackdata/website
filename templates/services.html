@@ -55,33 +55,58 @@
         </ul>
     </div>
   </header>
-  <h1 class="blog-header">Articles</h1>
-  <div>
-  {{range . }}
-  <div class="card">
-    <div class="card-header">
-      <a href="/blog/{{ .Slug}}">
-        <h2 class="card-title">{{ .Title }}</h2>
-      </a>
-      <h5 class="card-subtitle">{{.Author}} | {{ .Date}}</h5>
-    </div>
-    <div class="card-body">
-      <div class="col-sm-6 col-md-2 col-lg-2 col-xl-2">
-        <div class="card-img">
-          <a href="/blog/{{ .Slug}}">
-          <img src="assets/img/{{ .Splash}}" height="100px" width="175px">
-          </a>
-        </div>
+  <h1 class="blog-header">Core Services</h1>
+    <div class="container">
+        <table class="table-light table" style="font-size:1.5em;">
+        <thead>
+            <tr>
+                <th>Service</th>
+                <th>Detail</th>
+                <th>Technologies*</th>
+                <th>Typical Engagement</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+            <td>Data Modeling and Database Development</td>
+            <td>Ingestion and structuring of select data sources into a foundational reporting database.</td>
+            <td><u>Databases</u><br>
+                Snowflake<br>
+                BigQuery<br>
+                Redshift
+                </td>
+            <td>3-6 months</td>
+            </tr>
+            <tr>
+            <td>Metric development</td>
+            <td>Transformation and combination of data sources in a reporting database into actionable metrics chosen in partnership with client organization</td>
+            <td><u>Transformation</u><br>
+                dbt<br>
+                Custom sql workflows
+                </td>
+            <td>1-6 months</td>
+            </tr>
+            <tr>
+            <td>Software implementation</td>
+            <td>Implementation of analytics software at any level of the stack. Specializing in BI tooling, and event tracking.</td>
+            <td><u>BI Tools</u><br>
+                Looker<br>
+                Tableau<br>
+                Superset<br>
+
+                <br><u>Event Tracking</u><br>
+                Amplitude<br>
+                Heap<br>
+                Fullstory<br>
+                </td>
+            <td>1-3 months</td>
+            </tr>
+        </tbody>
+        </table>
+        <div style="font-size: 1rem;">
+            <p>*Technologies listed above are not exhaustive and serve only as examples.</p>
       </div>
-      <div class=" col-sm-6 col-md-10 col-lg-10 col-xl-10">
-      <h4 style="margin-top:15px">{{ .Subtitle}}</h4>
-      {{ range .Tags}}
-        <span class="badge">{{ . }}</span>
-      {{end}}
     </div>
-  </div>
-  {{end}}
-</div>
     <!-- Footer-->
   <footer class="footer py-4">
       <div class="container">

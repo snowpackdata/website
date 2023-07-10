@@ -44,6 +44,11 @@ func indexHandler(w http.ResponseWriter, req *http.Request) {
 	http.ServeFile(w, req, "./templates/index.html")
 }
 
+// Services page for all /services url requests
+func servicesHandler(w http.ResponseWriter, req *http.Request) {
+	http.ServeFile(w, req, "./templates/services.html")
+}
+
 func blogLandingHandler(w http.ResponseWriter, req *http.Request) {
 	blogPosts := loadBlogs()
 	landingTemplate, _ := template.ParseFiles("./templates/blog_landing.gohtml")
