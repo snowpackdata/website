@@ -68,6 +68,7 @@
   --custom-blue-three: #66B9E3;
   --custom-blue-four: #004466;
   --custom-blue-five: #4E8EAD;
+  --custom-blue-six: #1e3256;
 }
 
 *,
@@ -4035,6 +4036,8 @@ textarea.form-control-lg {
 }
 
 .navbar {
+  list-style-type: none;
+  overflow: hidden;
   position: relative;
   display: flex;
   flex-wrap: wrap;
@@ -11433,7 +11436,6 @@ header.blogmasthead {
   text-align: left;
   color: #D6E4FF;
   font-family: 'Raleway';
-  background-image: linear-gradient(hsla(220, 100%, 12%, .75),hsla(220, 100%, 12%, 1)), url("../img/snowpack-splash.jpg");
   text-shadow: 1px 1px 4px black;
   height: 15vh;
 }
@@ -12026,4 +12028,63 @@ h3.blog-subtitle  {
   padding:2%;
   text-align:center;
 
+}
+
+/* BEGIN NAV */
+
+#navbar {
+  display: flex;
+  justify-content: space-between;
+  background: linear-gradient(to top, var(--custom-blue-six), var(--custom-blue-four));
+  padding: 14px 16px;
+  padding-left:8%;
+  padding-right:8%;
+  font: var(--bs-font-monospace);
+}
+
+.nav-title a {
+  font-size: 18pt;
+  font-weight: bold; /* Make it bold */
+  text-decoration: none;
+  font-family: 'Raleway';
+  text-shadow: 1px 1px 4px black;
+  height: 100vh;
+  color:white;
+}
+
+.nav-title a:hover {
+  color: var(--bs-primary);
+  text-decoration: underline;
+}
+
+#navbar ul {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+}
+
+#navbar li {
+  margin-left: 20px; /* Create some space between the links */
+}
+
+#navbar li a {
+  color: white;
+  text-decoration: none;
+  text-align: center;
+  font-size: 1.75em;
+}
+
+/* Change the link color on hover */
+#navbar li a:hover {
+  color: var(--bs-primary);
+  text-decoration: underline;
+}
+
+/* Sticky Navbar */
+#navbar {
+  position: sticky;
+  top: 0;
+  width: 100%;
+  z-index: 100;
 }
