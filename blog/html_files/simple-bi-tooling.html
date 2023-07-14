@@ -1,0 +1,71 @@
+<style>
+.center {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  width: 50%;
+}
+.caption {
+  font-size: .95em;
+  font-style: italic;
+  text-align: center;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  margin-bottom: 2%;
+  width: 51%;
+}
+ol {
+  font-size: initial;
+  margin-left:5%;
+
+}
+</style>
+<p>When we decided to develop a simple metric reporting tool, one of the questions we were asked by one of our friends was: “Isn’t BI tooling a solved problem? I mean, why bother?” </p>
+
+<p>We probably should have asked ourselves that question prior to starting development, but it forced us to examine the reasons why we felt there was still work to do in a space that is already so saturated with solutions. </p>
+
+<p>The solution we came up with came from our time at Flexport, where we were part of a team implementing company-wide weekly business reviews. </p>
+
+<p>The first iterations of these business reviews used dashboards with lots of charts and graphs, hosted in one of the major BI Tooling suites, and running meetings using these dashboards was awful. People wanted to jump around from metric to metric, view to view, and managing that process was a practical nightmare.</p>
+
+<p>Our weekly business review product eventually became a series of clearly defined metrics listed out in a tabular format in google sheets, categorized by type, and exported as a static PDF. Why PDF, because a report should be immutable, atomic, and persistent for historical record.</p>
+
+<p>After using some of the most cutting-edge visualization and data discovery tools we had at our disposal, the solution that actually worked to help executives grok what was happening with their business was a static report, of only tables and line charts. </p>
+
+<p>When we reflected on this, the answer to the question: “Why bother?” was this: <em>Because BI tooling today is designed to do everything except make insights easier to get to.</em></p>
+
+<img class="center" src="../assets/img/doesnt-tell-time.png">
+<span class="caption">90s kids will remember the epic gem of a movie that is “Spy Kids”. In it, the kids’ uncle Machete (played by the inimitable Danny Trejo) gives them watches filled with gadgets that do everything except tell you what time it is. BI tooling is like that. </span>
+
+<p>Danny Trejo cameos aside, over time BI tools have become more and more bloated with additional features–for example: enabling additional data exploration, sharing, encouraging users to build suites of complex reports hosted entirely within a single BI ecosystem. The modern BI tool today is basically a casino designed to keep you spending as much time working and exploring data in the tool and as little time moving data out of the tool as possible.</p>
+
+<p>The problem is, the incentives driving these enhancements aren’t focused on <strong>the goal</strong>. Which is to give stakeholders access to the information they need to make accurate business decisions. </p>
+
+<p>The reasons WBRs are easier with spreadsheets is because spreadsheet data exploration and presentation options are limited to the exact same structure–you don’t have to switch windows or tabs to view data vs. edit it, and you can organize the data in a simple and legible manner for everyone.</p>
+
+<p>That’s why we are developing Rapid Reports–to provide a simple and extensible alternative to BI tooling.</p>
+
+<h3>What are the benefits of simplifying BI tooling?</h3>
+<ol>
+  <li>Increases speed to insight by keeping information structured, and making presentation and comprehension straightforward.</li>
+  <li>Elevates the role of data analyst to one focused on modeling and managing metrics and metric layers, rather than building dashboards and reports</li>
+  <li>Empowers the end user with easy access to the key metrics they want to track at the click of a button.</li>
+  <li>Encourages end users to dive directly into the database, or work with an analyst for deeper insights.</li>
+</ol>
+
+<h3>What are the characteristics of simple BI tooling?</h3>
+<ol>
+  <li>Integrative - Data can be exported and reused or re-visualized easily. </li>
+  <li>Rote - Process for loading data, exporting data, and even reading and interpreting data is repetitive. It doesn’t matter if it’s boring, attention should be paid to the story the data tells.</li>
+  <li>Automated - Key workflows should be hidden from end users.</li>
+  <li>Collaborative - Outputs should be shareable and easy to understand.</li>
+</ol>
+
+<p>We’ve designed Rapid Reports to maximize the benefits listed above by focusing on the key characteristics listed a bit less above.</p>
+
+<h3>What exactly is rapid reports?</h3>
+
+<p>Rapid reports is a simple and elegant library we have created to generate static reports by connecting to a standard metric layer. If you use <a href="https://docs.getdbt.com/docs/build/metrics">dbt metrics</a> you’re already 99% of the way there. Simply create a config file that specifies what metrics you want to report on, and at what cadence/format and you’ll have a report at the press of a button. The idea is to provide immediate reporting for <strong>key</strong> metrics directly from your existing database and accelerate your speed to insights without expecting your executives to know sql. Focus on actions, not on reports. And because simple and beautiful things should be free, it will be open source on our github.</p>
+
+<p>We’ll be sharing the code and an explainer soon, but for now, enjoy this <a href="/reports/examples/nba-report">example static report we generated about the 2016 NBA Postseason</a> (my personal favorite).</p>

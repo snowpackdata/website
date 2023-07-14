@@ -1,0 +1,11 @@
+{
+  "id" : 3,
+  "title" : "Rapid Reports - Simple Metric Reports",
+  "subtitle": "Have we lost track of the goal of BI Tooling, and what can we do about it?",
+  "splash" : "spreadsheets.jpg",
+  "author" : "Kevin Koenitzer",
+  "slug" : "simple-bi-tooling",
+  "tags" : ["bi tooling", "speed to insights", "metric reports"],
+  "date" : "July 13, 2023",
+  "content" : "simple-bi-tooling.html"
+}

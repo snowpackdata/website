@@ -22,6 +22,7 @@ func main() {
 
 	r.HandleFunc("/", indexHandler)
 	r.HandleFunc("/services", servicesHandler)
+	r.HandleFunc("/reports/examples/nba-report", exampleReportHandler)
 	r.HandleFunc("/blog", blogLandingHandler)
 	r.HandleFunc("/blog/{slug}", blogHandler)
 
