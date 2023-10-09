@@ -326,7 +326,7 @@
   {% set merge_sql = dbt.get_merge_sql(target, source, unique_key, dest_columns, predicates) %}
   {{ return(merge_sql) }}
 
-  {% endmacro %}
+{% endmacro %}
 </code></pre>
 <img src="../assets/img/grid-etl-after-diagram.svg">
 <span class="caption">Updated dbt flow using partition pruning from raw data to domain model </span>
