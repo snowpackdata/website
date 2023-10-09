@@ -57,7 +57,10 @@ func exampleReportHandler(w http.ResponseWriter, req *http.Request) {
 func blogLandingHandler(w http.ResponseWriter, req *http.Request) {
 	blogPosts := loadBlogs()
 	landingTemplate, _ := template.ParseFiles("./templates/blog_landing.gohtml")
-	landingTemplate.Execute(w, blogPosts)
+	err := landingTemplate.Execute(w, blogPosts)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 func blogHandler(w http.ResponseWriter, req *http.Request) {
@@ -66,5 +69,8 @@ func blogHandler(w http.ResponseWriter, req *http.Request) {
 	blogPosts := loadBlogs()
 	displayPost := blogPosts[slugText]
 	blogTemplate, _ := template.ParseFiles("./templates/blog_template.gohtml")
-	blogTemplate.Execute(w, displayPost)
+	err := blogTemplate.Execute(w, displayPost)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
