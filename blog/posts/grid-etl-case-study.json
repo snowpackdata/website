@@ -1,0 +1,11 @@
+{
+  "id" : 5,
+  "title" : "Case Study: Improving Grid's ETL",
+  "subtitle": "Realizing an 80% reduction in BigQuery costs",
+  "splash" : "transforming-leaves.jpg",
+  "author" : "Nate Robinson",
+  "slug" : "grid-etl-case-study",
+  "tags" : ["bigquery", "dbt", "etl", "golang"],
+  "date" : "October 9, 2023",
+  "content" : "grid-etl-case-study.html"
+}
