@@ -4,6 +4,7 @@
         text-decoration: none;
         background-color: transparent;
     }
+
     i {
         font-size: 12pt;
     }
@@ -151,12 +152,12 @@
 <h2>Build vs Buy</h2>
 <p>The first step towards solution after identifying the problems was assessing the build vs buy equation. On the buy
     side of the equation, the concept of an ETL from CloudSQL to BigQuery is not new, from utilizing change data capture
-    with Debezium, open source options like Airbyte or fully managed services like FiveTran, this probably is very
+    with Debezium, open source options like Airbyte or fully managed services like FiveTran, this problem is very
     common and has many solutions. Unfortunately our version of CloudSQL did not grant us access to the binlog/cdc so
     Debezium was a nonstarter. Snowpack does not generally recommend FiveTran for data if you can manage it, as the cost
     scales linearly with data size, and can become exorbitant quickly. Airbyte offers an open source solution to host
     your own ETL and is industry standard, Snowpack has set up Airbyte for multiple of our clients in the past, however
-    the overhead of hosting a new service that none of the Grid engineers were familiar with was a risk. Finally Google
+    the overhead of hosting a new service that none of the Grid engineers were familiar with was a risk. Finally, Google
     offers some managed services such as Dataflow and Datastream that solve this exact problem, but we had a few issues,
     the merge operations were prohibitively expensive and would require changes to the application databases, which
     introduced additional risks to Grid’s clients.</p>
@@ -256,13 +257,16 @@
     immutable model of storing records in their application database. Each record update will generate a new row with a
     new ID, the primary key of the table, and each record will contain a token that can be used to view the change
     history of a particular object over time. This can reduce costs in BigQuery because we only need to consider new
-    updates when building models incrementally. However one detail of the immutable model implementation led to
-    difficulties in the partitioning data in BigQuery. When a record is updated, the <code>created_at</code> and <code>updated_at</code> fields
-    are incremented, meaning that to identify the original <code>created_at</code> timestamp of an object, you would need to traverse
+    updates when building models incrementally. However, one detail of the immutable model implementation led to
+    difficulties in the partitioning data in BigQuery. When a record is updated, the <code>created_at</code> and <code>updated_at</code>
+    fields
+    are incremented, meaning that to identify the original <code>created_at</code> timestamp of an object, you would
+    need to traverse
     the record history. Most analytics use cases are predicated on knowing the original timestamp of a record.
 </p>
 <p>We conceptualize the problem as an optimization in the cost of modifying partitions. Data inserted into raw tables in
-    BigQuery would be partitioned by the <code>_etl_loaded_at</code> field. In theory to build a smaller table for analytics of only
+    BigQuery would be partitioned by the <code>_etl_loaded_at</code> field. In theory to build a smaller table for
+    analytics of only
     up-to-date records, we would simply take that partition and merge it into the domain model. This is done in BigQuery
     by doing a merge insert, but because of the incrementing creation timestamp, we could not know what partition a
     particular record exists in, and thus need to perform a full table scan for every merge, an expensive operation that
@@ -279,15 +283,51 @@
 <span class="caption">Diagram of data movement from raw table to domain model in previous state</span>
 <p>The first problem to solve is knowing the partition of data that need to update, this was relatively simple, we
     updated the ETL to retrieve the original timestamps of records at the time of insert from MySQL, so all records will
-    now have an <code>original_created_at</code> timestamp in addition to an incrementing <code>created_at</code> that we can use to find the
-    correct partition. The second relied on our use of dbt and partition pruning. Inspired by a <a href="https://discourse.getdbt.com/t/bigquery-dbt-incremental-changes/982">dbt writeup</a>, Snowpack created a custom merge macro
+    now have an <code>original_created_at</code> timestamp in addition to an incrementing <code>created_at</code> that
+    we can use to find the
+    correct partition. The second relied on our use of dbt and partition pruning. Inspired by a <a
+            href="https://discourse.getdbt.com/t/bigquery-dbt-incremental-changes/982">dbt writeup</a>, Snowpack created
+    a custom merge macro
     in dbt that first identified which partitions in the domain table would need to be modified, and provided them as an
-    incremental predicate to the merge operation. The nuance here is that <a href="https://cloud.google.com/blog/products/data-analytics/optimizing-your-bigquery-incremental-data-ingestion-pipelines">BigQuery will not prune partitions</a> in the
+    incremental predicate to the merge operation. The nuance here is that <a
+            href="https://cloud.google.com/blog/products/data-analytics/optimizing-your-bigquery-incremental-data-ingestion-pipelines">BigQuery
+        will not prune partitions</a> in the
     target merge table unless they are provided as a static predicate, so the partitions must be identified ahead of
     time in a custom macro and stored as a static variable. This is by no means a novel approach and has been pretty
     thoroughly documented within the dbt/BigQuery community, but by creating auto-generation scripts that built
     incremental models for each table in the ETL using this predicate, we moved the complexity of this process away from
-    our end users and provide them the output without having to consider the underlying engineering decisions.</p>
+    our end users and provide them the output without having to consider the underlying engineering decisions. The code
+    to do this varies slightly by use case, but roughly ours looked like this in dbt.</p>
+<pre><code class="language-sql">
+-- get_merge_sql.sql
+
+{% macro get_merge_sql(target, source, unique_key, dest_columns, incremental_predicates) -%}
+{% set predicate_override = "" %}
+-- If we pass a custom_day incremental predicate we run the partition pruning macro
+{% if incremental_predicates[0] == "custom_day" %}
+  {% set get_limits_query %}
+  -- run a query to the source table to find min and max partitions
+  SELECT
+    coalesce(MIN(first_created_at), current_datetime()) AS min_day,
+    coalesce(MAX(first_created_at), current_datetime()) AS max_day
+  FROM {{ source }}
+  {% endset %}
+  {% set limits = run_query(get_limits_query)[0] %}
+  {% set min_day, max_day = limits[0], limits[1] %}
+
+  {% set predicate_override %}
+  DBT_INTERNAL_DEST.first_created_at >= '{{ min_day }}'
+  AND DBT_INTERNAL_DEST.first_created_at <= '{{ max_day }}'
+  {% endset %}
+  {% endif %}
+  -- override the predicate behavior with our custom date range from the source table
+  {% set predicates = [predicate_override] if predicate_override else incremental_predicates %}
+  -- standard merge from here
+  {% set merge_sql = dbt.get_merge_sql(target, source, unique_key, dest_columns, predicates) %}
+  {{ return(merge_sql) }}
+
+  {% endmacro %}
+</code></pre>
 <img src="../assets/img/grid-etl-after-diagram.svg">
 <span class="caption">Updated dbt flow using partition pruning from raw data to domain model </span>
 <p>This change greatly reduced the cost of dbt incremental updates. The cost of a dbt update for all domain models
@@ -315,7 +355,7 @@
 <p>The Snowpack team was able to hit our target of reducing the Grid monthly BigQuery bill by 80%. The cost of the
     extraction and loading was reduced by 99.4%, even after accounting for the cost of the cursor cache database. We
     were able to generate domain models and stream views that reduced the access to data for consumers, dropping the
-    On-Demand usage costs by ~50%. Finally Snowpack set up dbt, built an auto-generation script for their base models
+    On-Demand usage costs by ~50%. Finally, Snowpack set up dbt, built an auto-generation script for their base models
     and began to migrate the BigQuery scheduled queries that made up the transformation layer at Grid which resulted in
     additional cost savings in BigQuery.</p>
 <p>Due to these improvements, Grid has realized cost savings in 2 months that offset the fees associated with our
@@ -328,7 +368,7 @@
     <li>Engineering decisions come with costs that may not be immediately understood. At the time of the original ETL
         development the associated costs were low due to the small size of the target tables. These costs seemed like a
         clear win against managed data loading services like Datafusion or Airbyte, but ultimately resulted in runaway
-        costs in the future. We should be aware of the long term viability of short term cost cutting measures.
+        costs in the future. We should be aware of the long term viability of short term cost-cutting measures.
 
     </li>
     <li>Management of analytics data begins at the source. The inconsistent nature of the created_at column in
@@ -352,5 +392,6 @@
     of their team to their analytical stack.
 </p>
 <hr>
-<i>Snowpack specializes in helping organizations solve analytical problems, build, and deploy a modern data stack built
-    for them that will scale as they grow. For more information, follow our blog, or shoot us an email at <a href="mailto: info@snowpack-data.io">info@snowpack-data.io</a></i>
+<i>Snowpack specializes in helping organizations solve analytical problems. We work with clients to build and deploy a
+    modern data for them that will scale as they grow. For more information, follow our blog, or shoot us an email at <a
+            href="mailto: info@snowpack-data.io">info@snowpack-data.io</a></i>
