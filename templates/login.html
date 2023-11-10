@@ -85,9 +85,9 @@
         }
         if (localStorage.snowpack_token) {
             payload = parseJwt(localStorage.snowpack_token);
-            if (payload.IsStaff === true) {
+            if (payload.isStaff === true) {
                 location.href="/admin";
-            } else if (payload.IsStaff === false) {
+            } else if (payload.isStaff === false) {
                 location.href="/cronos";
             }
         }
@@ -110,25 +110,15 @@
     <section id="hero">
         <div class="hero-container">
             <div id="registerBox">
-                <h2>Register</h2>
-                <p>Finish registering an account with your email to view timesheets and project status with Snowpack</p>
-                <label class="display-inline">
-                    <input type="text" v-if="!loginStep" v-model="user_email" placeholder="Email">
+                <h2>Login</h2>
+                <p>Login to view timesheets and project status updates from Snowpack</p>
+                <label class="display-block">
+                    <input class="display-block" type="text" v-model="user_email" placeholder="email">
                 </label>
-                <button class="display-inline" v-if="!loginStep" v-on:click="verifyEmail()"><i v-if="!loginStep" class="fa-solid fa-arrow-right"></i></button>
-                <label class="display-block" v-if="loginStep">
-                    <input class="display-block" type="text" v-model="first_name" placeholder="First Name">
+                <label class="display-block">
+                    <input type="password" v-model="password" placeholder="password">
                 </label>
-                <label class="display-block" v-if="loginStep">
-                    <input class="display-block" type="text" v-model="last_name" placeholder="Last Name">
-                </label>
-                <label class="display-block" v-if="loginStep">
-                     <input type="text" v-model="new_password" placeholder="password">
-                </label>
-                <label class="display-block" v-if="loginStep">
-                    <input class="display-block" type="text" v-model="confirm_new_password" placeholder="Confirm password">
-                </label>
-                <button class="display-block" v-if="loginStep" v-on:click="registerUser()"><span>Register</span></button>
+                <button class="display-block" v-on:click="login()"><span>Login</span></button>
                 <span class="display-block" v-if="showResponse" style="color:#8b0000">{{ registerResponse }}</span>
             </div>
         </div>

@@ -94,6 +94,7 @@ body {
   background-color: var(--bs-body-bg);
   -webkit-text-size-adjust: 100%;
   -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+  height: 100vh;
 }
 
 hr {
@@ -11299,6 +11300,7 @@ textarea.form-control-lg {
 }
 html {
   scroll-padding-top: 4.5rem;
+  height:100%;
 }
 
 body {
@@ -12087,4 +12089,41 @@ h3.blog-subtitle  {
   top: 0;
   width: 100%;
   z-index: 100;
+}
+
+.admin-body {
+  height:80%;
+  display: flex;
+  justify-content: space-around;
+}
+.sidebar {
+  background-color : var(--bs-gray-200);
+  border-radius: 4px;
+  margin: 8px;
+  height: 100%;
+  width:15%;
+}
+.main-body {
+  background-color : var(--bs-gray-200);
+  border-radius: 4px;
+  margin: 8px;
+  height: 100%;
+  width:83%;
+}
+.tile {
+  display: block;
+  padding: 10px;
+  margin: 10px;
+  background-color: var(--bs-white);
+}
+.tile:hover {
+  background-color: var(--custom-blue-four);
+  color:white;
+}
+.tile:active {
+  background-color: var(--custom-blue-six);
+}
+.nav-icon {
+  margin-left: 2%;
+  margin-right: 5%;
 }

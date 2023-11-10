@@ -17,6 +17,11 @@ func (a *App) RegistrationLandingHandler(w http.ResponseWriter, req *http.Reques
 	http.ServeFile(w, req, "./templates/registration.html")
 }
 
+// LoginLandingHandler serves the registration page when accessed via GET request
+func (a *App) LoginLandingHandler(w http.ResponseWriter, req *http.Request) {
+	http.ServeFile(w, req, "./templates/login.html")
+}
+
 // RegisterUser creates a new user in the database when accessed via POST request
 func (a *App) RegisterUser(w http.ResponseWriter, req *http.Request) {
 	// Read email and password from the post request
@@ -112,4 +117,70 @@ func (a *App) VerifyEmail(w http.ResponseWriter, req *http.Request) {
 	} else {
 		w.WriteHeader(http.StatusNotFound)
 	}
+}
+
+func (a *App) VerifyLogin(w http.ResponseWriter, req *http.Request) {
+	// Verify login checks a customers hashed password against the database to determine if
+	// they are verified. If they are, it generates a new JWT token and returns it to the
+	// customer.
+
+	formEmail := req.FormValue("email")
+	formPassword := req.FormValue("password")
+
+	var user cronos.User
+
+	if a.cronosApp.DB.Where("email = ?", formEmail).First(&user).RowsAffected == 0 {
+		var resp = map[string]interface{}{"status": 403, "message": "Invalid login credentials. Please try again"}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusForbidden)
+		_ = json.NewEncoder(w).Encode(resp)
+		return
+	}
+
+	// validate password
+	err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(formPassword))
+	if err != nil {
+		var resp = map[string]interface{}{"status": 403, "message": "Invalid login credentials. Please try again"}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusForbidden)
+		_ = json.NewEncoder(w).Encode(resp)
+		return
+	}
+	expiresAt := time.Now().Add(time.Hour * 720)
+	isStaff := false
+
+	if user.Role == cronos.UserRoleStaff.String() || user.Role == cronos.UserRoleAdmin.String() {
+		isStaff = true
+	}
+
+	claims := Claims{
+		UserID:  user.ID,
+		Email:   user.Email,
+		IsStaff: isStaff,
+		RegisteredClaims: &jwt.RegisteredClaims{
+			IssuedAt:  jwt.NewNumericDate(time.Now()),
+			ExpiresAt: jwt.NewNumericDate(expiresAt),
+		},
+	}
+	token := jwt.NewWithClaims(jwt.GetSigningMethod("HS256"), claims)
+	tokenString, err := token.SignedString([]byte("secret"))
+	if err != nil {
+		fmt.Println(err)
+	}
+	var resp = map[string]interface{}{"status": 200, "message": "logged in"}
+	resp["token"] = tokenString //Store the token in the response
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	_ = json.NewEncoder(w).Encode(resp)
+	return
+}
+
+// AdminLandingHandler serves the admin page when accessed via GET request
+func (a *App) AdminLandingHandler(w http.ResponseWriter, req *http.Request) {
+	http.ServeFile(w, req, "./templates/admin.html")
+}
+
+// CronosLandingHandler serves the cronos page when accessed via GET request
+func (a *App) CronosLandingHandler(w http.ResponseWriter, req *http.Request) {
+	http.ServeFile(w, req, "./templates/cronos.html")
 }

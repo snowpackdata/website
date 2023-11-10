@@ -25,7 +25,7 @@ var App = new Vue({
                 postForm.set("email", this.user_email)
                 axios({
                     method: 'post',
-                    url: '/verify-email',
+                    url: '/verify_email',
                     data: postForm,
                     headers: {'Content-Type': 'multipart/form-data' }
                 })
@@ -88,22 +88,25 @@ var App = new Vue({
         },
 
         login : function(){
+            this.showResponse = false;
             var postForm = new FormData();
             postForm.set("password", this.password)
+            postForm.set("email", this.user_email)
             axios({
                 method: 'post',
-                url: '/login',
+                url: '/verify_login',
                 data: postForm,
                 headers: {'Content-Type': 'multipart/form-data' }
             })
             .then(response => {
                 if (response.status !== 200) {
+                    this.showResponse = true;
                     this.loginResponse = response.data['message']
                     return
                 }
                 let token = response.data["token"];
                 console.log(token)
-                localStorage.setItem('user_token', token)
+                localStorage.setItem('snowpack_token', token)
                 window.location.assign("/home");
             })
             .catch(error => {});

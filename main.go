@@ -21,7 +21,7 @@ type App struct {
 func main() {
 	var wait time.Duration
 
-	// We must initialize the cronos app to access it's databases and methods
+	// We must initialize the cronos app to access its databases and methods
 	// and then add it to our webapp struct to access it across handlers
 	cronosApp := cronos.App{}
 	cronosApp.Initialize()
@@ -31,12 +31,8 @@ func main() {
 	// Define a subrouter to handle files at static for accessing static content
 	static := r.PathPrefix("/assets").Subrouter()
 	static.Handle("/{*}/{*}", http.StripPrefix("/assets/", http.FileServer(http.Dir("./assets"))))
-	admin := r.PathPrefix("/admin").Subrouter()
-	admin.Use(JwtVerify)
-	// Our login and registration handlers are not protected by JWT
-	r.HandleFunc("/register", a.RegistrationLandingHandler).Methods("GET")
-	r.HandleFunc("/register_user", a.RegisterUser).Methods("POST")
-	r.HandleFunc("/verify-email", a.VerifyEmail).Methods("POST")
+	api := r.PathPrefix("/api").Subrouter()
+	api.Use(JwtVerify)
 
 	r.HandleFunc("/", indexHandler)
 	r.HandleFunc("/services", servicesHandler)
@@ -44,9 +40,32 @@ func main() {
 	r.HandleFunc("/blog", blogLandingHandler)
 	r.HandleFunc("/blog/{slug}", blogHandler)
 
+	// Cronos Application pages, internal and external
+	r.HandleFunc("/admin", a.AdminLandingHandler).Methods("GET")
+	r.HandleFunc("/cronos", a.CronosLandingHandler).Methods("GET")
+	// Our login and registration handlers are not protected by JWT
+	r.HandleFunc("/login", a.LoginLandingHandler).Methods("GET")
+	r.HandleFunc("/verify_login", a.VerifyLogin).Methods("POST")
+	r.HandleFunc("/register", a.RegistrationLandingHandler).Methods("GET")
+	r.HandleFunc("/register_user", a.RegisterUser).Methods("POST")
+	r.HandleFunc("/verify_email", a.VerifyEmail).Methods("POST")
+
+	api.HandleFunc("/projects", a.ProjectsListHandler).Methods("GET")
+	api.HandleFunc("/projects/{id:[0-9]+}", a.ProjectHandler).Methods("GET", "PUT", "POST", "DELETE")
+
+	api.HandleFunc("/staff", a.StaffListHandler).Methods("GET")
+	api.HandleFunc("/accounts", a.AccountsListHandler).Methods("GET")
+	api.HandleFunc("/accounts/{id:[0-9]+}", a.AccountHandler).Methods("GET", "PUT", "POST", "DELETE")
+	api.HandleFunc("/rates", a.RatesListHandler).Methods("GET")
+	api.HandleFunc("/rates/{id:[0-9]+}", a.RateHandler).Methods("GET", "PUT", "POST", "DELETE")
+	api.HandleFunc("/billing_codes", a.BillingCodesListHandler).Methods("GET")
+	api.HandleFunc("/billing_codes/{id:[0-9]+}", a.BillingCodeHandler).Methods("GET", "PUT", "POST", "DELETE")
+
 	// Logging for web server
 	f, _ := os.Create("/var/log/golang/golang-server.log")
-	defer f.Close()
+	defer func() {
+		_ = f.Close()
+	}()
 	logger := handlers.CombinedLoggingHandler(f, r)
 
 	// Logging for dev
