@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"github.com/snowpackdata/cronos"
 	"log"
 	"net/http"
 	"os"
@@ -10,16 +11,32 @@ import (
 
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
-	"github.com/snowpackdata/cronos"
 )
+
+// App holds our information for accessing various applications and methods across modules
+type App struct {
+	cronosApp *cronos.App
+}
 
 func main() {
 	var wait time.Duration
-	// SET ROUTES HERE
+
+	// We must initialize the cronos app to access it's databases and methods
+	// and then add it to our webapp struct to access it across handlers
+	cronosApp := cronos.App{}
+	cronosApp.Initialize()
+	a := &App{cronosApp: &cronosApp}
+
 	r := mux.NewRouter()
 	// Define a subrouter to handle files at static for accessing static content
 	static := r.PathPrefix("/assets").Subrouter()
 	static.Handle("/{*}/{*}", http.StripPrefix("/assets/", http.FileServer(http.Dir("./assets"))))
+	admin := r.PathPrefix("/admin").Subrouter()
+	admin.Use(JwtVerify)
+	// Our login and registration handlers are not protected by JWT
+	r.HandleFunc("/register", a.RegistrationLandingHandler).Methods("GET")
+	r.HandleFunc("/register", a.RegisterUser).Methods("POST")
+	r.HandleFunc("/verify-email", a.VerifyEmail).Methods("POST")
 
 	r.HandleFunc("/", indexHandler)
 	r.HandleFunc("/services", servicesHandler)
@@ -27,14 +44,13 @@ func main() {
 	r.HandleFunc("/blog", blogLandingHandler)
 	r.HandleFunc("/blog/{slug}", blogHandler)
 
-	cronos = cronos.App.Initialize()
 	// Logging for web server
 	f, _ := os.Create("/var/log/golang/golang-server.log")
 	defer f.Close()
 	logger := handlers.CombinedLoggingHandler(f, r)
 
 	// Logging for dev
-	// logger := handlers.CombinedLoggingHandler(os.Stdout, r)
+	//logger := handlers.CombinedLoggingHandler(os.Stdout, r)
 
 	port := os.Getenv("PORT")
 	if port == "" {
