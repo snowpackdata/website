@@ -10,6 +10,7 @@ import (
 
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
+	"github.com/snowpackdata/cronos"
 )
 
 func main() {
@@ -26,6 +27,7 @@ func main() {
 	r.HandleFunc("/blog", blogLandingHandler)
 	r.HandleFunc("/blog/{slug}", blogHandler)
 
+	cronos = cronos.App.Initialize()
 	// Logging for web server
 	f, _ := os.Create("/var/log/golang/golang-server.log")
 	defer f.Close()
