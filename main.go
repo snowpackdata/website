@@ -35,7 +35,7 @@ func main() {
 	admin.Use(JwtVerify)
 	// Our login and registration handlers are not protected by JWT
 	r.HandleFunc("/register", a.RegistrationLandingHandler).Methods("GET")
-	r.HandleFunc("/register", a.RegisterUser).Methods("POST")
+	r.HandleFunc("/register_user", a.RegisterUser).Methods("POST")
 	r.HandleFunc("/verify-email", a.VerifyEmail).Methods("POST")
 
 	r.HandleFunc("/", indexHandler)

@@ -15,6 +15,7 @@ var App = new Vue({
         showResponse: true,
         registerResponse: null,
         loginStep: false,
+        role: null,
     },
     methods : {
         verifyEmail : function(){
@@ -36,7 +37,7 @@ var App = new Vue({
                     }
                     console.log(response)
                     this.user_id = response.data["user_id"]
-                    console.log(this.user_id)
+                    this.role = response.data["role"]
                     this.loginStep = true
                 })
                 .catch(error => {
@@ -62,21 +63,22 @@ var App = new Vue({
             postForm.set("password", this.new_password)
             postForm.set("first_name", this.first_name)
             postForm.set("last_name", this.last_name)
+            postForm.set("role", this.role)
             axios({
                 method: 'post',
-                url: '/register',
+                url: '/register_user',
                 data: postForm,
                 headers: {'Content-Type': 'multipart/form-data' }
             })
             .then(response => {
-                if (response.status != 200) {
+                if (response.status !== 200) {
                     this.registerResponse = "Registration Failed"
                     return
                 }
-                token = response.data["token"];
+                let token = response.data["token"];
                 console.log(token)
                 localStorage.setItem('snowpack_token', token)
-                if (response.data["status"] == 200) {
+                if (response.status === 200) {
                     window.location.assign("/admin");
                 } else {
                  window.location.assign("/cronos")
@@ -95,11 +97,11 @@ var App = new Vue({
                 headers: {'Content-Type': 'multipart/form-data' }
             })
             .then(response => {
-                if (response.data['status'] != 200) {
+                if (response.status !== 200) {
                     this.loginResponse = response.data['message']
                     return
                 }
-                token = response.data["token"];
+                let token = response.data["token"];
                 console.log(token)
                 localStorage.setItem('user_token', token)
                 window.location.assign("/home");

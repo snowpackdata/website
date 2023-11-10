@@ -30,7 +30,6 @@ func (a *App) RegisterUser(w http.ResponseWriter, req *http.Request) {
 	formPassword := req.FormValue("password")
 
 	// Create a new client object and fill in the fields
-	var user cronos.User
 	isStaff := false
 	switch formRole {
 	case cronos.UserRoleClient.String():
@@ -40,7 +39,7 @@ func (a *App) RegisterUser(w http.ResponseWriter, req *http.Request) {
 		}
 		client.FirstName = formFirstName
 		client.LastName = formLastName
-		user = client.User
+		a.cronosApp.DB.Save(&client)
 	case cronos.UserRoleStaff.String():
 		employee := cronos.Employee{UserID: uint(formUserID)}
 		if a.cronosApp.DB.Where("user_id = ?", formUserID).First(&employee).RowsAffected == 0 {
@@ -49,8 +48,8 @@ func (a *App) RegisterUser(w http.ResponseWriter, req *http.Request) {
 		employee.FirstName = formFirstName
 		employee.LastName = formLastName
 		employee.StartDate = time.Now()
-		user = employee.User
 		isStaff = true
+		a.cronosApp.DB.Save(&employee)
 	case cronos.UserRoleAdmin.String():
 		employee := cronos.Employee{UserID: uint(formUserID)}
 		if a.cronosApp.DB.Where("user_id = ?", formUserID).First(&employee).RowsAffected == 0 {
@@ -59,15 +58,18 @@ func (a *App) RegisterUser(w http.ResponseWriter, req *http.Request) {
 		employee.FirstName = formFirstName
 		employee.LastName = formLastName
 		employee.StartDate = time.Now()
-		user = employee.User
+		a.cronosApp.DB.Save(&employee)
 		isStaff = true
 	}
+	var user cronos.User
+	a.cronosApp.DB.Where("id = ?", formUserID).First(&user)
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(formPassword), bcrypt.DefaultCost)
 	if err != nil {
 		log.Println(err)
 	}
 
 	user.Password = string(hashedPassword)
+	a.cronosApp.DB.Save(&user)
 	claims := Claims{
 		UserID:  user.ID,
 		Email:   user.Email,
@@ -88,7 +90,6 @@ func (a *App) RegisterUser(w http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		log.Println(err)
 	}
-	w.WriteHeader(http.StatusOK)
 	return
 }
 
@@ -107,7 +108,6 @@ func (a *App) VerifyEmail(w http.ResponseWriter, req *http.Request) {
 		if err != nil {
 			log.Println(err)
 		}
-		w.WriteHeader(http.StatusOK)
 		return
 	} else {
 		w.WriteHeader(http.StatusNotFound)
