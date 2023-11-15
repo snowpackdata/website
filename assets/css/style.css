@@ -12091,6 +12091,8 @@ h3.blog-subtitle  {
   z-index: 100;
 }
 
+/*Begin Admin and Cronos Dashboard Pages*/
+
 .admin-body {
   height:80%;
   display: flex;
@@ -12126,4 +12128,116 @@ h3.blog-subtitle  {
 .nav-icon {
   margin-left: 2%;
   margin-right: 5%;
+}
+
+.admin-content {
+  width: 100%;
+  height: 100%;
+}
+
+.admin-scroll-overlay {
+    overflow-y: scroll;
+    height: 65vh;
+}
+.admin-record-card {
+    display: flex;
+    background-color: var(--bs-white);
+    border-radius: 4px;
+    margin: 8px;
+    padding: 10px;
+    width: 95%;
+}
+
+.client-widget {
+    background-color: #b7e4c7;
+    border-radius: 4px;
+    margin: 2px;
+    padding: 10px;
+  width:65%;
+}
+.client-internal {
+  background-color: var(--custom-blue-three);
+}
+.update-card {
+  display:block;
+  background-color : #f2e8c2;
+  margin-top: 40px;
+}
+.update-card input {
+  border-radius: 4px;
+  margin: 8px;
+}
+
+.save-button {
+  margin-left: auto;
+  margin-right: auto;
+  background-color: var(--custom-blue-six);
+  color: #ffffff;
+  opacity : 10;
+  padding-left: 15px;
+  padding-right: 15px;
+  font-size: 8pt;
+}
+.save-button:hover {
+  opacity: 100;
+  background-color: var(--custom-blue-four);
+}
+
+.delete-button {
+  background-color: #b02a37;
+  color: #ffffff;
+  opacity: 10;
+  margin-left:80%;
+}
+
+.delete-button:hover {
+  opacity: 100;
+  background-color: #a01a27;
+}
+
+.regex-input input:invalid {
+  background: lightcoral;
+}
+
+.regex-input input:valid {
+  background: lightgreen;
+}
+
+#calendar-container {
+  max-width: 100%;
+  overflow-x: auto;
+  height: 95%;
+  margin: 20px auto;
+}
+
+#calendar {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+#calendar th, #calendar td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: center;
+}
+
+#calendar th {
+  background-color: #f2f2f2;
+}
+#calender tr {
+    height: 40px;
+}
+
+.hour-block {
+  position: relative;
+  height:40px;
+}
+
+.entry {
+  box-sizing: border-box;
+  background-color: #4CAF50;
+  color: white;
+  padding: 5px;
+  border-radius: 5px;
+  position: absolute;
 }

@@ -123,10 +123,10 @@
                     <input class="display-block" type="text" v-model="last_name" placeholder="Last Name">
                 </label>
                 <label class="display-block" v-if="loginStep">
-                     <input type="text" v-model="new_password" placeholder="password">
+                     <input type="password" v-model="new_password" placeholder="password">
                 </label>
                 <label class="display-block" v-if="loginStep">
-                    <input class="display-block" type="text" v-model="confirm_new_password" placeholder="Confirm password">
+                    <input class="display-block" type="password" v-model="confirm_new_password" placeholder="Confirm password">
                 </label>
                 <button class="display-block" v-if="loginStep" v-on:click="registerUser()"><span>Register</span></button>
                 <span class="display-block" v-if="showResponse" style="color:#8b0000">{{ registerResponse }}</span>

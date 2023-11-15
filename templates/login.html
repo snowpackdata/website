@@ -85,9 +85,9 @@
         }
         if (localStorage.snowpack_token) {
             payload = parseJwt(localStorage.snowpack_token);
-            if (payload.isStaff === true) {
+            if (payload.IsStaff === true) {
                 location.href="/admin";
-            } else if (payload.isStaff === false) {
+            } else if (payload.IsStaff === false) {
                 location.href="/cronos";
             }
         }

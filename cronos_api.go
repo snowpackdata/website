@@ -86,7 +86,7 @@ func (a *App) ProjectHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		if r.FormValue("active_start") != "" {
 			// first convert the string to a time.Time object
-			start, err := time.Parse("2006-01-02 15:04", r.FormValue("active_start"))
+			start, err := time.Parse("2006-01-02T15:04", r.FormValue("active_start"))
 			if err != nil {
 				fmt.Println(err)
 			}
@@ -94,7 +94,7 @@ func (a *App) ProjectHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		if r.FormValue("active_end") != "" {
 			// first convert the string to a time.Time object
-			endtime, err := time.Parse("2006-01-02 15:04", r.FormValue("active_end"))
+			endtime, err := time.Parse("2006-01-02T15:04", r.FormValue("active_end"))
 			if err != nil {
 				fmt.Println(err)
 			}
@@ -118,8 +118,8 @@ func (a *App) ProjectHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	case r.Method == "POST":
 		project.Name = r.FormValue("name")
-		project.ActiveStart, _ = time.Parse("2006-01-02 15:04", r.FormValue("active_start"))
-		project.ActiveEnd, _ = time.Parse("2006-01-02 15:04", r.FormValue("active_end"))
+		project.ActiveStart, _ = time.Parse("2006-01-02T15:04", r.FormValue("active_start"))
+		project.ActiveEnd, _ = time.Parse("2006-01-02T15:04", r.FormValue("active_end"))
 		project.BudgetHours, _ = strconv.Atoi(r.FormValue("budget_hours"))
 		project.BudgetDollars, _ = strconv.Atoi(r.FormValue("budget_dollars"))
 		project.Internal, _ = strconv.ParseBool(r.FormValue("internal"))
@@ -244,7 +244,7 @@ func (a *App) BillingCodeHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		if r.FormValue("active_start") != "" {
 			// first convert the string to a time.Time object
-			start, err := time.Parse("2006-01-02 15:04", r.FormValue("active_start"))
+			start, err := time.Parse("2006-01-02T15:04", r.FormValue("active_start"))
 			if err != nil {
 				fmt.Println(err)
 			}
@@ -252,7 +252,7 @@ func (a *App) BillingCodeHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		if r.FormValue("active_end") != "" {
 			// first convert the string to a time.Time object
-			endtime, err := time.Parse("2006-01-02 15:04", r.FormValue("active_end"))
+			endtime, err := time.Parse("2006-01-02T15:04", r.FormValue("active_end"))
 			if err != nil {
 				fmt.Println(err)
 			}
@@ -278,8 +278,8 @@ func (a *App) BillingCodeHandler(w http.ResponseWriter, r *http.Request) {
 		billingCode.Category = r.FormValue("category")
 		billingCode.Code = r.FormValue("code")
 		billingCode.RoundedTo, _ = strconv.Atoi(r.FormValue("rounded_to"))
-		billingCode.ActiveStart, _ = time.Parse("2006-01-02 15:04", r.FormValue("active_start"))
-		billingCode.ActiveEnd, _ = time.Parse("2006-01-02 15:04", r.FormValue("active_end"))
+		billingCode.ActiveStart, _ = time.Parse("2006-01-02T15:04", r.FormValue("active_start"))
+		billingCode.ActiveEnd, _ = time.Parse("2006-01-02T15:04", r.FormValue("active_end"))
 		billingCode.Internal, _ = strconv.ParseBool(r.FormValue("internal"))
 		var project cronos.Project
 		a.cronosApp.DB.Where("id = ?", r.FormValue("project_id")).First(&project)
@@ -329,7 +329,7 @@ func (a *App) RateHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		if r.FormValue("active_from") != "" {
 			// first convert the string to a time.Time object
-			start, err := time.Parse("2006-01-02 15:04", r.FormValue("active_from"))
+			start, err := time.Parse("2006-01-02T15:04", r.FormValue("active_from"))
 			if err != nil {
 				fmt.Println(err)
 			}
@@ -337,7 +337,7 @@ func (a *App) RateHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		if r.FormValue("active_to") != "" {
 			// first convert the string to a time.Time object
-			endtime, err := time.Parse("2006-01-02 15:04", r.FormValue("active_to"))
+			endtime, err := time.Parse("2006-01-02T15:04", r.FormValue("active_to"))
 			if err != nil {
 				fmt.Println(err)
 			}
@@ -354,8 +354,8 @@ func (a *App) RateHandler(w http.ResponseWriter, r *http.Request) {
 	case r.Method == "POST":
 		rate.Name = r.FormValue("name")
 		rate.Amount, _ = strconv.ParseFloat(r.FormValue("amount"), 64)
-		rate.ActiveFrom, _ = time.Parse("2006-01-02 15:04", r.FormValue("active_from"))
-		rate.ActiveTo, _ = time.Parse("2006-01-02 15:04", r.FormValue("active_to"))
+		rate.ActiveFrom, _ = time.Parse("2006-01-02T15:04", r.FormValue("active_from"))
+		rate.ActiveTo, _ = time.Parse("2006-01-02T15:04", r.FormValue("active_to"))
 		rate.InternalOnly, _ = strconv.ParseBool(r.FormValue("internal_only"))
 		a.cronosApp.DB.Create(&rate)
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
