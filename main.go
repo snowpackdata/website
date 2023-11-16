@@ -25,6 +25,8 @@ func main() {
 	// and then add it to our webapp struct to access it across handlers
 	cronosApp := cronos.App{}
 	cronosApp.Initialize()
+	cronosApp.Migrate()
+	cronosApp.SeedDatabase()
 	a := &App{cronosApp: &cronosApp}
 
 	r := mux.NewRouter()

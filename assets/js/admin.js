@@ -1,4 +1,3 @@
-// New Vue instance
 var App = new Vue({
 // Vue instance options here
     el: '#app', //
@@ -49,8 +48,9 @@ var App = new Vue({
         hours: ['8:00 AM', '9:00 AM', '10:00 AM', '11:00 AM', '12:00 PM', '1:00 PM', '2:00 PM', '3:00 PM', '4:00 PM', '5:00 PM', '6:00 PM', '7:00 PM', '8:00 PM', '9:00 PM', '10:00 PM'],
         // Example data for entries
         entries: [
-            { id: 1, day: 'Monday', startHour: '8:00 AM', duration: 5, project: 'Project A' }, // spans 5 hours
-            { id: 2, day: 'Wednesday', startHour: '11:00 AM', duration: 3, project: 'Project B' }, // spans 3 hours
+            { id: 1, day: 'Monday', startHour: '8:00 AM', duration: 5, project: 'Grid A' }, // spans 5 hours
+            { id: 1, day: 'Monday', startHour: '11:00 AM', duration: 5, project: 'Grid B' }, // spans 5 hours
+            { id: 2, day: 'Wednesday', startHour: '11:00 AM', duration: 3, project: 'Internal C' }, // spans 3 hours
             // Add more entries as needed
         ]
     },
@@ -91,7 +91,6 @@ var App = new Vue({
         updateEventSizes() {
             const columnWidth = this.getColumnWidth();
             const hourBlockHeight = this.getHourBlockHeight();
-            console.log(columnWidth, hourBlockHeight)
             // Update the width and height of each event based on the column width and hour block height
             const entries = document.querySelectorAll('.entry');
             entries.forEach(entry => {
@@ -117,6 +116,13 @@ var App = new Vue({
             const columnWidth = firstRowCells[1].getBoundingClientRect().width;
 
             return columnWidth * .95;
+        },
+        showEntryModal(entry) {
+            this.selectedEntry = entry;
+            $('#entry-modal').modal('show');
+        },
+        hideModal() {
+            $('#entry-modal').modal('hide');
         },
 
         updateWorkingScreen(screen) {
@@ -242,11 +248,12 @@ var App = new Vue({
                    name : '',
                    type : '',
                    code : '',
-                   internal : null,
-                   rate : {},
+                   rate : {ID : null},
+                   internal_rate : {ID : null},
                    active_start : null,
                    active_end : null,
                    rate_id : null,
+                   internal_rate_id: null,
                    project: null,
                };
            } else if (detail_type === 'rate') {
@@ -275,7 +282,7 @@ var App = new Vue({
                 postForm.set("budget_hours", this.detailProject.budget_hours)
                 postForm.set("budget_dollars", this.detailProject.budget_dollars)
                 postForm.set("active_start", this.parseDate(this.detailProject.active_start_vis, 'yyyy-MM-DDT00:00'))
-                postForm.set("active_end", this.parseDate(this.detailProject.active_start_vis, 'yyyy-MM-DDT00:00'))
+                postForm.set("active_end", this.parseDate(this.detailProject.active_end_vis, 'yyyy-MM-DDT00:00'))
                 postForm.set("internal", this.detailProject.internal)
                 let selectedAccount = retrieveFromList(this.accounts, 'name', this.detailProject.account.name)
                 postForm.set("account_id", selectedAccount.ID)
@@ -311,11 +318,10 @@ var App = new Vue({
                 postForm.set("name", this.detailBillingCode.name)
                 postForm.set("code", this.detailBillingCode.code)
                 postForm.set("active_start", this.parseDate(this.detailBillingCode.active_start_vis, 'yyyy-MM-DDT00:00'))
-                postForm.set("active_end", this.parseDate(this.detailBillingCode.active_start_vis, 'yyyy-MM-DDT00:00'))
-                postForm.set("internal", this.detailBillingCode.internal)
+                postForm.set("active_end", this.parseDate(this.detailBillingCode.active_end_vis, 'yyyy-MM-DDT00:00'))
                 postForm.set('type', this.detailBillingCode.type)
-                let selectedRate = retrieveFromList(this.rates, 'name', this.detailBillingCode.rate.name)
-                postForm.set("rate_id", selectedRate.ID)
+                postForm.set("rate_id", this.detailBillingCode.rate.ID)
+                postForm.set("internal_rate_id", this.detailBillingCode.internal_rate.ID)
                 postForm.set("project_id", this.detailBillingCode.project)
                 if (this.isNew) {
                     method = 'post'
@@ -349,7 +355,7 @@ var App = new Vue({
                 postForm.set("name", this.detailRate.name)
                 postForm.set("amount", this.detailRate.amount)
                 postForm.set("active_from", this.parseDate(this.detailRate.active_start_vis, 'yyyy-MM-DDT00:00'))
-                postForm.set("active_to", this.parseDate(this.detailRate.active_start_vis, 'yyyy-MM-DDT00:00'))
+                postForm.set("active_to", this.parseDate(this.detailRate.active_end_vis, 'yyyy-MM-DDT00:00'))
 
                 if (this.isNew) {
                     method = 'post'

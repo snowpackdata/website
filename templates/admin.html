@@ -34,6 +34,8 @@
     <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
     <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/axios@0.12.0/dist/axios.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue-js-modal@2.0.1/dist/index.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/vue-js-modal@2.0.1/dist/styles.min.css" rel="stylesheet">
 
     <link type="text/css" rel="stylesheet" href="../assets/css/style.css">
     <!-- Google tag (gtag.js) -->
@@ -94,6 +96,24 @@
         <!--        HOME UI SECTION-->
         <div id="home" v-if="workingScreen.home" class="admin-content">
             <div class="col-12">
+                <div id="entry-modal" class="modal" role="dialog" @keydown.esc="hideModal()" tabindex="0" style="margin-top:3%">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h3 class="blog-title" style="">Edit Journal Entry</h3>
+                                <span @click="hideModal()" style="margin-left:40%"><i class="fa-solid fa-circle-xmark fa-lg"></i></span>
+                                </button>
+                            </div>
+                            <div class="modal-body">
+                                <p>Journal Entry goes here.</p>
+                            </div>
+                            <div class="modal-footer" style="display:flex;justify-content: space-between">
+                                <button type="button" class="save-button" style="margin-left:5%;margin-right:auto;">Save</button>
+                                <button type="button" class="delete-button" style="margin-left:auto;margin-right:5%">Delete</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 <div id="calendar-container">
                     <table id="calendar">
                         <thead>
@@ -108,6 +128,7 @@
                             <td v-for="(day, dayIndex) in days" :key="dayIndex" class="hour-block">
                                 <!-- You can use Vue.js data and methods to dynamically generate entries here -->
                                 <div v-for="entry in getEntries(day, hour)" :key="entry.id"
+                                     @click="showEntryModal(entry)"
                                      :style="{ height: calculateEntryHeight(entry) + 'px', top: calculateEntryTop(entry) + 'px', left: calculateEntryLeft(dayIndex) + 'px', width: calculateEntryWidth(dayIndex) + 'px' }"
                                      class="entry">{{ entry.project }}
                                 </div>
@@ -199,7 +220,7 @@
                         <div v-for="b in billing_codes" class="admin-record-card">
                             <div class="col-6">
                                 <div class=""><h3>{{ b.name }}</h3></div>
-                                <div class="client-widget" :class="{ 'client-internal' : b.internal}">
+                                <div class="client-widget" :class="{ 'client-internal' : b.project.internal}">
                                     {{ b.rate.name}} : ${{ b.rate.amount }}/hr
                                 </div>
                             </div>
@@ -225,7 +246,7 @@
                         </h2>
                         <div class="regex-input">
                             <label>Code</label>
-                                <input class="regex-input" type="text" v-model="detailBillingCode.code" placeholder="Code" pattern="^\w+_\d{4}$"> format WORD_nnnn
+                                <input class="regex-input" type="text" v-model="detailBillingCode.code" placeholder="Code" pattern="^\w+_\d{4}$"> format WWWW_nnnn
                         </div>
                         <hr>
                         <label>Project</label>
@@ -244,19 +265,24 @@
                             <label>Round Billables To: </label>
                             <input type="number" v-model="detailBillingCode.rounded_to">
                         </div>
-                        <div>
-                            <label>Internal Project</label>
-                            <input type="checkbox" v-model="detailBillingCode.internal">
-                        </div>
                         <hr>
-                        <div>
-                            <h3>Associated Rate</h3>
-                            <label>Rate</label>
-                            <select v-model="detailBillingCode.rate.name">
-                                <option v-for="rate in rates" :value="rate.name">
-                                    {{ rate.name }} - ${{ rate.amount }}/hr
-                                </option>
-                            </select>
+                        <div >
+                            <div style="display:block">
+                                <label>Billable Rate</label>
+                                <select v-model="detailBillingCode.rate.ID">
+                                    <option v-for="rate in rates" :value="rate.ID">
+                                        {{ rate.name }} - ${{ rate.amount }}/hr
+                                    </option>
+                                </select>
+                            </div>
+                            <div style="display:block">
+                                <label>Internal Rate</label>
+                                <select v-model="detailBillingCode.internal_rate.ID">
+                                    <option v-for="rate in rates" :value="rate.ID">
+                                        {{ rate.name }} - ${{ rate.amount }}/hr
+                                    </option>
+                                </select>
+                            </div>
                         </div>
                         <div>
                             <h3>Billing Category</h3>
