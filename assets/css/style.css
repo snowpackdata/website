@@ -12206,7 +12206,8 @@ h3.blog-subtitle  {
 #calendar-container {
   max-width: 100%;
   overflow-x: auto;
-  height: 95%;
+  overflow-y: scroll;
+  height: 70vh;
   margin: 20px;
 }
 
@@ -12241,6 +12242,9 @@ h3.blog-subtitle  {
   border-radius: 5px;
   position: absolute;
   opacity:50%;
+  cursor: pointer;
+  margin-left: 4px;
+  margin-right: 4px;
 }
 
 .entry:hover {

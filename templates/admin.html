@@ -2,7 +2,16 @@
 <html>
 <head>
     <title>Snowpack Data</title>
-    <!-- Bootstrap Files from CDN -->
+    <script>
+        Date.prototype.addDays = function(days) {
+            var date = new Date(this.valueOf());
+            date.setDate(date.getDate() + days);
+            return date;
+        };
+    </script>
+    <script src="../assets/js/moment.min.js"></script>
+    <script src="../assets/js/moment-timezone.js"></script>
+<!--    Bootstrap from CDN-->
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
     <meta name="description" content="Snowpack Data is an analytics consulting company based in California" />
@@ -95,8 +104,18 @@
     <div class="main-body">
         <!--        HOME UI SECTION-->
         <div id="home" v-if="workingScreen.home" class="admin-content">
+            <div class="col-12" v-if="workingScreen.home" style="margin:15px;">
+                <div style="display:flex;justify-content:space-around">
+                    <button @click="showNewEntryModal()" class="">Add Entry</button>
+                    <div style="margin-left:auto;margin-right:10%">
+                        <button @click="decrementWeek()" class=""><i class="fa-solid fa-circle-chevron-left"></i></button>
+                        {{ currentWeekDaysFormatted[0] }} to {{ currentWeekDaysFormatted[6] }}
+                        <button @click="incrementWeek()" class=""><i class="fa-solid fa-circle-chevron-right"></i></button>
+                    </div>
+                </div>
+            </div>
             <div class="col-12">
-                <div id="entry-modal" class="modal" role="dialog" @keydown.esc="hideModal()" tabindex="0" style="margin-top:3%">
+                <div id="entry-modal" class="modal" role="dialog" @keydown.esc="hideModal()" tabindex="0" style="margin-top:5%">
                     <div class="modal-dialog" role="document">
                         <div class="modal-content">
                             <div class="modal-header">
@@ -104,12 +123,28 @@
                                 <span @click="hideModal()" style="margin-left:40%"><i class="fa-solid fa-circle-xmark fa-lg"></i></span>
                                 </button>
                             </div>
-                            <div class="modal-body">
-                                <p>Journal Entry goes here.</p>
+                            <div class="modal-body" style="">
+                                <label>Select Billing Code</label>
+                                <select v-model="selectedEntry.billing_code_id">
+                                    <option v-for="billing_code in billing_codes" :value="billing_code.ID">
+                                       {{billing_code.code}} : {{billing_code.name}}
+                                    </option>
+                                </select>
+                                <hr>
+                                <label>Start Time</label>
+                                <input type="datetime-local" v-model="selectedEntry.start_vis">
+                                <label>End Time</label>
+                                <input type="datetime-local" v-model="selectedEntry.end_vis">
+                                <div>
+                                    Length : {{ selectedEntry.duration_hours }} hours
+                                </div>
+                                <hr>
+                                <label>Notes</label>
+                                <textarea style="width:100%;height:80px;" v-model="selectedEntry.notes"></textarea>
                             </div>
                             <div class="modal-footer" style="display:flex;justify-content: space-between">
-                                <button type="button" class="save-button" style="margin-left:5%;margin-right:auto;">Save</button>
-                                <button type="button" class="delete-button" style="margin-left:auto;margin-right:5%">Delete</button>
+                                <button @click="submitPostPut('entry')" class="save-button" style="margin-left:5%;margin-right:auto;">Save</button>
+                                <button @click="deleteObject(selectedEntry, 'entry')" class="delete-button" style="margin-left:auto;margin-right:5%">Delete</button>
                             </div>
                         </div>
                     </div>
@@ -119,18 +154,19 @@
                         <thead>
                         <tr>
                             <th style="width: 12.5%;">Day</th>
-                            <th v-for="day in days" style="width: 12.5%;">{{ day }}</th>
+                            <th v-for="(day, index) in days" style="width: 12.5%;">{{ day }} <br>
+                            {{ currentWeekDaysFormatted[index] }}</th>
                         </tr>
                         </thead>
                         <tbody>
                         <tr v-for="(hour, hourIndex) in hours" :key="hourIndex">
-                            <td>{{ hour }}</td>
+                            <td>{{ hour.display }}</td>
                             <td v-for="(day, dayIndex) in days" :key="dayIndex" class="hour-block">
                                 <!-- You can use Vue.js data and methods to dynamically generate entries here -->
                                 <div v-for="entry in getEntries(day, hour)" :key="entry.id"
                                      @click="showEntryModal(entry)"
-                                     :style="{ height: calculateEntryHeight(entry) + 'px', top: calculateEntryTop(entry) + 'px', left: calculateEntryLeft(dayIndex) + 'px', width: calculateEntryWidth(dayIndex) + 'px' }"
-                                     class="entry">{{ entry.project }}
+                                     :style="{ height: calculateEntryHeight(entry) + 'px', top: calculateEntryTop(entry) + 'px', left: calculateEntryLeft(dayIndex) + 'px', width: calculateEntryWidth(dayIndex) + 'px'}"
+                                     class="entry">{{ entry.billing_code }}
                                 </div>
                             </td>
                         </tr>
@@ -161,7 +197,7 @@
                        </div>
                     </div>
                 </div>
-                <div class="col-6" style="display:block;">
+                <div class="col-6" style="display:block;" @keydown.esc="exitDetail()" tabindex="0">
                     <div class="col-12" style="margin-bottom:15px;">
                         <button @click="createNew('project')" class="" style="float:right;margin-right:15%">Create New</button>
                     </div>
@@ -234,7 +270,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-6" style="display:block;">
+                <div class="col-6" style="display:block;" @keydown.esc="closeModalLogin" tabindex="0">
                     <div class="col-12" style="margin-bottom:15px;">
                         <button @click="createNew('billing_code')" class="" style="float:right;margin-right:15%">Create New</button>
                     </div>
@@ -263,13 +299,13 @@
                         </div>
                         <div>
                             <label>Round Billables To: </label>
-                            <input type="number" v-model="detailBillingCode.rounded_to">
+                            <input type="number" v-model="detailBillingCode.rounded_to"> minutes
                         </div>
                         <hr>
                         <div >
                             <div style="display:block">
                                 <label>Billable Rate</label>
-                                <select v-model="detailBillingCode.rate.ID">
+                                <select v-model="detailBillingCode.rate_id">
                                     <option v-for="rate in rates" :value="rate.ID">
                                         {{ rate.name }} - ${{ rate.amount }}/hr
                                     </option>
@@ -277,7 +313,7 @@
                             </div>
                             <div style="display:block">
                                 <label>Internal Rate</label>
-                                <select v-model="detailBillingCode.internal_rate.ID">
+                                <select v-model="detailBillingCode.internal_rate_id">
                                     <option v-for="rate in rates" :value="rate.ID">
                                         {{ rate.name }} - ${{ rate.amount }}/hr
                                     </option>
@@ -321,7 +357,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="col-6" style="display:block;">
+                <div class="col-6" style="display:block; "@keydown.esc="exitDetail()" tabindex="0">
                     <div class="col-12" style="margin-bottom:15px;">
                         <button @click="createNew('rate')" class="" style="float:right;margin-right:15%">Create New</button>
                     </div>
@@ -386,13 +422,13 @@
                     <div class="col-12" style="margin-bottom:15px;">
                         <button @click="createNew('account')" class="" style="float:right;margin-right:15%">Create New</button>
                     </div>
-                    <div v-if="showDetail" class="admin-record-card update-card">
+                    <div v-if="showDetail" class="admin-record-card update-card" @keydown.esc="exitDetail()" tabindex="0">
                         <span @click="exitDetail()" style="margin-left:95%"><i class="fa-solid fa-circle-xmark"></i></span>
                         <h2>
                             <label>Account Name</label>
                             <input type="text" v-model="detailAccount.name" placeholder="Name">
                         </h2>
-                        <label>Account Name</label>
+                        <label>Account Type</label>
                         <select v-model="detailAccount.type">
                             <option v-for="accountType in accountTypes" :value="accountType.type">
                                 {{ accountType.name }}
@@ -417,6 +453,9 @@
                                     {{ client.role }} : {{client.email}}
                                 </li>
                             </ul>
+                            <label>Invite User</label>
+                            <input type="text" v-model="invitedUserEmail">
+                            <button @click="inviteUser(detailAccount)" class="save-button"><i class="fa-regular fa-paper-plane"></i></button>
                         </div>
                         <hr>
                         <div>
@@ -448,7 +487,6 @@
 
 </body>
 <script src="../assets/js/admin.js"></script>
-<script src="../assets/js/moment.min.js"></script>
 
 <script>
     // Prepopulate Data we may need in the front end
@@ -457,5 +495,7 @@
     App.fetchStaff();
     App.fetchProjects();
     App.fetchBillingCodes();
+    App.fetchEntries();
+    App.updateEventSizes();
 </script>
 </html>

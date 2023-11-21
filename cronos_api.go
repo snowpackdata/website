@@ -66,20 +66,11 @@ func (a *App) EntriesListHandler(w http.ResponseWriter, r *http.Request) {
 	userIDInt := r.Context().Value("user_id")
 	a.cronosApp.DB.Where("user_id = ?", userIDInt).First(&employee)
 
-	a.cronosApp.DB.Preload("BillingCode").Preload("Employee").Where("employee_id = ?", employee.ID).Find(&entries)
+	a.cronosApp.DB.Preload("BillingCode").Preload("Employee").Preload("LinkedEntry").Where("employee_id = ?", employee.ID).Where("internal = ?", false).Find(&entries)
 	apiEntries := make([]cronos.ApiEntry, len(entries))
-	for _, entry := range entries {
-		var apiEntry cronos.ApiEntry
-		apiEntry.Entry = entry
-		apiEntry.StartDate = entry.Start.Format("2006-01-02T15:04")
-		apiEntry.EndDate = entry.End.Format("2006-01-02T15:04")
-		apiEntry.StartHour = entry.Start.Hour()
-		apiEntry.StartMinute = entry.Start.Minute()
-		apiEntry.EndHour = entry.End.Hour()
-		apiEntry.EndMinute = entry.End.Minute()
-		apiEntry.DurationHours = entry.End.Sub(entry.Start).Minutes() / 60.0
-		apiEntry.StartDayOfWeek = entry.Start.Weekday().String()
-		apiEntries = append(apiEntries, apiEntry)
+	for i, entry := range entries {
+		apiEntry := entry.GetAPIEntry()
+		apiEntries[i] = apiEntry
 	}
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
@@ -114,7 +105,8 @@ func (a *App) ProjectHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		if r.FormValue("active_start") != "" {
 			// first convert the string to a time.Time object
-			start, err := time.Parse("2006-01-02T15:04", r.FormValue("active_start"))
+			start, err := time.Parse("2006-01-02", r.FormValue("active_start"))
+			start.In(time.UTC)
 			if err != nil {
 				fmt.Println(err)
 			}
@@ -122,7 +114,7 @@ func (a *App) ProjectHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		if r.FormValue("active_end") != "" {
 			// first convert the string to a time.Time object
-			endtime, err := time.Parse("2006-01-02T15:04", r.FormValue("active_end"))
+			endtime, err := time.Parse("2006-01-02", r.FormValue("active_end"))
 			if err != nil {
 				fmt.Println(err)
 			}
@@ -146,8 +138,8 @@ func (a *App) ProjectHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	case r.Method == "POST":
 		project.Name = r.FormValue("name")
-		project.ActiveStart, _ = time.Parse("2006-01-02T15:04", r.FormValue("active_start"))
-		project.ActiveEnd, _ = time.Parse("2006-01-02T15:04", r.FormValue("active_end"))
+		project.ActiveStart, _ = time.Parse("2006-01-02", r.FormValue("active_start"))
+		project.ActiveEnd, _ = time.Parse("2006-01-02", r.FormValue("active_end"))
 		project.BudgetHours, _ = strconv.Atoi(r.FormValue("budget_hours"))
 		project.BudgetDollars, _ = strconv.Atoi(r.FormValue("budget_dollars"))
 		project.Internal, _ = strconv.ParseBool(r.FormValue("internal"))
@@ -272,7 +264,7 @@ func (a *App) BillingCodeHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		if r.FormValue("active_start") != "" {
 			// first convert the string to a time.Time object
-			start, err := time.Parse("2006-01-02T15:04", r.FormValue("active_start"))
+			start, err := time.Parse("2006-01-02", r.FormValue("active_start"))
 			if err != nil {
 				fmt.Println(err)
 			}
@@ -280,7 +272,7 @@ func (a *App) BillingCodeHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		if r.FormValue("active_end") != "" {
 			// first convert the string to a time.Time object
-			endtime, err := time.Parse("2006-01-02T15:04", r.FormValue("active_end"))
+			endtime, err := time.Parse("2006-01-02", r.FormValue("active_end"))
 			if err != nil {
 				fmt.Println(err)
 			}
@@ -308,8 +300,8 @@ func (a *App) BillingCodeHandler(w http.ResponseWriter, r *http.Request) {
 		billingCode.Category = r.FormValue("category")
 		billingCode.Code = r.FormValue("code")
 		billingCode.RoundedTo, _ = strconv.Atoi(r.FormValue("rounded_to"))
-		billingCode.ActiveStart, _ = time.Parse("2006-01-02T15:04", r.FormValue("active_start"))
-		billingCode.ActiveEnd, _ = time.Parse("2006-01-02T15:04", r.FormValue("active_end"))
+		billingCode.ActiveStart, _ = time.Parse("2006-01-02", r.FormValue("active_start"))
+		billingCode.ActiveEnd, _ = time.Parse("2006-01-02", r.FormValue("active_end"))
 		var project cronos.Project
 		a.cronosApp.DB.Where("id = ?", r.FormValue("project_id")).First(&project)
 		billingCode.ProjectID = project.ID
@@ -359,7 +351,7 @@ func (a *App) RateHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		if r.FormValue("active_from") != "" {
 			// first convert the string to a time.Time object
-			start, err := time.Parse("2006-01-02T15:04", r.FormValue("active_from"))
+			start, err := time.Parse("2006-01-02", r.FormValue("active_from"))
 			if err != nil {
 				fmt.Println(err)
 			}
@@ -367,7 +359,7 @@ func (a *App) RateHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		if r.FormValue("active_to") != "" {
 			// first convert the string to a time.Time object
-			endtime, err := time.Parse("2006-01-02T15:04", r.FormValue("active_to"))
+			endtime, err := time.Parse("2006-01-02", r.FormValue("active_to"))
 			if err != nil {
 				fmt.Println(err)
 			}
@@ -384,8 +376,8 @@ func (a *App) RateHandler(w http.ResponseWriter, r *http.Request) {
 	case r.Method == "POST":
 		rate.Name = r.FormValue("name")
 		rate.Amount, _ = strconv.ParseFloat(r.FormValue("amount"), 64)
-		rate.ActiveFrom, _ = time.Parse("2006-01-02T15:04", r.FormValue("active_from"))
-		rate.ActiveTo, _ = time.Parse("2006-01-02T15:04", r.FormValue("active_to"))
+		rate.ActiveFrom, _ = time.Parse("2006-01-02", r.FormValue("active_from"))
+		rate.ActiveTo, _ = time.Parse("2006-01-02", r.FormValue("active_to"))
 		rate.InternalOnly, _ = strconv.ParseBool(r.FormValue("internal_only"))
 		a.cronosApp.DB.Create(&rate)
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
@@ -414,16 +406,10 @@ func (a *App) EntryHandler(w http.ResponseWriter, r *http.Request) {
 		a.cronosApp.DB.First(&entry, vars["id"])
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(http.StatusOK)
-		_ = json.NewEncoder(w).Encode(&entry)
+		_ = json.NewEncoder(w).Encode(entry.GetAPIEntry())
 		return
 	case r.Method == "PUT":
 		a.cronosApp.DB.First(&entry, vars["id"])
-		if r.FormValue("employee_id") != "" {
-			var employee cronos.Employee
-			a.cronosApp.DB.Where("id = ?", r.FormValue("employee_id")).First(&employee)
-			entry.EmployeeID = employee.ID
-			entry.Employee = employee
-		}
 		if r.FormValue("billing_code_id") != "" {
 			var billingCode cronos.BillingCode
 			a.cronosApp.DB.Where("id = ?", r.FormValue("billing_code_id")).First(&billingCode)
@@ -432,7 +418,7 @@ func (a *App) EntryHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		if r.FormValue("start") != "" {
 			// first convert the string to a time.Time object
-			start, err := time.Parse("2006-01-02T15:04", r.FormValue("start_date"))
+			start, err := time.Parse("2006-01-02T15:04", r.FormValue("start"))
 			if err != nil {
 				fmt.Println(err)
 			}
@@ -440,47 +426,67 @@ func (a *App) EntryHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		if r.FormValue("end") != "" {
 			// first convert the string to a time.Time object
-			endtime, err := time.Parse("2006-01-02T15:04", r.FormValue("end_date"))
+			endtime, err := time.Parse("2006-01-02T15:04", r.FormValue("end"))
 			if err != nil {
 				fmt.Println(err)
 			}
 			entry.End = endtime
 		}
-		if r.FormValue("journal_id") != "" {
-			var journal cronos.Journal
-			a.cronosApp.DB.Where("id = ?", r.FormValue("journal_id")).First(&journal)
-			entry.JournalID = journal.ID
-			entry.Journal = journal
+		if r.FormValue("notes") != "" {
+			entry.Notes = r.FormValue("notes")
 		}
-		linkedEntry := entry.LinkedEntry
+		var linkedEntry cronos.Entry
+		a.cronosApp.DB.Where("id = ?", entry.LinkedEntryID).First(&linkedEntry)
 		a.cronosApp.DB.Save(&entry)
+		var billingCode cronos.BillingCode
+		a.cronosApp.DB.Where("id = ?", r.FormValue("billing_code_id")).First(&billingCode)
+		linkedEntry.BillingCodeID = entry.BillingCodeID
+		entry.BillingCode = billingCode
 		linkedEntry.Start = entry.Start
 		linkedEntry.End = entry.End
 		a.cronosApp.DB.Save(&linkedEntry)
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-		_ = json.NewEncoder(w).Encode(&entry)
+		_ = json.NewEncoder(w).Encode(entry.GetAPIEntry())
 		return
 	case r.Method == "POST":
-		var entry cronos.Entry
 		entry.Start, _ = time.Parse("2006-01-02T15:04", r.FormValue("start"))
 		entry.End, _ = time.Parse("2006-01-02T15:04", r.FormValue("end"))
 		var employee cronos.Employee
-		userIDInt := r.Context().Value("user_id").(int)
-		a.cronosApp.DB.Where("user_id = ?", userIDInt).First(&employee)
+		userID := r.Context().Value("user_id")
+		a.cronosApp.DB.Where("user_id = ?", userID).First(&employee)
 		entry.EmployeeID = employee.ID
-		billingCodeInt, _ := strconv.Atoi(r.FormValue("billing_code_id"))
-		entry.BillingCodeID = uint(billingCodeInt)
+
+		// Retrieve the billing code so we can get the project off it
+		var billingCode cronos.BillingCode
+		a.cronosApp.DB.Where("id = ?", r.FormValue("billing_code_id")).First(&billingCode)
+		entry.BillingCodeID = billingCode.ID
+		entry.BillingCode = billingCode
+		entry.ProjectID = billingCode.ProjectID
 		entry.Internal = false
-		journalID, _ := strconv.Atoi(r.FormValue("journal_id"))
+		entry.Notes = r.FormValue("notes")
+
+		// right now journalID is always set to accounts receivable
+		//journalID, _ := strconv.Atoi(r.FormValue("journal_id"))
+		journalID := 1
 		entry.JournalID = uint(journalID)
-		a.cronosApp.DB.Create(&entry)
-		linkedEntry := a.generateLinkedEntry(entry)
-		a.cronosApp.DB.Create(&linkedEntry)
+		linkedEntry := a.generateLinkedEntry(&entry)
+
+		// Need to first create the entries before we can associate them
+		a.cronosApp.DB.Omit("LinkedEntry").Create(&entry)
+		a.cronosApp.DB.Omit("LinkedEntry").Create(&linkedEntry)
+		// Next add associations
 		entry.LinkedEntryID = linkedEntry.ID
+		entry.LinkedEntry = &linkedEntry
+		linkedEntry.LinkedEntryID = entry.ID
+		linkedEntry.LinkedEntry = &entry
 		a.cronosApp.DB.Save(&entry)
+		a.cronosApp.DB.Save(&linkedEntry)
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(http.StatusCreated)
-		_ = json.NewEncoder(w).Encode(&entry)
+		err := json.NewEncoder(w).Encode(entry.GetAPIEntry())
+		if err != nil {
+			fmt.Println(err)
+		}
 		return
 	case r.Method == "DELETE":
 		a.cronosApp.DB.Where("id = ?", vars["id"]).Delete(&cronos.Entry{})
@@ -493,15 +499,41 @@ func (a *App) EntryHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (a *App) generateLinkedEntry(entry cronos.Entry) cronos.Entry {
+func (a *App) InviteUserHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	var account cronos.Account
+	a.cronosApp.DB.First(&account, vars["id"])
+	if account.Type == cronos.AccountTypeInternal.String() {
+		err := a.cronosApp.RegisterStaff(r.FormValue("email"), account.ID)
+		if err != nil {
+			fmt.Println(err)
+		}
+	} else if account.Type == cronos.AccountTypeClient.String() {
+		err := a.cronosApp.RegisterClient(r.FormValue("email"), account.ID)
+		if err != nil {
+			fmt.Println(err)
+		}
+	}
+	// Retrieve the user we just created
+	var user cronos.User
+	a.cronosApp.DB.Where("email = ?", r.FormValue("email")).First(&user)
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	w.WriteHeader(http.StatusCreated)
+	err := json.NewEncoder(w).Encode(user)
+	if err != nil {
+		fmt.Println(err)
+	}
+	return
+}
+
+func (a *App) generateLinkedEntry(entry *cronos.Entry) cronos.Entry {
 	var linkedEntry cronos.Entry
-	var internalJournal cronos.Journal
-	a.cronosApp.DB.Where("name = ?", "ACCOUNTS_PAYABLE").First(&internalJournal)
 	linkedEntry.ProjectID = entry.ProjectID
 	linkedEntry.EmployeeID = entry.EmployeeID
 	linkedEntry.Start = entry.Start
 	linkedEntry.End = entry.End
 	linkedEntry.Internal = true
-	linkedEntry.JournalID = internalJournal.ID
+	linkedEntry.Notes = entry.Notes
+	linkedEntry.JournalID = 2
 	return linkedEntry
 }

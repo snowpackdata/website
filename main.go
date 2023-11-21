@@ -21,6 +21,9 @@ type App struct {
 func main() {
 	var wait time.Duration
 
+	//var PacificTimezone, _ = time.LoadLocation("America/Los_Angeles")
+	//time.Local = PacificTimezone
+
 	// We must initialize the cronos app to access its databases and methods
 	// and then add it to our webapp struct to access it across handlers
 	cronosApp := cronos.App{}
@@ -54,10 +57,12 @@ func main() {
 
 	api.HandleFunc("/projects", a.ProjectsListHandler).Methods("GET")
 	api.HandleFunc("/projects/{id:[0-9]+}", a.ProjectHandler).Methods("GET", "PUT", "POST", "DELETE")
-
+	api.HandleFunc("/entries", a.EntriesListHandler).Methods("GET")
+	api.HandleFunc("/entries/{id:[0-9]+}", a.EntryHandler).Methods("GET", "PUT", "POST", "DELETE")
 	api.HandleFunc("/staff", a.StaffListHandler).Methods("GET")
 	api.HandleFunc("/accounts", a.AccountsListHandler).Methods("GET")
 	api.HandleFunc("/accounts/{id:[0-9]+}", a.AccountHandler).Methods("GET", "PUT", "POST", "DELETE")
+	api.HandleFunc("/accounts/{id:[0-9]+}/invite", a.InviteUserHandler).Methods("POST")
 	api.HandleFunc("/rates", a.RatesListHandler).Methods("GET")
 	api.HandleFunc("/rates/{id:[0-9]+}", a.RateHandler).Methods("GET", "PUT", "POST", "DELETE")
 	api.HandleFunc("/billing_codes", a.BillingCodesListHandler).Methods("GET")

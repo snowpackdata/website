@@ -85,10 +85,10 @@ func JwtVerify(next http.Handler) http.Handler {
 
 		// With the header parsed, next parse the token and write the claims to a Claims object so
 		// that we can access the user_id in the context of the request
-		token, err := jwt.ParseWithClaims(header, &Claims{}, func(token *jwt.Token) (interface{}, error) {
+		claims := jwt.MapClaims{}
+		token, err := jwt.ParseWithClaims(header, &claims, func(token *jwt.Token) (interface{}, error) {
 			return []byte("secret"), nil
 		})
-		claims, _ := token.Claims.(jwt.MapClaims)
 		if err != nil {
 			w.WriteHeader(http.StatusForbidden)
 			err = json.NewEncoder(w).Encode(Exception{Message: err.Error()})
@@ -97,9 +97,17 @@ func JwtVerify(next http.Handler) http.Handler {
 			}
 			return
 		}
+		if !token.Valid {
+			w.WriteHeader(http.StatusForbidden)
+			err = json.NewEncoder(w).Encode(Exception{Message: "Invalid authorization token"})
+			if err != nil {
+				log.Println(err)
+			}
+			return
+		}
 		// Finally we'll pass the user ID to the context variable so that we can access it in
 		// the subsequent handler functions
-		ctx := context.WithValue(r.Context(), "user_id", claims["user_id"])
+		ctx := context.WithValue(r.Context(), "user_id", claims["UserID"])
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
