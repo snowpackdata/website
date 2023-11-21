@@ -25,5 +25,6 @@ jobs:
         uses: 'google-github-actions/auth@v1'
         with:
           credentials_json: '${{ secrets.GCP_SERVICE_CREDENTIALS }}'
+          cloud_component: 'app-engine-go'
       - name: 'Deploy to GAE'
         uses: 'google-github-actions/deploy-appengine@v1'
