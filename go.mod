@@ -1,13 +1,12 @@
 module github.com/snowpackdata/website
 
-replace github.com/snowpackdata/cronos => ../cronos
 
 go 1.21.3
 
 require (
 	github.com/gorilla/handlers v1.5.1
 	github.com/gorilla/mux v1.8.0
-	github.com/snowpackdata/cronos v0.0.0-00010101000000-000000000000
+	github.com/snowpackdata/cronos v1.0.0
 )
 
 require (
