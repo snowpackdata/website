@@ -7,8 +7,13 @@ on:
 jobs:
   audit:
     runs-on: ubuntu-20.04
+    env:
+      GOPRIVATE: github.com/snowpackdata/cronos
+      GH_ACCESS_TOKEN: ${{ secrets.GH_ACCESS_TOKEN }}
+
     steps:
     - uses: actions/checkout@v2
+    - run: git config --global url.https://$GH_ACCESS_TOKEN@github.com/cronos.insteadOf https://github.com/cronos
     - name: Build
       run: go build -v ./...
 
