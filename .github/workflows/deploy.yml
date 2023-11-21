@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       GH_ACCESS_TOKEN : ${{ secrets.GH_ACCESS_TOKEN }}
-      GO_PRIVATE: github.com/snowpackdata/cronos
+      GOPRIVATE: github.com/snowpackdata/cronos
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
