@@ -29,7 +29,7 @@ func main() {
 	cronosApp := cronos.App{}
 	cronosApp.Initialize()
 	cronosApp.Migrate()
-	cronosApp.SeedDatabase()
+	//cronosApp.SeedDatabase()
 	a := &App{cronosApp: &cronosApp}
 
 	r := mux.NewRouter()
