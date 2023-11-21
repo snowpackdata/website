@@ -12,6 +12,12 @@ jobs:
     env:
       GH_ACCESS_TOKEN : ${{ secrets.GH_ACCESS_TOKEN }}
       GOPRIVATE: github.com/snowpackdata/cronos
+      SENDGRID_API_KEY : ${{ secrets.SENDGRID_API_KEY }}
+      CLOUD_SQL_CONNECTION_NAME : ${{ secrets.CLOUD_SQL_CONNECTION_NAME }}
+      CLOUD_SQL_USERNAME : ${{ secrets.CLOUD_SQL_USERNAME }}
+      CLOUD_SQL_PASSWORD : ${{ secrets.CLOUD_SQL_PASSWORD }}
+      CLOUD_SQL_DATABASE : ${{ secrets.CLOUD_SQL_DATABASE }}
+      JWT_SECRET : ${{ secrets.JWT_SECRET }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -34,10 +40,10 @@ jobs:
           build_env_vars: |-
               GOPRIVATE=github.com/snowpackdata/cronos
           env_vars: |-
-            SENDGRID_API_KEY=${{ secrets.SENDGRID_API_KEY }}
-            CLOUD_SQL_CONNECTION_NAME=${{ secrets.CLOUD_SQL_CONNECTION_NAME }}
-            CLOUD_SQL_USERNAME=${{ secrets.CLOUD_SQL_USERNAME }}
-            CLOUD_SQL_PASSWORD=${{ secrets.CLOUD_SQL_PASSWORD }}
-            CLOUD_SQL_DATABASE=${{ secrets.CLOUD_SQL_DATABASE }}
-            JWT_SECRET=${{ secrets.JWT_SECRET }}
+            SENDGRID_API_KEY=$SENDGRID_API_KEY
+            CLOUD_SQL_CONNECTION_NAME=$CLOUD_SQL_CONNECTION_NAME
+            CLOUD_SQL_USERNAME=$CLOUD_SQL_USERNAME
+            CLOUD_SQL_PASSWORD=$CLOUD_SQL_PASSWORD
+            CLOUD_SQL_DATABASE=$CLOUD_SQL_DATABASE
+            JWT_SECRET=$JWT_SECRET
             ENVIRONMENT=production
