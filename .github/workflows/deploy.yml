@@ -11,6 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       GH_ACCESS_TOKEN : ${{ secrets.GH_ACCESS_TOKEN }}
+      GO_PRIVATE: github.com/snowpackdata/cronos
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -18,13 +19,12 @@ jobs:
         uses: actions/setup-go@v4
         with:
           go-version: 1.21
-      - run: git config --global url."https://:${{ secrets.GH_ACCESS_TOKEN }}:x-oauth-basic@github.com/snowpackdata".insteadOf "https://github.com/snowpackdata"
+      - run: git config --global url."https://${{ secrets.GH_ACCESS_TOKEN }}:x-oauth-basic@github.com/snowpackdata".insteadOf "https://github.com/snowpackdata"
       - name: Build
         run: go build -v ./...
       - name: 'Authenticate to Google Cloud'
         uses: 'google-github-actions/auth@v1'
         with:
           credentials_json: '${{ secrets.GCP_SERVICE_CREDENTIALS }}'
-          cloud_component: 'app-engine-go'
       - name: 'Deploy to GAE'
         uses: 'google-github-actions/deploy-appengine@v1'

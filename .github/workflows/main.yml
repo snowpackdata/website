@@ -8,7 +8,7 @@ jobs:
   audit:
     runs-on: ubuntu-20.04
     env:
-      GOPRIVATE: github.com/snowpackdata/cronos
+      GO_PRIVATE: github.com/snowpackdata/cronos
       GH_ACCESS_TOKEN: ${{ secrets.GH_ACCESS_TOKEN }}
 
     steps:
