@@ -1,7 +1,5 @@
 module github.com/snowpackdata/website
 
-replace github.com/snowpackdata/cronos => ../cronos
-
 go 1.21.3
 
 require (
