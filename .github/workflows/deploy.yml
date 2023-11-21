@@ -28,3 +28,6 @@ jobs:
           credentials_json: '${{ secrets.GCP_SERVICE_CREDENTIALS }}'
       - name: 'Deploy to GAE'
         uses: 'google-github-actions/deploy-appengine@v1'
+        with:
+          build_env_vars: |-
+              GOPRIVATE: github.com/snowpackdata/cronos
