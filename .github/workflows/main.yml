@@ -13,7 +13,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - run: git config --global url.https://$GH_ACCESS_TOKEN@github.com/cronos.insteadOf https://github.com/cronos
+    - run: git config --global url.https://nathanaeljrobinson:$GH_ACCESS_TOKEN@github.com/cronos.insteadOf https://github.com/cronos
     - name: Build
       run: go build -v ./...
 
