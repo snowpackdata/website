@@ -21,13 +21,19 @@ type App struct {
 func main() {
 	var wait time.Duration
 
-	//var PacificTimezone, _ = time.LoadLocation("America/Los_Angeles")
-	//time.Local = PacificTimezone
-
 	// We must initialize the cronos app to access its databases and methods
 	// and then add it to our webapp struct to access it across handlers
+	user := os.Getenv("CLOUD_SQL_USERNAME")
+	password := os.Getenv("CLOUD_SQL_PASSWORD")
+	dbHost := os.Getenv("CLOUD_SQL_CONNECTION_NAME")
+	databaseName := os.Getenv("CLOUD_SQL_DATABASE_NAME")
+	unixSocket := "/cloudsql/" + dbHost
 	cronosApp := cronos.App{}
-	cronosApp.Initialize()
+	if os.Getenv("ENVIRONMENT") == "production" {
+		cronosApp.InitializeCloud(user, password, unixSocket, databaseName)
+	} else {
+		cronosApp.InitializeLocal(user, password, dbHost, databaseName)
+	}
 	cronosApp.Migrate()
 	//cronosApp.SeedDatabase()
 	a := &App{cronosApp: &cronosApp}

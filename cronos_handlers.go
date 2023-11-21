@@ -8,9 +8,12 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 	"time"
 )
+
+var JWTSecret = os.Getenv("JWT_SECRET")
 
 // RegistrationLandingHandler serves the registration page when accessed via GET request
 func (a *App) RegistrationLandingHandler(w http.ResponseWriter, req *http.Request) {
@@ -85,7 +88,7 @@ func (a *App) RegisterUser(w http.ResponseWriter, req *http.Request) {
 		},
 	}
 	token := jwt.NewWithClaims(jwt.GetSigningMethod("HS256"), claims)
-	tokenString, err := token.SignedString([]byte("secret"))
+	tokenString, err := token.SignedString([]byte(JWTSecret))
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -163,7 +166,7 @@ func (a *App) VerifyLogin(w http.ResponseWriter, req *http.Request) {
 		},
 	}
 	token := jwt.NewWithClaims(jwt.GetSigningMethod("HS256"), claims)
-	tokenString, err := token.SignedString([]byte("secret"))
+	tokenString, err := token.SignedString([]byte(JWTSecret))
 	if err != nil {
 		fmt.Println(err)
 	}

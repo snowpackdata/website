@@ -87,7 +87,7 @@ func JwtVerify(next http.Handler) http.Handler {
 		// that we can access the user_id in the context of the request
 		claims := jwt.MapClaims{}
 		token, err := jwt.ParseWithClaims(header, &claims, func(token *jwt.Token) (interface{}, error) {
-			return []byte("secret"), nil
+			return []byte(JWTSecret), nil
 		})
 		if err != nil {
 			w.WriteHeader(http.StatusForbidden)
