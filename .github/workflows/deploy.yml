@@ -10,7 +10,6 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     env:
-      GOPRIVATE: github.com/snowpackdata/cronos
       GH_ACCESS_TOKEN : ${{ secrets.GH_ACCESS_TOKEN }}
     steps:
       - name: Checkout repository
@@ -20,11 +19,11 @@ jobs:
         with:
           go-version: 1.21
       - run: git config --global url."https://${{ secrets.GH_ACCESS_TOKEN }}:x-oauth-basic@github.com/snowpackdata".insteadOf "https://github.com/snowpackdata"
+      - name: Build
+        run: go build -v ./...
       - name: 'Authenticate to Google Cloud'
         uses: 'google-github-actions/auth@v1'
         with:
           credentials_json: '${{ secrets.GCP_SERVICE_CREDENTIALS }}'
-      - name: Update Google Cloud SDK
-        run: sudo apt-get update && sudo apt-get --only-upgrade install google-cloud-sdk-app-engine-go
       - name: 'Deploy to GAE'
         uses: 'google-github-actions/deploy-appengine@v1'
