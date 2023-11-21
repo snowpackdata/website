@@ -16,7 +16,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
       - run: git config --global url."https://${{ secrets.GH_ACCESS_TOKEN }}:x-oauth-basic@github.com/snowpackdata".insteadOf "https://github.com/snowpackdata"
-      - run: "gcloud components install app-engine-go"
+      - run: sudo apt-get install google-cloud-sdk-app-engine-go
       - name: 'Authenticate to Google Cloud'
         uses: 'google-github-actions/auth@v1'
         with:
