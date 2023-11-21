@@ -1,1 +1,2 @@
-runtime: go112
+runtime: go121
+main: github.com/snowpack/website/main
