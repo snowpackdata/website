@@ -13,12 +13,6 @@ jobs:
       GOPRIVATE: github.com/snowpackdata/cronos
       GH_ACCESS_TOKEN : ${{ secrets.GH_ACCESS_TOKEN }}
     steps:
-      - name: Update Google Cloud SDK
-        run: gcloud components update
-      - name: Install app-engine-go component
-        run: gcloud components install app-engine-go
-      - name: List installed components
-        run: gcloud components list
       - name: Checkout repository
         uses: actions/checkout@v4
       - name: Setup Go
@@ -30,6 +24,7 @@ jobs:
         uses: 'google-github-actions/auth@v1'
         with:
           credentials_json: '${{ secrets.GCP_SERVICE_CREDENTIALS }}'
-
+      - name: Update Google Cloud SDK
+        run: sudo apt-get update && sudo apt-get --only-upgrade install google-cloud-sdk-app-engine-grpc google-cloud-sdk-cloud-build-local google-cloud-sdk-log-streaming google-cloud-sdk-kubectl-oidc google-cloud-sdk-pubsub-emulator google-cloud-sdk google-cloud-sdk-package-go-module google-cloud-sdk-app-engine-go
       - name: 'Deploy to GAE'
         uses: 'google-github-actions/deploy-appengine@v1'
