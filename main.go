@@ -33,7 +33,7 @@ func main() {
 	dbURI := fmt.Sprintf("%s:%s@unix(%s)/%s?charset=utf8mb4&parseTime=true", user, password, unixSocket, databaseName)
 	fmt.Println(dbURI)
 	if os.Getenv("ENVIRONMENT") == "production" {
-		cronosApp.InitializeCloud(user, password, unixSocket, databaseName)
+		cronosApp.InitializeCloud(user, password, dbHost, databaseName)
 	} else {
 		cronosApp.InitializeLocal(user, password, dbHost, databaseName)
 	}
