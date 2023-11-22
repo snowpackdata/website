@@ -37,8 +37,7 @@ func main() {
 	} else {
 		cronosApp.InitializeLocal(user, password, dbHost, databaseName)
 	}
-	cronosApp.Migrate()
-	cronosApp.SeedDatabase()
+	//cronosApp.Migrate()
 	a := &App{cronosApp: &cronosApp}
 
 	r := mux.NewRouter()

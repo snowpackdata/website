@@ -92,7 +92,7 @@ var App = new Vue({
     },
     methods : {
         getEntries(day, hour) {
-            return this.weeklyEntries.filter(entry => entry.start_day_of_week === day && entry.start_hour === hour.hour);
+            return this.weeklyEntries.filter(entry => (entry.start_day_of_week === day && entry.start_hour === hour.hour));
         },
        // Functions used to calculate the position and size of each entry
         calculateEntryTop(entry) {
@@ -659,16 +659,18 @@ var App = new Vue({
         },
 
         getWeeklyEntries() {
-            return this.entries.filter(entry => {
+            let weeklyEntries = this.entries.filter(entry => {
                 const entryDate = new Date(entry.start);
                 return entryDate >= this.currentWeek && entryDate < getNextWeek(this.currentWeek);
             });
+            return weeklyEntries
         }
     },
     mounted() {
         // Call the updateEventSizes method on initial mount
         this.currentWeek = getCurrentWeek();
         this.currentWeekDaysFormatted = getDaysInWeekFormatted(this.currentWeek, 'MM/DD/YYYY');
+        this.getWeeklyEntries();
         // Listen for window resize events and update event sizes
         window.addEventListener('resize', this.updateEventSizes);
 

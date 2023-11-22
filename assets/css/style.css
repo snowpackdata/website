@@ -12235,6 +12235,7 @@ h3.blog-subtitle  {
 }
 
 .entry {
+  z-index: 999;
   box-sizing: border-box;
   background-color: #4CAF50;
   color: white;

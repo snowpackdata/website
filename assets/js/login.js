@@ -107,7 +107,7 @@ var App = new Vue({
                 let token = response.data["token"];
                 console.log(token)
                 localStorage.setItem('snowpack_token', token)
-                window.location.assign("/home");
+                window.location.assign("/admin");
             })
             .catch(error => {});
         },

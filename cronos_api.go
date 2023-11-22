@@ -469,12 +469,12 @@ func (a *App) EntryHandler(w http.ResponseWriter, r *http.Request) {
 		a.cronosApp.DB.Omit("LinkedEntry").Create(&entry)
 		a.cronosApp.DB.Omit("LinkedEntry").Create(&linkedEntry)
 		// Next add associations
-		entry.LinkedEntryID = linkedEntry.ID
+		entry.LinkedEntryID = &linkedEntry.ID
 		entry.LinkedEntry = &linkedEntry
-		linkedEntry.LinkedEntryID = entry.ID
+		linkedEntry.LinkedEntryID = &entry.ID
 		linkedEntry.LinkedEntry = &entry
-		a.cronosApp.DB.Save(&entry)
-		a.cronosApp.DB.Save(&linkedEntry)
+		a.cronosApp.DB.Omit("LinkedEntry").Save(&entry)
+		a.cronosApp.DB.Omit("LinkedEntry").Save(&linkedEntry)
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(http.StatusCreated)
 		err := json.NewEncoder(w).Encode(entry.GetAPIEntry())
@@ -524,6 +524,7 @@ func (a *App) generateLinkedEntry(entry *cronos.Entry) cronos.Entry {
 	var linkedEntry cronos.Entry
 	linkedEntry.ProjectID = entry.ProjectID
 	linkedEntry.EmployeeID = entry.EmployeeID
+	linkedEntry.BillingCodeID = entry.BillingCodeID
 	linkedEntry.Start = entry.Start
 	linkedEntry.End = entry.End
 	linkedEntry.Internal = true

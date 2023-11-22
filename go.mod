@@ -1,12 +1,15 @@
 module github.com/snowpackdata/website
 
+// Used for running locally with cronos updates
+// replace github.com/snowpackdata/cronos => ../cronos
+
 go 1.21.3
 
 require (
 	github.com/golang-jwt/jwt/v5 v5.1.0
 	github.com/gorilla/handlers v1.5.1
 	github.com/gorilla/mux v1.8.0
-	github.com/snowpackdata/cronos v1.0.10
+	github.com/snowpackdata/cronos v1.0.11
 	golang.org/x/crypto v0.15.0
 )
 
