@@ -6,7 +6,7 @@ require (
 	github.com/golang-jwt/jwt/v5 v5.1.0
 	github.com/gorilla/handlers v1.5.1
 	github.com/gorilla/mux v1.8.0
-	github.com/snowpackdata/cronos v1.0.2
+	github.com/snowpackdata/cronos v1.0.3
 	golang.org/x/crypto v0.15.0
 )
 

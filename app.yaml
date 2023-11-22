@@ -1,1 +1,3 @@
 runtime: go121
+beta_settings:
+  cloud_sql_instances: snowpack-321321:us-central1:cronos=tcp:5432
