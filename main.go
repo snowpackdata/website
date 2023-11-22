@@ -28,12 +28,12 @@ func main() {
 	password := os.Getenv("CLOUD_SQL_PASSWORD")
 	dbHost := os.Getenv("CLOUD_SQL_CONNECTION_NAME")
 	databaseName := os.Getenv("CLOUD_SQL_DATABASE_NAME")
-	unixSocket := "/cloudsql/" + dbHost
+	socketPath := "/cloudsql/" + dbHost
 	cronosApp := cronos.App{}
-	dbURI := fmt.Sprintf("%s:%s@unix(%s)/%s?charset=utf8mb4&parseTime=true", user, password, unixSocket, databaseName)
+	dbURI := fmt.Sprintf("user=%s password=%s database=%s host=%s", user, password, databaseName, socketPath)
 	fmt.Println(dbURI)
 	if os.Getenv("ENVIRONMENT") == "production" {
-		cronosApp.InitializeCloud(user, password, databaseName, dbHost)
+		cronosApp.InitializeCloud(dbURI)
 	} else {
 		cronosApp.InitializeLocal(user, password, dbHost, databaseName)
 	}
