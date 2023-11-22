@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"github.com/snowpackdata/cronos"
 	"log"
 	"net/http"
@@ -29,13 +30,15 @@ func main() {
 	databaseName := os.Getenv("CLOUD_SQL_DATABASE_NAME")
 	unixSocket := "/cloudsql/" + dbHost
 	cronosApp := cronos.App{}
+	dbURI := fmt.Sprintf("%s:%s@unix(%s)/%s?charset=utf8mb4&parseTime=true", user, password, unixSocket, databaseName)
+	fmt.Println(dbURI)
 	if os.Getenv("ENVIRONMENT") == "production" {
 		cronosApp.InitializeCloud(user, password, unixSocket, databaseName)
 	} else {
 		cronosApp.InitializeLocal(user, password, dbHost, databaseName)
 	}
 	cronosApp.Migrate()
-	//cronosApp.SeedDatabase()
+	cronosApp.SeedDatabase()
 	a := &App{cronosApp: &cronosApp}
 
 	r := mux.NewRouter()
