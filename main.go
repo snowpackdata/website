@@ -2,6 +2,8 @@ package main
 
 import (
 	"context"
+	"fmt"
+	"github.com/snowpackdata/cronos"
 	"log"
 	"net/http"
 	"os"
@@ -10,16 +12,40 @@ import (
 
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
-	"github.com/snowpackdata/cronos"
 )
+
+// App holds our information for accessing various applications and methods across modules
+type App struct {
+	cronosApp *cronos.App
+}
 
 func main() {
 	var wait time.Duration
-	// SET ROUTES HERE
+
+	// We must initialize the cronos app to access its databases and methods
+	// and then add it to our webapp struct to access it across handlers
+	user := os.Getenv("CLOUD_SQL_USERNAME")
+	password := os.Getenv("CLOUD_SQL_PASSWORD")
+	dbHost := os.Getenv("CLOUD_SQL_CONNECTION_NAME")
+	databaseName := os.Getenv("CLOUD_SQL_DATABASE_NAME")
+	socketPath := "/cloudsql/" + dbHost
+	cronosApp := cronos.App{}
+	dbURI := fmt.Sprintf("user=%s password=%s database=%s host=%s", user, password, databaseName, socketPath)
+	fmt.Println(dbURI)
+	if os.Getenv("ENVIRONMENT") == "production" {
+		cronosApp.InitializeCloud(dbURI)
+	} else {
+		cronosApp.InitializeLocal(user, password, dbHost, databaseName)
+	}
+	//cronosApp.Migrate()
+	a := &App{cronosApp: &cronosApp}
+
 	r := mux.NewRouter()
 	// Define a subrouter to handle files at static for accessing static content
 	static := r.PathPrefix("/assets").Subrouter()
 	static.Handle("/{*}/{*}", http.StripPrefix("/assets/", http.FileServer(http.Dir("./assets"))))
+	api := r.PathPrefix("/api").Subrouter()
+	api.Use(JwtVerify)
 
 	r.HandleFunc("/", indexHandler)
 	r.HandleFunc("/services", servicesHandler)
@@ -27,14 +53,38 @@ func main() {
 	r.HandleFunc("/blog", blogLandingHandler)
 	r.HandleFunc("/blog/{slug}", blogHandler)
 
-	cronos = cronos.App.Initialize()
+	// Cronos Application pages, internal and external
+	r.HandleFunc("/admin", a.AdminLandingHandler).Methods("GET")
+	r.HandleFunc("/cronos", a.CronosLandingHandler).Methods("GET")
+	// Our login and registration handlers are not protected by JWT
+	r.HandleFunc("/login", a.LoginLandingHandler).Methods("GET")
+	r.HandleFunc("/verify_login", a.VerifyLogin).Methods("POST")
+	r.HandleFunc("/register", a.RegistrationLandingHandler).Methods("GET")
+	r.HandleFunc("/register_user", a.RegisterUser).Methods("POST")
+	r.HandleFunc("/verify_email", a.VerifyEmail).Methods("POST")
+
+	api.HandleFunc("/projects", a.ProjectsListHandler).Methods("GET")
+	api.HandleFunc("/projects/{id:[0-9]+}", a.ProjectHandler).Methods("GET", "PUT", "POST", "DELETE")
+	api.HandleFunc("/entries", a.EntriesListHandler).Methods("GET")
+	api.HandleFunc("/entries/{id:[0-9]+}", a.EntryHandler).Methods("GET", "PUT", "POST", "DELETE")
+	api.HandleFunc("/staff", a.StaffListHandler).Methods("GET")
+	api.HandleFunc("/accounts", a.AccountsListHandler).Methods("GET")
+	api.HandleFunc("/accounts/{id:[0-9]+}", a.AccountHandler).Methods("GET", "PUT", "POST", "DELETE")
+	api.HandleFunc("/accounts/{id:[0-9]+}/invite", a.InviteUserHandler).Methods("POST")
+	api.HandleFunc("/rates", a.RatesListHandler).Methods("GET")
+	api.HandleFunc("/rates/{id:[0-9]+}", a.RateHandler).Methods("GET", "PUT", "POST", "DELETE")
+	api.HandleFunc("/billing_codes", a.BillingCodesListHandler).Methods("GET")
+	api.HandleFunc("/billing_codes/{id:[0-9]+}", a.BillingCodeHandler).Methods("GET", "PUT", "POST", "DELETE")
+
 	// Logging for web server
 	f, _ := os.Create("/var/log/golang/golang-server.log")
-	defer f.Close()
+	defer func() {
+		_ = f.Close()
+	}()
 	logger := handlers.CombinedLoggingHandler(f, r)
 
 	// Logging for dev
-	// logger := handlers.CombinedLoggingHandler(os.Stdout, r)
+	//logger := handlers.CombinedLoggingHandler(os.Stdout, r)
 
 	port := os.Getenv("PORT")
 	if port == "" {

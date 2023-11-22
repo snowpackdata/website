@@ -7,8 +7,17 @@ on:
 jobs:
   audit:
     runs-on: ubuntu-20.04
+    env:
+      GOPRIVATE: github.com/snowpackdata/cronos
+      GH_ACCESS_TOKEN: ${{ secrets.GH_ACCESS_TOKEN }}
+
     steps:
+    - name: Setup Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: 1.21
     - uses: actions/checkout@v2
+    - run: git config --global url."https://${{ secrets.GH_ACCESS_TOKEN }}:x-oauth-basic@github.com/snowpackdata".insteadOf "https://github.com/snowpackdata"
     - name: Build
       run: go build -v ./...
 

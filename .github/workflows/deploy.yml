@@ -9,14 +9,35 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    env:
+      GH_ACCESS_TOKEN : ${{ secrets.GH_ACCESS_TOKEN }}
+      GOPRIVATE: github.com/snowpackdata/cronos
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
-      
+        uses: actions/checkout@v4
+      - name: Setup Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: 1.21
+      - run: git config --global url."https://${{ secrets.GH_ACCESS_TOKEN }}:x-oauth-basic@github.com/snowpackdata".insteadOf "https://github.com/snowpackdata"
+      - name: Go Get
+        run: go get .
+      - name: Build
+        run: go build -v ./...
       - name: 'Authenticate to Google Cloud'
         uses: 'google-github-actions/auth@v1'
         with:
           credentials_json: '${{ secrets.GCP_SERVICE_CREDENTIALS }}'
-
       - name: 'Deploy to GAE'
         uses: 'google-github-actions/deploy-appengine@v1'
+        with:
+          build_env_vars: |-
+              GOPRIVATE=github.com/snowpackdata/cronos
+          env_vars: |-
+            SENDGRID_API_KEY=${{ secrets.SENDGRID_API_KEY }}
+            CLOUD_SQL_CONNECTION_NAME=${{ secrets.CLOUD_SQL_CONNECTION_NAME }}
+            CLOUD_SQL_USERNAME=${{ secrets.CLOUD_SQL_USERNAME }}
+            CLOUD_SQL_PASSWORD=${{ secrets.CLOUD_SQL_PASSWORD }}
+            CLOUD_SQL_DATABASE_NAME=${{ secrets.CLOUD_SQL_DATABASE_NAME }}
+            JWT_SECRET=${{ secrets.JWT_SECRET }}
+            ENVIRONMENT=production
