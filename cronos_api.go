@@ -193,12 +193,6 @@ func (a *App) AccountHandler(w http.ResponseWriter, r *http.Request) {
 		if r.FormValue("website") != "" {
 			account.Website = r.FormValue("website")
 		}
-		if r.FormValue("admin_id") != "" {
-			var admin cronos.User
-			a.cronosApp.DB.Where("id = ?", r.FormValue("admin_id")).First(&admin)
-			account.AdminID = admin.ID
-			account.Admin = admin
-		}
 		a.cronosApp.DB.Save(&account)
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		_ = json.NewEncoder(w).Encode(&account)
