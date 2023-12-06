@@ -77,6 +77,20 @@ func (a *App) EntriesListHandler(w http.ResponseWriter, r *http.Request) {
 	_ = json.NewEncoder(w).Encode(&apiEntries)
 }
 
+// DraftInvoiceListHandler provides a list of Draft Invoices that are available and associated entries
+func (a *App) DraftInvoiceListHandler(w http.ResponseWriter, r *http.Request) {
+	var invoices []cronos.Invoice
+	a.cronosApp.DB.Preload("Entries").Preload("Project").Where("state = ? and type = ?", cronos.InvoiceStateDraft, cronos.InvoiceTypeAR).Find(&invoices)
+	var draftInvoices = make([]cronos.DraftInvoice, len(invoices))
+	for i, invoice := range invoices {
+		draftInvoice := a.cronosApp.GetDraftInvoice(&invoice)
+		draftInvoices[i] = draftInvoice
+	}
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	w.WriteHeader(http.StatusOK)
+	_ = json.NewEncoder(w).Encode(draftInvoices)
+}
+
 // Individual CRUD handlers for each specific model
 
 // ProjectHandler Provides CRUD interface for the project object
@@ -404,6 +418,11 @@ func (a *App) EntryHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	case r.Method == "PUT":
 		a.cronosApp.DB.First(&entry, vars["id"])
+		// We cannot edit entries that are approved, paid, or voided
+		if entry.State == cronos.EntryStateApproved.String() || entry.State == cronos.EntryStatePaid.String() || entry.State == cronos.EntryStateVoid.String() {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
 		if r.FormValue("billing_code_id") != "" {
 			var billingCode cronos.BillingCode
 			a.cronosApp.DB.Where("id = ?", r.FormValue("billing_code_id")).First(&billingCode)
@@ -431,6 +450,10 @@ func (a *App) EntryHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		var linkedEntry cronos.Entry
 		a.cronosApp.DB.Where("id = ?", entry.LinkedEntryID).First(&linkedEntry)
+		err := a.cronosApp.AssociateEntry(&entry, entry.ProjectID)
+		if err != nil {
+			fmt.Println(err)
+		}
 		a.cronosApp.DB.Save(&entry)
 		var billingCode cronos.BillingCode
 		a.cronosApp.DB.Where("id = ?", r.FormValue("billing_code_id")).First(&billingCode)
@@ -438,6 +461,11 @@ func (a *App) EntryHandler(w http.ResponseWriter, r *http.Request) {
 		entry.BillingCode = billingCode
 		linkedEntry.Start = entry.Start
 		linkedEntry.End = entry.End
+		linkedEntry.Notes = entry.Notes
+		err = a.cronosApp.AssociateEntry(&linkedEntry, linkedEntry.ProjectID)
+		if err != nil {
+			fmt.Println(err)
+		}
 		a.cronosApp.DB.Save(&linkedEntry)
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		_ = json.NewEncoder(w).Encode(entry.GetAPIEntry())
@@ -464,6 +492,15 @@ func (a *App) EntryHandler(w http.ResponseWriter, r *http.Request) {
 		journalID := 1
 		entry.JournalID = uint(journalID)
 		linkedEntry := a.generateLinkedEntry(&entry)
+		// Finally, update the invoice status
+		err := a.cronosApp.AssociateEntry(&entry, entry.ProjectID)
+		if err != nil {
+			fmt.Println(err)
+		}
+		err = a.cronosApp.AssociateEntry(&linkedEntry, linkedEntry.ProjectID)
+		if err != nil {
+			fmt.Println(err)
+		}
 
 		// Need to first create the entries before we can associate them
 		a.cronosApp.DB.Omit("LinkedEntry").Create(&entry)
@@ -473,11 +510,12 @@ func (a *App) EntryHandler(w http.ResponseWriter, r *http.Request) {
 		entry.LinkedEntry = &linkedEntry
 		linkedEntry.LinkedEntryID = &entry.ID
 		linkedEntry.LinkedEntry = &entry
+
 		a.cronosApp.DB.Omit("LinkedEntry").Save(&entry)
 		a.cronosApp.DB.Omit("LinkedEntry").Save(&linkedEntry)
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(http.StatusCreated)
-		err := json.NewEncoder(w).Encode(entry.GetAPIEntry())
+		err = json.NewEncoder(w).Encode(entry.GetAPIEntry())
 		if err != nil {
 			fmt.Println(err)
 		}

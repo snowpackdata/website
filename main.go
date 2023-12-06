@@ -62,7 +62,7 @@ func main() {
 	r.HandleFunc("/register", a.RegistrationLandingHandler).Methods("GET")
 	r.HandleFunc("/register_user", a.RegisterUser).Methods("POST")
 	r.HandleFunc("/verify_email", a.VerifyEmail).Methods("POST")
-
+	api.HandleFunc("/draft_invoices", a.DraftInvoiceListHandler).Methods("GET")
 	api.HandleFunc("/projects", a.ProjectsListHandler).Methods("GET")
 	api.HandleFunc("/projects/{id:[0-9]+}", a.ProjectHandler).Methods("GET", "PUT", "POST", "DELETE")
 	api.HandleFunc("/entries", a.EntriesListHandler).Methods("GET")

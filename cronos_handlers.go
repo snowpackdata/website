@@ -106,7 +106,6 @@ func (a *App) VerifyEmail(w http.ResponseWriter, req *http.Request) {
 	// our database. If so send a 200
 	// if not send a 300
 	formEmail := req.FormValue("email")
-	log.Println(formEmail)
 	var User cronos.User
 	if a.cronosApp.DB.Where("email = ?", formEmail).First(&User).RowsAffected != 0 {
 		var response = map[string]interface{}{}

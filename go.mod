@@ -1,7 +1,7 @@
 module github.com/snowpackdata/website
 
 // Used for running locally with cronos updates
-// replace github.com/snowpackdata/cronos => ../cronos
+replace github.com/snowpackdata/cronos => ../cronos
 
 go 1.21.3
 

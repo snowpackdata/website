@@ -93,6 +93,8 @@
 <div class="admin-body" id="app">
     <div class="sidebar">
         <div @click="updateWorkingScreen('home')" class="tile"><i class="fa-solid fa-clock nav-icon"></i>Time Sheet</div>
+        <div @click="updateWorkingScreen('admin')" class="tile"><i class="fa-solid fa-toolbox nav-icon"></i>Timesheet Admin</div>
+        <div @click="updateWorkingScreen('invoicing')" class="tile"><i class="fa-solid fa-file-invoice-dollar nav-icon"></i>Invoices</div>
         <hr>
         <div @click="updateWorkingScreen('projects')" class="tile"><i class="fa-solid fa-bars-progress nav-icon"></i>Projects</div>
         <div @click="updateWorkingScreen('billing_codes')" class="tile"><i class="fa-solid fa-barcode nav-icon"></i>Billing Codes</div>
@@ -172,6 +174,28 @@
                         </tr>
                         </tbody>
                     </table>
+                </div>
+            </div>
+        </div>
+        <!--        Admin Working Section -->
+        <div id="invoicing" v-if="workingScreen.administration" class="admin-content">
+            <h2 class="blog-title">Invoicing</h2>
+            <hr>
+            <div style="display:flex;">
+                <div class="col-6">
+                </div>
+                <div class="col-6" style="display:block;" tabindex="0">
+                </div>
+            </div>
+        </div>
+        <!--        Invoicing & Billing UI SECTION-->
+        <div id="invoicing" v-if="workingScreen.invoices" class="admin-content">
+            <h2 class="blog-title">Invoicing</h2>
+            <hr>
+            <div style="display:flex;">
+                <div class="col-6">
+                </div>
+                <div class="col-6" style="display:block;" tabindex="0">
                 </div>
             </div>
         </div>

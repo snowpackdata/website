@@ -4,6 +4,8 @@ var App = new Vue({
     data : {
         workingScreen : {
             home : true,
+            administration: false,
+            invoicing: false,
             projects : false,
             accounts : false,
             staff : false,
