@@ -178,13 +178,14 @@
             </div>
         </div>
         <!--        Admin Working Section -->
-        <div id="invoicing" v-if="workingScreen.administration" class="admin-content">
-            <h2 class="blog-title">Invoicing</h2>
+        <div id="invoicing" v-if="workingScreen.admin" class="admin-content">
+            <h2 class="blog-title">Review Draft Invoices</h2>
             <hr>
             <div style="display:flex;">
-                <div class="col-6">
-                </div>
-                <div class="col-6" style="display:block;" tabindex="0">
+                <div class="col-12" style="display:block;" tabindex="0">
+                    <div v-for="invoice in draftInvoices" class="draft-invoice admin-record-card">
+                       <h1>{{ invoice.name }}</h1>
+                    </div>
                 </div>
             </div>
         </div>

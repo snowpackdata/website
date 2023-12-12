@@ -4,7 +4,7 @@ var App = new Vue({
     data : {
         workingScreen : {
             home : true,
-            administration: false,
+            admin: false,
             invoicing: false,
             projects : false,
             accounts : false,
@@ -19,6 +19,7 @@ var App = new Vue({
         billing_codes : null,
         accounts : null,
         projects : null,
+        draftInvoices : null,
 
         // This is the data that will be used to populate the detail view
         detailProject : null,
@@ -201,6 +202,9 @@ var App = new Vue({
             this.detailProject = null;
             this.detailAccount = null;
             this.showDetail = false;
+            if (screen === 'admin') {
+                this.fetchDraftInvoices();
+            }
             for (var key in this.workingScreen) {
                 this.workingScreen[key] = false;
             }
@@ -228,6 +232,20 @@ var App = new Vue({
 
         formatDate : function (date, format) {
            return moment(date).format(format);
+        },
+        // Fetch all the draft invoices
+        fetchDraftInvoices(){
+            axios({
+                method: 'get',
+                url: '/api/invoices/draft',
+                headers: {'Content-Type': 'application/json', 'x-access-token': window.localStorage.snowpack_token},
+            })
+            .then (response => {
+                this.draftInvoices = response.data
+            })
+            .catch(error => {
+                console.log(error)
+            })
         },
         // All the standard fetchall methods to populate our page
         fetchStaff(){
