@@ -204,6 +204,7 @@ var App = new Vue({
             this.showDetail = false;
             if (screen === 'admin') {
                 this.fetchDraftInvoices();
+                console.log(this.draftInvoices)
             }
             for (var key in this.workingScreen) {
                 this.workingScreen[key] = false;
