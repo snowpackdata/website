@@ -1,0 +1,11 @@
+{
+  "id" : 6,
+  "title" : "The World of BI Tools",
+  "subtitle": "Our thoughts on some of the most popular BI tools on the market today.",
+  "splash" : "chartsplash.jpg",
+  "author" : "Nate Robinson",
+  "slug" : "bi-tool-roundup",
+  "tags" : ["bi tooling", "data visualization", "looker", "tableau", "power-bi"],
+  "date" : "December 20, 2023",
+  "content" : "bi-tool-roundup.html"
+}

@@ -11,7 +11,6 @@ import (
 )
 
 func loadBlogs() map[string]Post {
-	// Create a map to hold our data
 	var postsMap = make(map[string]Post)
 
 	// iterate through all posts in our blog
@@ -58,6 +57,24 @@ func blogLandingHandler(w http.ResponseWriter, req *http.Request) {
 	blogPosts := loadBlogs()
 	landingTemplate, _ := template.ParseFiles("./templates/blog_landing.gohtml")
 	err := landingTemplate.Execute(w, blogPosts)
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+func caseStudyLandingHandler(w http.ResponseWriter, req *http.Request) {
+	blogs := loadBlogs()
+	caseStudies := make(map[string]Post)
+	for key, value := range blogs {
+		for _, tag := range value.Tags {
+			if tag == "case-study" {
+				caseStudies[key] = value
+			}
+		}
+	}
+
+	landingTemplate, _ := template.ParseFiles("./templates/blog_landing.gohtml")
+	err := landingTemplate.Execute(w, caseStudies)
 	if err != nil {
 		log.Fatal(err)
 	}
