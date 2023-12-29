@@ -5,7 +5,7 @@
   "splash" : "transforming-leaves.jpg",
   "author" : "Nate Robinson",
   "slug" : "grid-etl-case-study",
-  "tags" : ["bigquery", "dbt", "etl", "golang"],
+  "tags" : ["case-study","bigquery", "dbt", "etl", "golang"],
   "date" : "October 9, 2023",
   "content" : "grid-etl-case-study.html"
 }
