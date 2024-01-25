@@ -5,7 +5,7 @@ var App = new Vue({
         workingScreen : {
             home : true,
             admin: false,
-            invoicing: false,
+            invoices: false,
             projects : false,
             accounts : false,
             staff : false,
@@ -20,6 +20,7 @@ var App = new Vue({
         accounts : null,
         projects : null,
         draftInvoices : null,
+        acceptedInvoices: null,
 
         // This is the data that will be used to populate the detail view
         detailProject : null,
@@ -55,6 +56,10 @@ var App = new Vue({
         accountTypes : [
             { internal : true, name: 'Internal', type: 'ACCOUNT_TYPE_INTERNAL'},
             { internal : false, name : 'Client', type: 'ACCOUNT_TYPE_CLIENT'},
+        ],
+        billingFrequencies: [
+            { name : 'Monthly', value: 'BILLING_TYPE_MONTHLY'},
+            { name : 'Project', value: 'BILLING_TYPE_PROJECT'},
         ],
 
         calendarWidth: 135, // Adjust as needed, represents the percentage width of the calendar
@@ -94,6 +99,46 @@ var App = new Vue({
         },
     },
     methods : {
+        toggleVoidStatus(entry) {
+            let newStatus = '';
+            if (entry.state === 'ENTRY_STATE_VOID') {
+                newStatus = 'draft'
+            } else {
+                newStatus = 'void'
+            }
+            axios({
+                method: 'post',
+                url: '/api/entries/state/' + entry.entry_id.toString() + '/' + newStatus,
+                headers: {'Content-Type': 'application/json', 'x-access-token': window.localStorage.snowpack_token},
+            })
+                .then(response => {
+                    console.log(response)
+                    entry.state = response.data.State
+                })
+                .catch(error => {
+                    console.log(error)
+                })
+            let componentKey = 'draft' + entry.entry_id;
+            let secondKey = 'void' + entry.entry_id;
+            this.componentKey += 1;
+            this.secondKey += 1;
+        },
+
+        acceptInvoice(invoice) {
+            axios({
+                method: 'post',
+                url: '/api/invoices/' + invoice.invoice_id.toString() + '/accept',
+                headers: {'Content-Type': 'application/json', 'x-access-token': window.localStorage.snowpack_token},
+            })
+                .then(response => {
+                    console.log(response)
+                    invoice.State = response.data.State
+                })
+                .catch(error => {
+                    console.log(error)
+                })
+        },
+
         getEntries(day, hour) {
             return this.weeklyEntries.filter(entry => (entry.start_day_of_week === day && entry.start_hour === hour.hour));
         },
@@ -206,6 +251,9 @@ var App = new Vue({
                 this.fetchDraftInvoices();
                 console.log(this.draftInvoices)
             }
+            if (screen === 'invoices') {
+                this.fetchAcceptedInvoices();
+            }
             for (var key in this.workingScreen) {
                 this.workingScreen[key] = false;
             }
@@ -248,6 +296,20 @@ var App = new Vue({
                 console.log(error)
             })
         },
+        fetchAcceptedInvoices(){
+            axios({
+                method: 'get',
+                url: '/api/invoices/accepted',
+                headers: {'Content-Type': 'application/json', 'x-access-token': window.localStorage.snowpack_token},
+            })
+            .then (response => {
+                this.acceptedInvoices = response.data
+            })
+            .catch(error => {
+                console.log(error)
+            })
+        },
+
         // All the standard fetchall methods to populate our page
         fetchStaff(){
             axios({
@@ -363,6 +425,7 @@ var App = new Vue({
                    budget_dollars: 0,
                    active_start_vis : null,
                    active_end_vis : null,
+                   billing_frequency : null,
                };
            } else if (detail_type === 'billing_code') {
                this.detailBillingCode = {
@@ -405,6 +468,7 @@ var App = new Vue({
                 postForm.set("active_start", this.detailProject.active_start_vis)
                 postForm.set("active_end", this.detailProject.active_end_vis)
                 postForm.set("internal", this.detailProject.internal)
+                postForm.set("billing_frequency", this.detailProject.billing_frequency)
                 let selectedAccount = retrieveFromList(this.accounts, 'name', this.detailProject.account.name)
                 postForm.set("account_id", selectedAccount.ID)
                if (this.isNew) {

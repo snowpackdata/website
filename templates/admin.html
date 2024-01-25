@@ -94,7 +94,7 @@
     <div class="sidebar">
         <div @click="updateWorkingScreen('home')" class="tile"><i class="fa-solid fa-clock nav-icon"></i>Time Sheet</div>
         <div @click="updateWorkingScreen('admin')" class="tile"><i class="fa-solid fa-toolbox nav-icon"></i>Timesheet Admin</div>
-        <div @click="updateWorkingScreen('invoicing')" class="tile"><i class="fa-solid fa-file-invoice-dollar nav-icon"></i>Invoices</div>
+        <div @click="updateWorkingScreen('invoices')" class="tile"><i class="fa-solid fa-file-invoice-dollar nav-icon"></i>Invoices</div>
         <hr>
         <div @click="updateWorkingScreen('projects')" class="tile"><i class="fa-solid fa-bars-progress nav-icon"></i>Projects</div>
         <div @click="updateWorkingScreen('billing_codes')" class="tile"><i class="fa-solid fa-barcode nav-icon"></i>Billing Codes</div>
@@ -179,24 +179,65 @@
         </div>
         <!--        Admin Working Section -->
         <div id="invoicing" v-if="workingScreen.admin" class="admin-content">
-            <h2 class="blog-title">Review Draft Invoices</h2>
+            <h2 class="blog-title">Review & Approve Drafts</h2>
             <hr>
             <div style="display:flex;">
-                <div class="col-12" style="display:block;" tabindex="0">
-                    <div v-for="invoice in draftInvoices" class="draft-invoice admin-record-card">
-                       <h1>{{ invoice.invoice_name }}</h1>
+                <div class="col-12 admin-scroll-overlay" style="display:block;" tabindex="0">
+                    <div v-for="invoice in draftInvoices" class="draft-invoice admin-record-card" style="display:block">
+                        <h2><span style="color:#8B0000">DRAFT</span> {{ invoice.invoice_name }}</h2>
+                        <hr>
+                        <table class="draftinvoices">
+                            <tr>
+                                <th></th>
+                                <th>Date</th>
+                                <th>Billing Code</th>
+                                <th>Staff</th>
+                                <th>Description</th>
+                                <th>Hours</th>
+                                <th>Fee</th>
+                            </tr>
+                            <tr v-for="entry in invoice.line_items">
+                                <td>
+                                    <button @click="toggleVoidStatus(entry)" style="color:none;border:none;background-color:white">
+                                        <img src="../assets/img/void.png" v-show="entry.state == 'ENTRY_STATE_VOID'" width="14px;">
+                                        <img src="../assets/img/draft.png" v-show="entry.state != 'ENTRY_STATE_VOID'" width="14px;">
+                                    </button>
+                                </td>
+                                <td>{{ entry.start_date }} </td>
+                                <td>{{ entry.billing_code }}</td>
+                                <td>{{ entry.user_name }}</td>
+                                <td>{{ entry.notes }}</td>
+                                <td>{{ entry.duration_hours }}</td>
+                                <td>${{ entry.fee }}</td>
+                            </tr>
+                            <tr style="font-style:italic;font-weight:bold;">
+                                <td colspan="4"></td>
+                                <td>Total Hours: {{invoice.total_hours}}</td>
+                                <td>Total Fee: ${{invoice.total_fees}}</td>
+                        </table>
+                    <div>
+                        <button @click="acceptInvoice(invoice)" :class="{ 'button-ready': invoice.period_closed, 'button-locked' : !invoice.period_closed}">Lock & Approve</button>
+                    </div>
                     </div>
                 </div>
             </div>
         </div>
         <!--        Invoicing & Billing UI SECTION-->
-        <div id="invoicing" v-if="workingScreen.invoices" class="admin-content">
+        <div id="billing" v-if="workingScreen.invoices" class="admin-content">
             <h2 class="blog-title">Invoicing</h2>
             <hr>
-            <div style="display:flex;">
-                <div class="col-6">
-                </div>
-                <div class="col-6" style="display:block;" tabindex="0">
+            <div style="display:inline-block;">
+                <div v-for="invoice in acceptedInvoices" class="admin-record-card" style="display:inline-block;min-width:100%">
+                    <div class=""><h3>{{ invoice.invoice_name }}</h3></div>
+                    <div class="col-12">
+                        <div class="client-widget">{{ invoice.project_name}}</div>
+                    </div>
+                    <div class="col-12">
+                        <div class="">{{ invoice.line_items_count }} Timesheet Entries</div>
+                        <div class="">{{ invoice.total_hours }} hours</div>
+                        <div class="">${{ invoice.total_fees }} </div>
+                    </div>
+
                 </div>
             </div>
         </div>
@@ -216,6 +257,7 @@
                                <div class="">{{ parseDate(project.active_start, 'll') }} to {{ parseDate(project.active_end, 'll') }}</div>
                                <div class="">Time Budget: {{ project.budget_hours }} hours</div>
                                <div class="">Financial Budget: ${{ project.budget_dollars }} </div>
+                               <div class="">Billing Type: {{ project.billing_frequency }}</div>
                                <button @click="editDetail(project, 'project')" style="float:right;margin-right:15px"><i class="fa-solid fa-pen-to-square"></i></button>
                            </div>
 
@@ -250,6 +292,14 @@
                             <input type="number" v-model="detailProject.budget_hours">
                             <label>Budget Dollars</label>
                             <input type="number" v-model="detailProject.budget_dollars">
+                        </div>
+                        <div>
+                            <label>Billing Frequency</label>
+                            <select type="text" v-model="detailProject.billing_frequency">
+                                <option v-for="billingFrequency in billingFrequencies" :value="billingFrequency.value">
+                                    {{ billingFrequency.name }}
+                                </option>
+                            </select>
                         </div>
                         <div>
                             <label>Internal Project</label>

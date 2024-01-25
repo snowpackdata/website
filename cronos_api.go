@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/snowpackdata/cronos"
+	"gorm.io/gorm"
 	"log"
 	"net/http"
 	"strconv"
@@ -80,7 +81,9 @@ func (a *App) EntriesListHandler(w http.ResponseWriter, r *http.Request) {
 // DraftInvoiceListHandler provides a list of Draft Invoices that are available and associated entries
 func (a *App) DraftInvoiceListHandler(w http.ResponseWriter, r *http.Request) {
 	var invoices []cronos.Invoice
-	a.cronosApp.DB.Preload("Entries").Preload("Project").Where("state = ? and type = ?", cronos.InvoiceStateDraft, cronos.InvoiceTypeAR).Find(&invoices)
+	a.cronosApp.DB.Preload("Entries", func(db *gorm.DB) *gorm.DB {
+		return db.Order("entries.start ASC")
+	}).Preload("Project").Where("state = ? and type = ?", cronos.InvoiceStateDraft, cronos.InvoiceTypeAR).Find(&invoices)
 	var draftInvoices = make([]cronos.DraftInvoice, len(invoices))
 	for i, invoice := range invoices {
 		draftInvoice := a.cronosApp.GetDraftInvoice(&invoice)
@@ -89,6 +92,21 @@ func (a *App) DraftInvoiceListHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
 	_ = json.NewEncoder(w).Encode(draftInvoices)
+}
+
+// InvoiceListHandler provides access to all approved/pending/paid invoices. These invoices may be filtered by project
+// and provide access to line items only via inspection.
+func (a *App) InvoiceListHandler(w http.ResponseWriter, r *http.Request) {
+	var invoices []cronos.Invoice
+	a.cronosApp.DB.Preload("Entries").Preload("Project").Where("state = ? or state = ? or state = ?", cronos.InvoiceStateApproved, cronos.InvoiceStatePending, cronos.InvoiceStatePaid).Find(&invoices)
+	var AcceptedInvoices = make([]cronos.AcceptedInvoice, len(invoices))
+	for i, invoice := range invoices {
+		acceptedInvoice := a.cronosApp.GetAcceptedInvoice(&invoice)
+		AcceptedInvoices[i] = acceptedInvoice
+	}
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	w.WriteHeader(http.StatusOK)
+	_ = json.NewEncoder(w).Encode(AcceptedInvoices)
 }
 
 // Individual CRUD handlers for each specific model
@@ -146,6 +164,10 @@ func (a *App) ProjectHandler(w http.ResponseWriter, r *http.Request) {
 			internal, _ := strconv.ParseBool(r.FormValue("internal"))
 			project.Internal = internal
 		}
+		if r.FormValue("billing_frequency") != "" {
+			billingFrequencyValue := r.FormValue("billing_frequency")
+			project.BillingFrequency = billingFrequencyValue
+		}
 		a.cronosApp.DB.Save(&project)
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		_ = json.NewEncoder(w).Encode(&project)
@@ -157,6 +179,7 @@ func (a *App) ProjectHandler(w http.ResponseWriter, r *http.Request) {
 		project.BudgetHours, _ = strconv.Atoi(r.FormValue("budget_hours"))
 		project.BudgetDollars, _ = strconv.Atoi(r.FormValue("budget_dollars"))
 		project.Internal, _ = strconv.ParseBool(r.FormValue("internal"))
+		project.BillingFrequency = r.FormValue("billing_frequency")
 		var account cronos.Account
 		a.cronosApp.DB.Where("id = ?", r.FormValue("account_id")).First(&account)
 		project.AccountID = account.ID
@@ -497,10 +520,11 @@ func (a *App) EntryHandler(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			fmt.Println(err)
 		}
-		err = a.cronosApp.AssociateEntry(&linkedEntry, linkedEntry.ProjectID)
-		if err != nil {
-			fmt.Println(err)
-		}
+		// For now we are not associating linked entries as we're only doing external invoicing
+		//err = a.cronosApp.AssociateEntry(&linkedEntry, linkedEntry.ProjectID)
+		//if err != nil {
+		//	fmt.Println(err)
+		//}
 
 		// Need to first create the entries before we can associate them
 		a.cronosApp.DB.Omit("LinkedEntry").Create(&entry)
@@ -556,6 +580,61 @@ func (a *App) InviteUserHandler(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 	}
 	return
+}
+
+// EntryStateHandler allows us to toggle the state of entries on an invoice
+func (a *App) EntryStateHandler(w http.ResponseWriter, r *http.Request) {
+	// Toggle the state of the entry to approved
+	vars := mux.Vars(r)
+	var entry cronos.Entry
+	a.cronosApp.DB.First(&entry, vars["id"])
+	status := vars["state"]
+	switch {
+	case status == "approve":
+		entry.State = cronos.EntryStateApproved.String()
+		a.cronosApp.DB.Save(&entry)
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		_ = json.NewEncoder(w).Encode(struct{ State string }{cronos.EntryStateVoid.String()})
+		return
+	case status == "void":
+		entry.State = cronos.EntryStateVoid.String()
+		a.cronosApp.DB.Save(&entry)
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		_ = json.NewEncoder(w).Encode(struct{ State string }{cronos.EntryStateVoid.String()})
+		return
+	case status == "draft":
+		entry.State = cronos.EntryStateDraft.String()
+		a.cronosApp.DB.Save(&entry)
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		_ = json.NewEncoder(w).Encode(struct{ State string }{cronos.EntryStateDraft.String()})
+	}
+}
+
+// AcceptInvoiceHandler allows us to accept invoices
+func (a *App) AcceptInvoiceHandler(w http.ResponseWriter, r *http.Request) {
+	// Retrieve the invoice and entries
+	vars := mux.Vars(r)
+	var invoice cronos.Invoice
+	a.cronosApp.DB.First(&invoice, vars["id"])
+	invoice.State = cronos.InvoiceStateApproved.String()
+	a.cronosApp.DB.Save(&invoice)
+	entries := invoice.Entries
+	for _, entry := range entries {
+		if entry.State == cronos.EntryStateDraft.String() {
+			// Set the individual entry states to approved if they are in draft
+			entry.State = cronos.EntryStateApproved.String()
+		}
+		if entry.State == cronos.EntryStateVoid.String() {
+			// remove the entry from this invoice now that its marked as Accepted
+			entry.Invoice = cronos.Invoice{}
+		}
+		a.cronosApp.DB.Save(&entry)
+	}
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	_ = json.NewEncoder(w).Encode(struct {
+		State string
+		ID    uint
+	}{cronos.InvoiceStateApproved.String(), invoice.ID})
 }
 
 func (a *App) generateLinkedEntry(entry *cronos.Entry) cronos.Entry {

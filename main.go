@@ -20,6 +20,7 @@ type App struct {
 }
 
 func main() {
+
 	var wait time.Duration
 
 	// We must initialize the cronos app to access its databases and methods
@@ -37,8 +38,13 @@ func main() {
 	} else {
 		cronosApp.InitializeLocal(user, password, dbHost, databaseName)
 	}
-	//cronosApp.Migrate()
+	// cronosApp.Migrate()
 	a := &App{cronosApp: &cronosApp}
+
+	// Test the Invoice
+	var invoice cronos.Invoice
+	a.cronosApp.DB.Where("id = ?", 6).First(&invoice)
+	a.cronosApp.GenerateInvoicePDF(&invoice)
 
 	r := mux.NewRouter()
 	// Define a subrouter to handle files at static for accessing static content
@@ -63,10 +69,13 @@ func main() {
 	r.HandleFunc("/register_user", a.RegisterUser).Methods("POST")
 	r.HandleFunc("/verify_email", a.VerifyEmail).Methods("POST")
 	api.HandleFunc("/invoices/draft", a.DraftInvoiceListHandler).Methods("GET")
+	api.HandleFunc("/invoices/accepted", a.InvoiceListHandler).Methods("GET")
+	api.HandleFunc("/invoices/{id:[0-9]+}/accept", a.AcceptInvoiceHandler).Methods("POST")
 	api.HandleFunc("/projects", a.ProjectsListHandler).Methods("GET")
 	api.HandleFunc("/projects/{id:[0-9]+}", a.ProjectHandler).Methods("GET", "PUT", "POST", "DELETE")
 	api.HandleFunc("/entries", a.EntriesListHandler).Methods("GET")
 	api.HandleFunc("/entries/{id:[0-9]+}", a.EntryHandler).Methods("GET", "PUT", "POST", "DELETE")
+	api.HandleFunc("/entries/state/{id:[0-9]+}/{state:(?:void)|(?:draft)|(?:approve)}", a.EntryStateHandler).Methods("POST")
 	api.HandleFunc("/staff", a.StaffListHandler).Methods("GET")
 	api.HandleFunc("/accounts", a.AccountsListHandler).Methods("GET")
 	api.HandleFunc("/accounts/{id:[0-9]+}", a.AccountHandler).Methods("GET", "PUT", "POST", "DELETE")
