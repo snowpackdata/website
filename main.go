@@ -38,13 +38,13 @@ func main() {
 	} else {
 		cronosApp.InitializeLocal(user, password, dbHost, databaseName)
 	}
-	// cronosApp.Migrate()
+	//cronosApp.Migrate()
 	a := &App{cronosApp: &cronosApp}
 
 	// Test the Invoice
 	var invoice cronos.Invoice
 	a.cronosApp.DB.Where("id = ?", 6).First(&invoice)
-	a.cronosApp.GenerateInvoicePDF(&invoice)
+	//a.cronosApp.GenerateInvoicePDF(&invoice)
 
 	r := mux.NewRouter()
 	// Define a subrouter to handle files at static for accessing static content
@@ -70,7 +70,7 @@ func main() {
 	r.HandleFunc("/verify_email", a.VerifyEmail).Methods("POST")
 	api.HandleFunc("/invoices/draft", a.DraftInvoiceListHandler).Methods("GET")
 	api.HandleFunc("/invoices/accepted", a.InvoiceListHandler).Methods("GET")
-	api.HandleFunc("/invoices/{id:[0-9]+}/accept", a.AcceptInvoiceHandler).Methods("POST")
+	api.HandleFunc("/invoices/{id:[0-9]+}/{state:(?:accepted)|(?:sent)|(?:paid)|(?:void)}", a.InvoiceStateHandler).Methods("POST")
 	api.HandleFunc("/projects", a.ProjectsListHandler).Methods("GET")
 	api.HandleFunc("/projects/{id:[0-9]+}", a.ProjectHandler).Methods("GET", "PUT", "POST", "DELETE")
 	api.HandleFunc("/entries", a.EntriesListHandler).Methods("GET")

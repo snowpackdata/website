@@ -309,6 +309,14 @@ var App = new Vue({
                 console.log(error)
             })
         },
+        filterInvoices(status) {
+            try {
+                let output = this.acceptedInvoices.filter(function(el) { return el.state === status;})
+                return output
+            } catch {
+                return []
+            }
+        },
 
         // All the standard fetchall methods to populate our page
         fetchStaff(){
@@ -454,6 +462,7 @@ var App = new Vue({
                    name : '',
                    website: '',
                    email : '',
+                   address: '',
                    clients :  null,
                };
            }
@@ -576,6 +585,7 @@ var App = new Vue({
                 postForm.set("email", this.detailAccount.email)
                 postForm.set("type", this.detailAccount.type)
                 postForm.set('legal_name', this.detailAccount.legal_name)
+                postForm.set("address", this.detailAccount.address)
                 if (this.isNew) {
                     method = 'post'
                     posturl = '/api/accounts/0'
