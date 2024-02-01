@@ -38,20 +38,10 @@ func main() {
 	} else {
 		cronosApp.InitializeLocal(user, password, dbHost, databaseName)
 	}
-	//cronosApp.Migrate()
-
-	// Initialize our Storage Client
+	// Only call migration when we are in development
 	//cronosApp.Migrate()
 
 	a := &App{cronosApp: &cronosApp}
-
-	// Test the Invoice
-	var invoice cronos.Invoice
-	a.cronosApp.DB.Where("id = ?", 6).First(&invoice)
-	err := a.cronosApp.SaveInvoiceToGCS(&invoice)
-	if err != nil {
-		log.Println(err)
-	}
 
 	r := mux.NewRouter()
 	// Define a subrouter to handle files at static for accessing static content
