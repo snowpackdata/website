@@ -98,7 +98,7 @@ func (a *App) DraftInvoiceListHandler(w http.ResponseWriter, r *http.Request) {
 // and provide access to line items only via inspection.
 func (a *App) InvoiceListHandler(w http.ResponseWriter, r *http.Request) {
 	var invoices []cronos.Invoice
-	a.cronosApp.DB.Preload("Project").Preload("Project.Account").Where("state = ? or state = ? or state = ?", cronos.InvoiceStateApproved, cronos.InvoiceStatePending, cronos.InvoiceStatePaid).Find(&invoices)
+	a.cronosApp.DB.Preload("Project").Preload("Project.Account").Where("state = ? or state = ? or state = ?", cronos.InvoiceStateApproved, cronos.InvoiceStateSent, cronos.InvoiceStatePaid).Find(&invoices)
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
 	_ = json.NewEncoder(w).Encode(invoices)
@@ -615,34 +615,28 @@ func (a *App) InvoiceStateHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	// Retrieve the url variables of invoice and state
 	var invoice cronos.Invoice
-	a.cronosApp.DB.First(&invoice, vars["id"])
+	a.cronosApp.DB.Preload("Entries").First(&invoice, vars["id"])
 	state := vars["state"]
 	switch {
-	case state == "approved":
+	case state == "approve":
 		// Set the invoice state to approved and mark the time
 		invoice.State = cronos.InvoiceStateApproved.String()
 		invoice.AcceptedAt = time.Now()
+		a.cronosApp.DB.Save(&invoice)
 		// Retrieve the entries as they stand from the acceptance page -- disassociate the voided entries
 		// and mark all the draft entries as accepted
 		entries := invoice.Entries
 		for i, _ := range entries {
+			// Only move the non-voided entries through. We keep the voided ones for reference.
 			if entries[i].State == cronos.EntryStateDraft.String() {
 				// Set the individual entry states to approved if they are in draft
 				entries[i].State = cronos.EntryStateApproved.String()
 			}
-			if entries[i].State == cronos.EntryStateVoid.String() {
-				// remove the entry from this invoice now that its marked as Accepted
-				entries[i].Invoice = cronos.Invoice{}
-			}
-			a.cronosApp.DB.Save(&entries)
 		}
+		a.cronosApp.DB.Save(&entries)
 		// Update the invoice totals from the associated entries
 		a.cronosApp.UpdateInvoiceTotals(&invoice)
 		// Save the invoice
-		a.cronosApp.DB.Save(&invoice)
-
-		// Finally generate the invoice PDF and save it to GCS
-		// TODO: This should be done in a goroutine
 
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		_ = json.NewEncoder(w).Encode(struct {
@@ -654,6 +648,7 @@ func (a *App) InvoiceStateHandler(w http.ResponseWriter, r *http.Request) {
 		// Set the invoice state to void and mark the time
 		invoice.State = cronos.InvoiceStateVoid.String()
 		invoice.ClosedAt = time.Now()
+		a.cronosApp.DB.Save(&invoice)
 		// Retrieve the entries and mark all as voided
 		entries := invoice.Entries
 		for i, _ := range entries {
@@ -662,25 +657,31 @@ func (a *App) InvoiceStateHandler(w http.ResponseWriter, r *http.Request) {
 		// Save the entries
 		a.cronosApp.DB.Save(&entries)
 		// Save the invoice
-		a.cronosApp.DB.Save(&invoice)
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		_ = json.NewEncoder(w).Encode(struct {
 			State string
 			ID    uint
 		}{cronos.InvoiceStateVoid.String(), invoice.ID})
 		return
-	case state == "sent":
+	case state == "send":
 		invoice.State = cronos.InvoiceStateSent.String()
 		invoice.SentAt = time.Now()
-		invoice.DueAt = time.Now().AddDate(0, 1, 0)
+		invoice.DueAt = time.Now().AddDate(0, 0, 30)
 		// Save the invoice
 		a.cronosApp.DB.Save(&invoice)
 		var entries []cronos.Entry
 		a.cronosApp.DB.Where("invoice_id = ?", invoice.ID).Find(&entries)
 		for i, _ := range entries {
-			entries[i].State = cronos.EntryStatePending.String()
+			if entries[i].State == cronos.EntryStateApproved.String() {
+				entries[i].State = cronos.EntryStateSent.String()
+			}
 		}
 		a.cronosApp.DB.Save(&entries)
+		// Save the locked file to GCS
+		err := a.cronosApp.SaveInvoiceToGCS(&invoice)
+		if err != nil {
+			fmt.Println(err)
+		}
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		_ = json.NewEncoder(w).Encode(struct {
 			State string
@@ -706,6 +707,16 @@ func (a *App) InvoiceStateHandler(w http.ResponseWriter, r *http.Request) {
 		}{cronos.InvoiceStatePaid.String(), invoice.ID})
 		return
 	}
+}
+
+func (a *App) BackfillProjectInvoicesHandler(w http.ResponseWriter, r *http.Request) {
+	// Retrieve the project and backfill all the invoices
+	vars := mux.Vars(r)
+	projectID := vars["id"]
+	go a.cronosApp.BackfillEntriesForProject(projectID)
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	w.WriteHeader(http.StatusOK)
+	return
 }
 
 func (a *App) generateLinkedEntry(entry *cronos.Entry) cronos.Entry {

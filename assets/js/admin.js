@@ -124,10 +124,10 @@ var App = new Vue({
             this.secondKey += 1;
         },
 
-        acceptInvoice(invoice) {
+        markInvoiceApproved(invoice) {
             axios({
                 method: 'post',
-                url: '/api/invoices/' + invoice.invoice_id.toString() + '/accept',
+                url: '/api/invoices/' + invoice.ID.toString() + '/approve',
                 headers: {'Content-Type': 'application/json', 'x-access-token': window.localStorage.snowpack_token},
             })
                 .then(response => {
@@ -137,6 +137,52 @@ var App = new Vue({
                 .catch(error => {
                     console.log(error)
                 })
+            this.draftInvoices = this.draftInvoices.filter(function(el) { return el.ID !== invoice.ID; })
+        },
+        markInvoiceSent(invoice) {
+            axios({
+                method: 'post',
+                url: '/api/invoices/' + invoice.ID.toString() + '/send',
+                headers: {'Content-Type': 'application/json', 'x-access-token': window.localStorage.snowpack_token},
+            })
+                .then(response => {
+                    console.log(response)
+                    invoice.State = response.data.State
+                })
+                .catch(error => {
+                    console.log(error)
+                })
+            this.acceptedInvoices = this.fetchAcceptedInvoices();
+        },
+        markInvoicePaid(invoice) {
+            axios({
+                method: 'post',
+                url: '/api/invoices/' + invoice.ID.toString() + '/paid',
+                headers: {'Content-Type': 'application/json', 'x-access-token': window.localStorage.snowpack_token},
+            })
+                .then(response => {
+                    console.log(response)
+                    invoice.State = response.data.State
+                })
+                .catch(error => {
+                    console.log(error)
+                })
+            this.acceptedInvoices = this.fetchAcceptedInvoices();
+        },
+        markInvoiceVoid(invoice) {
+            axios({
+                method: 'post',
+                url: '/api/invoices/' + invoice.ID.toString() + '/void',
+                headers: {'Content-Type': 'application/json', 'x-access-token': window.localStorage.snowpack_token},
+            })
+                .then(response => {
+                    console.log(response)
+                    invoice.State = response.data.State
+                })
+                .catch(error => {
+                    console.log(error)
+                })
+            this.fetchAcceptedInvoices();
         },
 
         getEntries(day, hour) {
@@ -295,6 +341,7 @@ var App = new Vue({
             .catch(error => {
                 console.log(error)
             })
+            return this.draftInvoices
         },
         fetchAcceptedInvoices(){
             axios({
@@ -308,6 +355,7 @@ var App = new Vue({
             .catch(error => {
                 console.log(error)
             })
+            return this.acceptedInvoices
         },
         filterInvoices(status) {
             try {
@@ -759,6 +807,22 @@ var App = new Vue({
                 return entryDate >= this.currentWeek && entryDate < getNextWeek(this.currentWeek);
             });
             return weeklyEntries
+        },
+        backfillProjectEntries(project) {
+            let postForm = new FormData();
+            postForm.set("project_id", project.ID)
+            axios({
+                method: 'post',
+                url: '/api/projects/' + project.ID + '/backfill',
+                headers: {'Content-Type': 'application/json', 'x-access-token': window.localStorage.snowpack_token},
+                data: postForm,
+            })
+            .then(response => {
+                console.log(response)
+            })
+            .catch(error => {
+                console.log(error)
+            })
         }
     },
     mounted() {

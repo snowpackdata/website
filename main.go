@@ -41,10 +41,8 @@ func main() {
 	//cronosApp.Migrate()
 
 	// Initialize our Storage Client
-	bucketName := os.Getenv("GCS_BUCKET")
-	projectID := os.Getenv("GCP_PROJECT")
 	//cronosApp.Migrate()
-	cronosApp.InitializeStorageClient(projectID, bucketName)
+
 	a := &App{cronosApp: &cronosApp}
 
 	// Test the Invoice
@@ -79,9 +77,10 @@ func main() {
 	r.HandleFunc("/verify_email", a.VerifyEmail).Methods("POST")
 	api.HandleFunc("/invoices/draft", a.DraftInvoiceListHandler).Methods("GET")
 	api.HandleFunc("/invoices/accepted", a.InvoiceListHandler).Methods("GET")
-	api.HandleFunc("/invoices/{id:[0-9]+}/{state:(?:accepted)|(?:sent)|(?:paid)|(?:void)}", a.InvoiceStateHandler).Methods("POST")
+	api.HandleFunc("/invoices/{id:[0-9]+}/{state:(?:approve)|(?:send)|(?:paid)|(?:void)}", a.InvoiceStateHandler).Methods("POST")
 	api.HandleFunc("/projects", a.ProjectsListHandler).Methods("GET")
 	api.HandleFunc("/projects/{id:[0-9]+}", a.ProjectHandler).Methods("GET", "PUT", "POST", "DELETE")
+	api.HandleFunc("/projects/{id:[0-9]+}/backfill", a.BackfillProjectInvoicesHandler).Methods("POST")
 	api.HandleFunc("/entries", a.EntriesListHandler).Methods("GET")
 	api.HandleFunc("/entries/{id:[0-9]+}", a.EntryHandler).Methods("GET", "PUT", "POST", "DELETE")
 	api.HandleFunc("/entries/state/{id:[0-9]+}/{state:(?:void)|(?:draft)|(?:approve)}", a.EntryStateHandler).Methods("POST")

@@ -216,7 +216,8 @@
                                 <td>Total Fee: ${{invoice.total_fees}}</td>
                         </table>
                     <div>
-                        <button @click="acceptInvoice(invoice)" :class="{ 'button-ready': invoice.period_closed, 'button-locked' : !invoice.period_closed}">Lock & Approve</button>
+                        <button @click="markInvoiceApproved(invoice)" :class="{ 'button-ready': invoice.period_closed, 'button-locked' : !invoice.period_closed}">Lock & Approve</button>
+                        <button @click="markInvoiceVoid(invoice)" class="button-void">Void</button>
                     </div>
                     </div>
                 </div>
@@ -249,27 +250,39 @@
                         <td>${{ invoice.total_fees }}</td>
                         <td>${{ invoice.total_adjustments }}</button></td>
                         <td>${{ invoice.total_amount }}</td>
-                        <td><button>Mark Sent</button></td>
+                        <td>
+                            <button @click="markInvoiceSent(invoice)" class="button-ready">Mark Sent</button>
+                            <button @click="markInvoiceVoid(invoice)" class="button-void">Void</button>
+                        </td>
                     </tr>
-                    <tr v-for="invoice in filterInvoices('INVOICE_STATE_PENDING')">
-                        <td><span style="color:rgba(246,211,34,0.94);font-weight:bolder">PENDING</span></td>
+                    <tr v-for="invoice in filterInvoices('INVOICE_STATE_SENT')">
+                        <td><span style="color:rgba(246,211,34,0.94);font-weight:bolder">SENT</span></td>
                         <td>{{ invoice.project.account.name }}</td>
-                        <td>{{ invoice.name }}</td>
+                        <td>
+                            <a :href="invoice.file" download class="link-dark"><i class="fa-solid fa-download"></i></a>
+                            {{ invoice.name }}
+                        </td>
                         <td>Due {{ parseDate(invoice.due_at, 'll') }}</td>
                         <td>${{ invoice.total_fees }}</td>
                         <td>${{ invoice.total_adjustments }}</td>
                         <td>${{ invoice.total_amount }}</td>
-                        <td><button>Mark Paid</button></td>
+                        <td>
+                            <button @click="markInvoicePaid(invoice)" class="button-ready">Mark Paid</button>
+                            <button @click="markInvoiceVoid(invoice)" class="button-void">Void</button>
+                        </td>
                     </tr>
                     <tr v-for="invoice in filterInvoices('INVOICE_STATE_PAID')">
                         <td><span style="color:rgba(39,152,13,0.94);font-weight:bolder">PAID</span></td>
                         <td>{{ invoice.project.account.name }}</td>
-                        <td>{{ invoice.name }}</td>
+                        <td>
+                            <a :href="invoice.file" download class="link-dark"><i class="fa-solid fa-download"></i></a>
+                            {{ invoice.name }}
+                        </td>
                         <td>Paid {{ parseDate(invoice.closed_at, 'll') }}</td>
                         <td>${{ invoice.total_fees }}</td>
                         <td>${{ invoice.total_adjustments }}</td>
                         <td>${{ invoice.total_amount }}</td>
-                        <td><a href="" style="font-weight:bolder">Download Invoice</a></td>
+                        <td></td>
                     </tr>
                 </table>
             </div>
@@ -284,7 +297,8 @@
                        <div v-for="project in projects" class="admin-record-card">
                            <div class="col-6">
                                <div class=""><h3>{{ project.name }}</h3></div>
-                               <div class="client-widget" :class="{ 'client-internal' : project.internal}">{{ project.account.name}}</div>
+                               <div class="client-widget" :class="{ 'client-internal' : project.internal}">{{ project.account.name}}
+                                   <button @click="backfillProjectEntries(project)" class="button-icon"><i class="fa-solid fa-tags"></i>  Invoice</button> </div>
                            </div>
                            <div class="col-6">
                                <div class="">{{ parseDate(project.active_start, 'll') }} to {{ parseDate(project.active_end, 'll') }}</div>
