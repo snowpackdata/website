@@ -39,12 +39,21 @@ func main() {
 		cronosApp.InitializeLocal(user, password, dbHost, databaseName)
 	}
 	//cronosApp.Migrate()
+
+	// Initialize our Storage Client
+	bucketName := os.Getenv("GCS_BUCKET")
+	projectID := os.Getenv("GCP_PROJECT")
+	//cronosApp.Migrate()
+	cronosApp.InitializeStorageClient(projectID, bucketName)
 	a := &App{cronosApp: &cronosApp}
 
 	// Test the Invoice
 	var invoice cronos.Invoice
 	a.cronosApp.DB.Where("id = ?", 6).First(&invoice)
-	//a.cronosApp.GenerateInvoicePDF(&invoice)
+	err := a.cronosApp.SaveInvoiceToGCS(&invoice)
+	if err != nil {
+		log.Println(err)
+	}
 
 	r := mux.NewRouter()
 	// Define a subrouter to handle files at static for accessing static content
