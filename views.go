@@ -2,12 +2,12 @@ package main
 
 import (
 	"encoding/json"
+	"github.com/gorilla/mux"
 	"html/template"
 	"io/ioutil"
 	"log"
 	"net/http"
-
-	"github.com/gorilla/mux"
+	"sort"
 )
 
 func loadBlogs() map[string]Post {
@@ -35,7 +35,18 @@ func loadBlogs() map[string]Post {
 		// add posts to our hashmap with the ID as the key
 		postsMap[post.Slug] = post
 	}
-	return postsMap
+
+	// Sort the posts by ID
+	keys := make([]string, 0, len(postsMap))
+	for key := range postsMap {
+		keys = append(keys, key)
+	}
+	sort.Slice(keys, func(i, j int) bool { return postsMap[keys[i]].ID > postsMap[keys[j]].ID })
+	returnMap := make(map[string]Post)
+	for _, key := range keys {
+		returnMap[key] = postsMap[key]
+	}
+	return returnMap
 }
 
 // Index Page as Follows are all URL Pathways
@@ -55,8 +66,23 @@ func exampleReportHandler(w http.ResponseWriter, req *http.Request) {
 
 func blogLandingHandler(w http.ResponseWriter, req *http.Request) {
 	blogPosts := loadBlogs()
+	// Sort the posts by ID
+	keys := make([]string, 0, len(blogPosts))
+	for key := range blogPosts {
+		keys = append(keys, key)
+	}
+	sort.Slice(keys, func(i, j int) bool { return blogPosts[keys[i]].ID > blogPosts[keys[j]].ID })
+	returnMap := make(map[string]Post)
+	for _, key := range keys {
+		returnMap[key] = blogPosts[key]
+	}
+	var sortedPosts []Post
+	for _, key := range keys {
+		sortedPosts = append(sortedPosts, blogPosts[key])
+	}
+
 	landingTemplate, _ := template.ParseFiles("./templates/blog_landing.gohtml")
-	err := landingTemplate.Execute(w, blogPosts)
+	err := landingTemplate.Execute(w, sortedPosts)
 	if err != nil {
 		log.Fatal(err)
 	}

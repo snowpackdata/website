@@ -1,0 +1,11 @@
+{
+  "id" : 8,
+  "title" : "Building Project Cronos",
+  "subtitle": "A peek into the development of our internal time tracking and project management tool",
+  "splash" : "build-legos-splash.jpg",
+  "author" : "Nate Robinson",
+  "slug" : "building-project-cronos",
+  "tags" : ["technical deep-dive","project management", "timesheets", "proprietary-software"],
+  "date" : "February 1, 2024",
+  "content" : "building-project-cronos.html"
+}

@@ -1,0 +1,219 @@
+<style>
+    .caption {
+        font-size: .95em;
+        font-style: italic;
+        text-align: center;
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+        margin-bottom: 2%;
+        width: 51%;
+    }
+</style>
+
+<p style="font-style:italic;">This is a deep technical-dive into the development details of Project Cronos as an accompaniment to our brief intro to the tool.
+The time that goes into developing these tools is often overlooked. We hope this post serves as both a roadmap for others seeking to build custom tools and as
+an exhibit of the dedication we have to quality work.</p>
+
+<h2>Motivation</h2>
+<p>
+    Project Cronos began as a side project a few months ago at Snowpack. My entire career I've spent
+    a generous amount of my free time thinking about and working on side projects. Some of those have become
+    <a href="/blog/simple-bi-tooling" class="link-dark">open source tools</a> or <a href="http://flashframe.io" class="link-dark">companies</a>,
+    and some just <a class="link-dark" href="https://github.com/nathanaelrobinson/wordle">fun challenges for myself</a>, but all have been excellent learning experiences.
+    I've been especially motivated by the development of bespoke tooling, I really enjoy automating and optimizing
+    the boring parts of my job and there's been no better place than Snowpack for me to do that in a way that benefits
+    both myself, and the clients that I work with.
+</p>
+<p>
+    The goal of Project Cronos was to reduce the manual overhead spent managing timesheets and invoices
+    for the Snowpack team. We recognize that we do not need a full-fledged time tracking system, but we do need something
+    more advanced and auditable than a spreadsheet for keeping track of work spent across projects.
+    With just 3 members at the time, combining our individual spreadsheets was already becoming an annoying affair, I couldn't
+    imagine the pain as we began to expand. After a particularly egregious month of invoicing, I began sketching out a solution.
+    Since then, the project has slowly expanded to encompass entire internal project management system.
+    I do want to get one point out of the way first, yes there are dozens if not hundreds of similar tools out there,
+    some of them probably fit our needs, and some of those are probably even free or low cost. But as builders and developers,
+    we find joy in building our own tools, and I think that's what makes us so innovative, nobody created anything new by
+    purchasing someone else's software.
+    The experience that our team and clients have with Project Cronos should represent who we are a company, professionals who deliver
+    highly bespoke, thoroughly thought-out, and well-crafted solutions without compromise.
+</p>
+<img src="../assets/img/cronos_calendar.png" alt="Cronos Calendar Landing Page">
+<span class="caption">Landing page upon logging into the Cronos application.</span>
+
+<h2>Architecture</h2>
+<p>
+    My corporate career began at Digitas, a large digital marketing agency, in which I started working across a number of small clients.
+    Part of every week was spent  filling out timesheets, an arduous process rife with error and frustration.
+    Even then, I often thought about ways to improve the process. That experience gave me a good understanding of both
+    the necessary requirements and the pitfalls these types of technologies have. When I began to think about the architecture
+    for Cronos, most of the components were obvious, so much so that I was able to sketch out the entire system in a few minutes.
+</p>
+<img src="../assets/img/cronos_sketch.png" alt="Cronos Architecture Sketch">
+<span class="caption">My ugly initial sketch of what would become the Cronos app.</span>
+<p>
+    First began the architecture of the backend models. Obviously we needed a User, and a User would record work, or an Entry,
+    to a Project. Next came the obvious, a Project must have an Account, and an Account must have Clients, who ... are also Users.
+    Well that necessitates another model, an Employee (or staff) is a User, but only a staff member can submit an Entry,
+    and a Client is also a User, but they can only view their own Projects. As you can see this becomes an iterative process.
+    Ultimately we ended with the following core models: User, Entry, Project, Account, BillingCode, Rate, Client, and Employee.
+    Why so many layers of abstraction? Well from what I learned using past systems, it's powerful to have re-usable components.
+    For example, our Rates should be set by an administrator and available to only certain BillingCodes, we don't want any funny business, nor do
+    want to have to create a new rate for each billing code when we can reuse the same one.
+    Secondly, what if we have different types of staff each working on a project? We need to have each entry tied to a BillingCode, not a Project.
+    This limits the amount of time required to add an entry, you simply select a BillingCode, which already has an associated Rate, and Project, and you're done.
+    Not to mention BillingCodes have memorable names, I still remember some of the ones from my Digitas days, this reduces likelihood of user error.
+</p>
+<img src="../assets/img/cronos_db_erd.png" alt="Cronos Entity Relationship Diagram">
+<span class="caption">The moderately convoluted entity relationship diagram that defines Cronos.</span>
+<p>
+    After the core function was sketched out, we turned to Invoicing. This resulted in a few additional models, an Invoice, an Adjustment, and a Journal.
+    An Invoice contains a collection of Entries, potentially spanning multiple Staff or BillingCodes that
+    are aggregated and invoiced to a client. This is a very powerful tool, as it allows us to invoice for a variety of services
+    on a project in a single format without manually generating complex documents. If we needed to amend an invoice, we could
+    add an object called an Adjustment. This allows us to keep a record of things like discounts, rebates, or additional fees.
+    Finally, a Journal is the aggregate collection of entries, this operates behind the scenes and allows our team to do
+    things like generate reports, handle accounting, and track the performance of our team.
+</p>
+<h2>Platform</h2>
+<p>
+    So we've discussed architecture but what is this all built in? Cronos like much of my recent non-DS work is built in Golang.
+    Golang offers many nice features for building web applications, the language is simple and fast, highly standardized,
+    and encourages maintainable code with its strict typing and error handling. Our entire website is already built
+    in Golang, so it was a natural choice to build Cronos in the same language and import the library into our website. As
+    a side note, as data professionals I find it important for us to be able to work both across a stack and across languages,
+    expanding my experience beyond Python and SQL has been a great learning experience and has made me a better developer
+    no matter what language I'm working in.
+</p>
+<p>
+    There are a number of options for syncing the database components of a web application with the backend codebase, but
+    for speed of development and ease of use, I chose to use GORM. GORM is a popular ORM for Golang, and while not fully featured is
+    about as good as ORMs get in Go. Go discourages the use of ORMs and frameworks rendering the pool of options small.
+    GORM nowhere near as powerful or flexible as Python's Django, but allows you to abstract most of the database operations and focus on the application
+    logic so long as you avoid some of the more esoteric traps that it introduces. With the ORM in place, and a postgres database running on our server, we were
+    able to quickly build out the models and begin testing the application. Much of the application is a simple CRUD API,
+    we use to create, edit, and delete our objects. If I had to plug a single technology in this dev phase
+    it would be GitHub Copilot. I wrote a relatively generic CRUD API for the first object myself, and then let Copilot
+    abstract that template to the rest of the objects for me, building out the bulk of our API in seconds.
+    It wasn't quite perfect, but saved me a few hours of boilerplate coding.
+</p>
+<h2>The Application</h2>
+<p>
+    The real fun of the building this application was the business logic. After the basic CRUD API was built, I began to
+    consider some of the more complex operations that we would need to perform. For example, when a user submits an Entry,
+    that entry needs to be verified as valid for the project, added to the correct Journal, and then applied to the correct
+    draft invoice. Another fun features is the ability to do a kind of "dual entry" accounting. When a staff member
+    submits a billable entry, the system automatically created a linked entry to track their pay. Each billing code has instructions
+    for how to generate this linked entry. This is necessary because staff may bill the same externally to clients against a
+    single billing code, but each of those staff members may earn a slightly different hourly income for their work, this allows us to handle all of those contingencies and
+    easily generate paystubs for hourly staff. If staff are salaried we can use these entries to calculate their utilization and profitability or lack thereof.
+</p>
+<img src="../assets/img/cronos_entry_edit.png" alt="Cronos Time Entry">
+<span class="caption">Time entry form for recording time spent on a project.</span>
+<p>
+    Just as important as routing entries correctly was the ability for administrators to keep track of billable work, invoices,
+    and budgets. Each project has a budget, whether that be in hours, dollars, or both. The administrator is able to see
+    each of the entries as applied to an invoice in a draft state throughout the month to track if they are entered correctly,
+    and if they are within budget. Once a billing period has closed the administrator can make any final edits before
+    approving the invoice. Once approved the invoice is locked and cannot be edited, and the system will automatically
+    generate a PDF of the invoice and with one click you can send it to the client. This is a huge time saver for our team,
+    and having a permanent record of each invoice, the entries included with it, and the work that was done is a huge benefit
+    for our team.
+</p>
+<img src="../assets/img/draft_invoice_screenshot.png" alt="Cronos Invoice">
+<span class="caption">Draft invoice for work recorded on the Cronos Project.</span>
+<p>
+    One last fun little thing I enjoyed was building the simple underpinning logic for invoice/fees calculation. Different
+    contracts might round billables to the nearest 15 minutes, or 30 minutes, or even 1 hour. We need to ensure that entries
+    follow these rules, and that the system can handle the rounding correctly. Small code snippets like this are fun to write,
+    and they are the kind of thing that makes a bespoke system like this so powerful.
+</p>
+<pre><code class="language-golang">
+// GetFee finds the fee for an entry in USD after accounting for round-off specific to the billing code
+func (a *App) GetFee(e *Entry) float64 {
+	// Retrieve the BillingCode and its associated Rate
+    var billingCode BillingCode
+	a.DB.Preload("Rate").Where("id = ?", e.BillingCodeID).First(&billingCode)
+	// Find the Entry duration in minutes
+    durationMinutes := e.Duration().Minutes()
+	// Calculate the rounding factor as the percentage of an hour
+    roundingFactor := float64(billingCode.RoundedTo) / SIXTY_MINUTES
+    // Convert our duration in minutes to hours plus a decimal
+    hours := float64(durationMinutes) / SIXTY_MINUTES
+    // Round the hours to the nearest rounding factor, rounding down
+	roundedHours := float64(int(hours/roundingFactor)) * roundingFactor
+    // Use the rounded hours to calculate the fee
+	fee := roundedHours * billingCode.Rate.Amount
+	return fee
+}
+</code></pre>
+<h2>Security</h2>
+<p>
+    But what about security! Well, given the nature of the data we are storing I ended up spending the largest chunk of time on security.
+    I'm not a security expert, but I've been around the block a few times and I know the core concepts. Obviously we need to salt and hash
+    passwords and other sensitive data, that is table stakes. Service accounts with tightly scoped permissions are provisioned to the application and
+    used to handle operations with various external parties. We also need to limit the data that is available to users,
+    the pages they can see, and the operations they can perform. Javascript Web Tokens (JWTs) are used for authentication,
+    and we use a custom middleware to authenticate all requests. These tokens expire and are cycled prompting the user to re-authenticate routinely.
+    Finally, we need to manage the use of secrets during deployment which is handled by CI/CD. The application code is in a private repo and secrets are secured via GitHub Secrets.
+    When an update branch is merged to the main branch, the application is automatically rebuilt, the secrets are injected,
+    and the application is redeployed limiting the ability for contributors to access secrets, or accidentally deploy them to GitHub.
+</p>
+<img src="../assets/img/ci-cd.png" alt="GitHub CI/CD">
+<span class="caption">The sweet sweet success of all green on the CI/CD checks and deploy.</span>
+<h2>Building the Frontend</h2>
+<p>
+    With the application working smoothly I began to think through how to actually record time. I wanted to make it as easy as possible
+    to add entries, and I wanted to make it a seamless part of our daily workflow that avoided error. The logical solution was to
+    make timesheet entries look like a calendar. We each spend a lot of time in our calendars, and the visual representation
+    of time is a very natural way to think about it. It limits problems like double-entry over the same period, and offers
+    visual feedback as to the productivity of your week. In a perfect world the calendar should be entirely full. My backend
+    skills are certainly stronger than my frontend skills, so while the calendar is responsive and clean, you cannot create
+    or resize an entry by dragging on the calendar (yet), you'll simply have to use the Add Entry button.
+</p>
+<p>
+    The calendar and the rest of our UI is built in Vue. My experience in front-end frameworks is limited to work I did nearly a decade ago
+    in Angular2 and a few small projects in React. I chose Vue because of how similar it is to Angular, and because it's a bit more
+    lightweight than React. I also wanted to learn something new, and I've been very happy with the choice. With Vue I am
+    able to bind objects to the DOM, and use a number of built-in components to complete the functionality of the UI. I was also able to create
+    some relatively bound functions that are used to handle event triggers for actions taken in the UI, and even a few sneaky
+    DOM updates for responsiveness in the Calendar.
+</p>
+<img src="../assets/img/create_project.png" alt="Cronos Invoice PDF">
+<span class="caption">The administrative UI for creating and editing core objects.</span>
+<p>
+    Admittedly where I fall short is webpage design. While the functionality of the pages is there, I find the design a
+    bit sterile. Despite having taught a web development course for the past 4 years, I've never been able to
+    create a truly beautiful webpage, so we'll have to settle for a functional one! At the very least it's responsive,
+    and thanks to some support from Tanya Z with a bunch of CSS suggestions, we have a cohesive theme across the entire application.
+</p>
+<h2>Challenges</h2>
+<p>
+    So what were the key challenges in building out this application? I found the largest challenges were based in platform
+    and security. The ever-changing structure of the GCP/AWS platforms and the security requirements of the applications
+    renders some of our experience obsolete every year. I've deployed probably 15+ applications to cloud platforms in my
+    career and every time I do it I have to relearn the process. While it feels like the technologies are getting more
+    complicated, it feels like the process is getting easier, and this iteration feels like both the most secure and the most stable.
+    I'm also very happy with the CI/CD pipeline and ease of contribution that introduces. The ability to test branches on commit, and automatically deploy to a staging environment
+    is an absolute must for any modern application.
+</p>
+<h2>Next Steps</h2>
+<p>
+    We have a ton of next steps already planned for Project Cronos. The first is to build out a customer portal, allowing
+    our Clients to view their projects, download their invoices, and hopefully retrieve some useful reports. The groundwork
+    exists for handling payroll with the dual entry system, but we need to build out the UI and some backend logic to
+    handle the process. Finally also need to build out a more robust reporting system, we have a few standard reports
+    in mind, but we also want to allow our team to build custom reports. This will be a fun challenge, and I'm looking forward to it.
+</p>
+<h2>Conclusion</h2>
+<p>
+    I hope this has been an interesting read, and I hope it serves as a roadmap for others seeking to build their own custom software.
+    We are really proud of the work we've put into this despite it being just a side project, but I'm glad it can exist as a
+    sort of portfolio piece for our team, and a functional tool to alleviate some of our administrative overhead.
+</p>
+
+<hr>
+<i>Snowpack specializes in helping organizations solve analytical problems. We work with clients to build and deploy a
+    modern data for them that will scale as they grow. For more information, follow our blog, or shoot us an email at <a
+            href="mailto: info@snowpack-data.io">info@snowpack-data.io</a></i>
