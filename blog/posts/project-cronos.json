@@ -1,0 +1,11 @@
+{
+  "id" : 7,
+  "title" : "Introducing Project Cronos",
+  "subtitle": "Snowpack's custom project management software",
+  "splash" : "cronos.jpg",
+  "author" : "Nate Robinson",
+  "slug" : "project-cronos",
+  "tags" : ["product launch","project management", "timesheets", "invoicing", "proprietary-software"],
+  "date" : "February 1, 2024",
+  "content" : "project-cronos.html"
+}

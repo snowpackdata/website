@@ -1,0 +1,70 @@
+<style>
+    .caption {
+        font-size: .95em;
+        font-style: italic;
+        text-align: center;
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+        margin-bottom: 2%;
+        width: 51%;
+    }
+</style>
+<p>
+    Project Cronos is a passion project of ours that we have been slowly working on the past two months. We are excited
+    to share its initial release. If you want to learn more about the development and technical underpinnings check out
+    our <a href="/blog/building-project-cronos">technical deep-dive</a>.
+</p>
+<p>
+    Project Cronos is a project management tool that we are using internally to manage our work. Up until now, our
+    project management, budgeting, time tracking, and invoicing has been done across multiple Google Sheets, Google
+    Docs, and scratchpads of paper. With Cronos we are able to accurately manage our billable time across multiple
+    projects and reduce the time we need to generate professional invoices.
+</p>
+<p>
+    There are a lot of SaaS products in this market that we could have used, but we wanted to build something that
+    would be tailored to our specific needs and would act as a portfolio piece for our team. The costs of
+    maintaining this product are minuscule, a fraction of what we would have paid for a similar SaaS product (if
+    you ignore the upfront development costs).
+</p>
+<p>
+    Below screenshots show some of the workflow steps for a user. First upon logging in they will see a dashboard with
+    a calendar view which will have time blocked off for any previously entered time entries.
+</p>
+<img src="../assets/img/cronos_calendar.png" alt="Cronos Calendar Landing Page">
+<span class="caption">Landing page upon logging into the Cronos application.</span>
+<p>
+    From the calendar view, user can click Add Entry to record time working on a project. This will prompt them to
+    select a billing code, of which they will have a curated list assigned to them. They will then record the time
+    that they spent working and a description of their work.
+</p>
+<img src="../assets/img/cronos_entry_edit.png" alt="Cronos Time Entry">
+<span class="caption">Time entry form for recording time spent on a project.</span>
+<p>
+    The rest of the features are limited to administrators, such as adding new projects, clients, and billing.
+    The most powerful feature is the ability to review drafted invoices and approve and send invoices. The screenshot
+    below shows a fake draft invoice for work I recorded on the Cronos Project. The administrator can keep or void any
+    of the line items before approving the invoice.
+</p>
+<img src="../assets/img/draft_invoice_screenshot.png" alt="Cronos Invoice">
+<span class="caption">Draft invoice for work recorded on the Cronos Project.</span>
+<p>
+    Shareable Invoices are generated in PDF formats with both a billing code summary, and a detailed breakdown
+    of the time and work recorded. These are delivered to the client via email and are also stored in the system for
+    future reference.
+</p>
+<img src="../assets/img/cronos_invoice.png" alt="Cronos Invoice PDF">
+<span class="caption">Page 1 of the auto-generated invoice with a billing code summary and total.</span>
+<img src="../assets/img/cronos_invoice_pg2.png" alt="Cronos Invoice PDF Pg2">
+<span class="caption">Page 2 of the invoice provides a detailed breakdown of all work contributed to the project</span>
+<p>
+    As we exit the beta phase
+    of this project we'll be adding more features and onboarding our clients to the soon-to-be-released customer portal
+    to review work, manage invoices, and view reports. If there is significant interest we'll be looking to either open
+    source the project or license it as low-cost SaaS product to other small businesses.
+</p>
+
+<hr>
+<i>Snowpack specializes in helping organizations solve analytical problems. We work with clients to build and deploy a
+    modern data for them that will scale as they grow. For more information, follow our blog, or shoot us an email at <a
+            href="mailto: info@snowpack-data.io">info@snowpack-data.io</a></i>
