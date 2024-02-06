@@ -691,7 +691,7 @@ var App = new Vue({
                     this.hideModal();
                 })
                 .catch(error => {
-                    console.log(error)
+                    alert('There was an error saving the entry. Please contact support.');
                 })
             }
             this.showDetail = false;
