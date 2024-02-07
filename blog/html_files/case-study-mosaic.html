@@ -1,0 +1,151 @@
+<style>
+    a {
+        color: #007bff;
+        text-decoration: none;
+        background-color: transparent;
+    }
+
+    i {
+        font-size: 12pt;
+    }
+
+    .center {
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+        width: 50%;
+    }
+
+    .caption {
+        font-size: .95em;
+        font-style: italic;
+        text-align: center;
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+        margin-bottom: 2%;
+        width: 51%;
+    }
+
+    ol {
+        font-size: initial;
+        margin-left: 5%;
+
+    }
+
+    a.footnote {
+        text-decoration: none;
+        background-color: rgba(187, 238, 254, 0.99);
+        color: rgba(5, 42, 58, 0.99);
+        padding-left: 2px;
+        padding-right: 2px;
+        margin-right: 2px;
+        -webkit-transition: all 2s ease;
+        -moz-transition: all 2s ease;
+        -o-transition: all 2s ease;
+        transition: all 2s ease;
+    }
+
+    a.footnote span {
+        z-index: -1;
+        opacity: 0;
+        position: fixed;
+        left: 15px;
+        bottom: 40px;
+        margin-left: 0px;
+        margin-right: 18px;
+        padding: 14px 20px;
+        border-radius: 4px;
+        box-shadow: 5px 5px 8px #CCC;
+        border: 1px solid #aab6dd;
+        background-color: rgba(187, 238, 254, 0.99);
+        -webkit-transition: all 2s ease;
+        -moz-transition: all 2s ease;
+        -o-transition: all 2s ease;
+        transition: all 2s ease;
+    }
+
+    a.footnote:hover span {
+        z-index: 9;
+        opacity: 1;
+        -webkit-transition: all 2s ease;
+        -moz-transition: all 2s ease;
+        -o-transition: all 2s ease;
+        transition: all 2s ease;
+    }
+
+    ol {
+        list-style-type: none;
+        counter-reset: custom-counter;
+        margin-left: 0;
+        padding-left: 0;
+    }
+
+    li {
+        counter-increment: custom-counter;
+        margin-bottom: 8px;
+        font-size: 12pt;
+        margin-left: 5em;
+    }
+
+    li:before {
+        content: "•";
+        color: #007bff;
+        font-size: 18px;
+        display: inline-block;
+        width: 1em;
+        margin-left: -1em;
+        margin-right: 0.5em;
+    }
+
+    strong {
+        font-weight: bolder;
+        margin-left: 2em;
+    }
+
+</style>
+
+<h2>Introduction</h2>
+<p>Starting in early 2023, we began working with the team at Mosaic.tech to set up product analytics and reporting needs. A key goal was to clearly define and model their priority metrics.</p>
+<p>Mosaic is a strategic finance platform for the entire business, providing a real-time analytics and planning platform that helps teams get from data to decision. This includes data consolidation, automated reporting, predictive modeling, insights, and alignment. With such vast product functionality, Mosaic values the ability to utilize their data to better understand their product, their customers, and drive towards more informed growth and customer success decisions.</p>
+
+<h2>Objectives</h2>
+<p>Mosaic had implemented Heap for web tracking analytics, and had a plethora of production data tables, including internal audit log tracking. The main objective of the project was to develop high-value metrics to provide the client a baseline view of product performance.</p>
+<p>Secondary objectives included:</p>
+<ul>
+    <li>Secondary metric development</li>
+    <li>Reviewing Heap implementation</li>
+    <li>Modeling data into clean consumer data marts</li>
+    <li>Building a metrics store to be accessible by Mosaic’s internal dashboarding tool</li>
+    <li>Assisting in data integrations needed for using this product data</li>
+</ul>
+
+<h2>Methodology</h2>
+<p><strong>1. Data Ingestion:</strong> Production data was ingested into Snowflake from s3 via snowpipe. Heap was directly integrated using Heap Connect’s Snowflake integration.</p>
+<p><strong>2. Exploratory Analysis:</strong> We really want to understand the product, so there was a fair amount of exploratory work to sift through their data and associate it with the product functionality and features. This resulted in better understanding of schema relationships, grains, and the overall data model, as well as some limitations with data capture.</p>
+<p><strong>3. Metric Development:</strong> Worked with primary stakeholders to understand product priorities and derive primary metrics. Prepared preliminary queries with various dimensions to sanity check and enable stakeholder QA.</p>
+<p><strong>4. Data Modeling:</strong> Designed and built the appropriate data models to result in a consumer data mart for product data. Implemented a metric layer to ensure consistent metric definitions across all downstream use cases.</p>
+
+<h2>Tooling</h2>
+<p>Mosaic had already set up their Snowflake instance with dbt cloud as their transformation tool. Their product has a dashboarding component and various data integrations, enabling them to avoid additional BI tooling. Beyond traditional visualization, Mosaic also used some external customer success tools where this data was going to be utilized.</p>
+
+<h3>Snowpipe</h3>
+<p>Snowpipe is a data ingestion service for Snowflake that enables automatic and continuous loading of streaming data into the Snowflake data warehouse. It simplifies the data loading process by enabling data streams from s3 to snowflake, triggered by updates to the specific s3 bucket.</p>
+
+<h3>Snowflake + Snowsight</h3>
+<p>Snowflake is a cloud-based data warehouse that provides scalability and flexibility, while Snowsight empowers users to easily analyze and derive insights from their data within the Snowflake platform. With Snowsight, we were easily able to present findings and iterate quickly as we were preparing metric definitions for all of the primary product metrics.</p>
+
+<h3>dbt (data build tool)</h3>
+<p>dbt primary value-add is managing the business logic of our metrics, and modeling data for effective analysis. Column definitions can be managed in a documented and version-controlled fashion in dbt. While this does mean that updates and new columns require opening a pull request, the additional friction ensures quality and offers the opportunity for feedback. dbt is also useful for helping to establish a limited number of tables with these predefined metrics/structure for external systems to utilize. This “reporting layer” is a set of data models that are designed for use exclusively in reporting. This also enables permissions to be configured so that external systems can only access models in the reporting layer.</p>
+
+<h2>Lessons Learned</h2>
+<p><strong>1. Data Validation:</strong>One key aspect here was understanding the “source of truth” for event data. With two event sources (Heap and Internal), it was imperative to validate against each other and be able to trust each. While there wasn’t complete overlap, being able to compare events that did overlap between the two created trust of all metrics.</p>
+<p><strong>2. Data Latency:</strong>Understanding the data latency needs of the end users is always a key aspect of our work. With data engineering experience, we are able to assist in implementing solutions for any latency requirements, whether live or batched is necessary. In this case, however, simple weekly metrics were needed, and the internal team had already set up the snowpipe system. This enabled us to dive straight into metric modeling and not worry about data ingestion.</p>
+<p><strong>3. External Systems:</strong>Utilizing external systems will require specific design patterns, and dbt enables us to manage the data modeling, and in conjunction with Snowflake, we can manage the permissions as well. In this case one of the external systems required a specific event data structure, so we were able to spin up a data model with dbt that accomplished the requirements for this integration.</p>
+
+<h2>Conclusion</h2>
+<p>Having the right tooling in place enabled us to work quickly and efficiently while consistently iterating for each step of this process. dbt has been instrumental in enabling us to keep the analytics data dependencies as simplified and untangled as possible. Snowflake with snowpipe enabled quick exploration as we defined metrics, and has the added benefit of managing permissions for our various external system needs.</p>
+
+<hr>
+<i>Snowpack specializes in helping organizations solve analytical problems. For more information, follow our blog, or
+    shoot us an email at <a href="mailto: info@snowpack-data.io">info@snowpack-data.io</a></i>
