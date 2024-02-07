@@ -709,6 +709,80 @@ func (a *App) InvoiceStateHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (a *App) AdjustmentHandler(w http.ResponseWriter, r *http.Request) {
+	// CRUD for our Adjustment Object
+	vars := mux.Vars(r)
+	var adjustment cronos.Adjustment
+	switch {
+	case r.Method == "GET":
+		a.cronosApp.DB.First(&adjustment, vars["id"])
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		w.WriteHeader(http.StatusOK)
+		_ = json.NewEncoder(w).Encode(&adjustment)
+		return
+	case r.Method == "PUT":
+		a.cronosApp.DB.First(&adjustment, vars["id"])
+		if r.FormValue("amount") != "" {
+			amountFloat, _ := strconv.ParseFloat(r.FormValue("amount"), 64)
+			adjustment.Amount = amountFloat
+		}
+		if r.FormValue("notes") != "" {
+			adjustment.Notes = r.FormValue("notes")
+		}
+		a.cronosApp.DB.Save(&adjustment)
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		_ = json.NewEncoder(w).Encode(&adjustment)
+		return
+	case r.Method == "POST":
+		invoiceID, _ := strconv.Atoi(r.FormValue("invoice_id"))
+		adjustment.InvoiceID = uint(invoiceID)
+		amountFloat, _ := strconv.ParseFloat(r.FormValue("amount"), 64)
+		adjustment.Amount = amountFloat
+		adjustment.Notes = r.FormValue("notes")
+		a.cronosApp.DB.Create(&adjustment)
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		w.WriteHeader(http.StatusCreated)
+		_ = json.NewEncoder(w).Encode(&adjustment)
+		return
+	case r.Method == "DELETE":
+		a.cronosApp.DB.Where("id = ?", vars["id"]).Delete(&cronos.Adjustment{})
+		_ = json.NewEncoder(w).Encode("Deleted Record")
+		return
+	default:
+		fmt.Println("Fatal Error")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+}
+
+func (a *App) AdjustmentStateHandler(w http.ResponseWriter, r *http.Request) {
+	// State handler for adjustments, functionally identical to the invoice state handler
+	vars := mux.Vars(r)
+	var adjustment cronos.Adjustment
+	a.cronosApp.DB.First(&adjustment, vars["id"])
+	status := vars["state"]
+	switch {
+	case status == "approve":
+		adjustment.State = cronos.AdjustmentStateApproved.String()
+		a.cronosApp.DB.Save(&adjustment)
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		_ = json.NewEncoder(w).Encode(struct{ State string }{cronos.AdjustmentStateApproved.String()})
+		return
+	case status == "void":
+		adjustment.State = cronos.AdjustmentStateVoid.String()
+		a.cronosApp.DB.Save(&adjustment)
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		_ = json.NewEncoder(w).Encode(struct{ State string }{cronos.AdjustmentStateVoid.String()})
+		return
+	case status == "draft":
+		adjustment.State = cronos.AdjustmentStateDraft.String()
+		a.cronosApp.DB.Save(&adjustment)
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		_ = json.NewEncoder(w).Encode(struct{ State string }{cronos.AdjustmentStateDraft.String()})
+		return
+	}
+}
+
 func (a *App) BackfillProjectInvoicesHandler(w http.ResponseWriter, r *http.Request) {
 	// Retrieve the project and backfill all the invoices
 	vars := mux.Vars(r)

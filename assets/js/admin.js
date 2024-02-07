@@ -61,7 +61,10 @@ var App = new Vue({
             { name : 'Monthly', value: 'BILLING_TYPE_MONTHLY'},
             { name : 'Project', value: 'BILLING_TYPE_PROJECT'},
         ],
-
+        adjustmentTypes : [
+            {name : 'Credit', value : 'ADJUSTMENT_TYPE_CREDIT', factor : -1},
+            {name : 'Fee', value: 'ADJUSTMENT_TYPE_FEE', factor : 1},
+        ],
         calendarWidth: 135, // Adjust as needed, represents the percentage width of the calendar
         hourBlockHeight: 40, // Adjust as needed, represents the height of each hour block in pixels
         days: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
@@ -99,27 +102,110 @@ var App = new Vue({
         },
     },
     methods : {
-        toggleVoidStatus(entry) {
-            let newStatus = '';
+        editEntry(invoice, entry) {
+            this.$set(entry, 'editable', true);
+            entry.editable = true;
+        },
+        updateEditedValue(entry, event) {
+            const newValue = event.target.innerText;
+            entry.notes = newValue;
+        },
+        saveEntry(invoice, entry) {
+            this.$set(entry, 'editable', false);
+            entry.editable = false;
+            let postForm = new FormData();
+            postForm.set("notes", entry.notes)
+            axios({
+                method: 'put',
+                url: '/api/entries/' + entry.entry_id.toString(),
+                headers: {'Content-Type': 'application/json', 'x-access-token': window.localStorage.snowpack_token},
+                data: postForm,
+            })
+            .then(response => {
+                console.log(response)
+                entry = response.data
+            })
+            .catch(error => {
+                console.log(error)
+            })
+        },
+        toggleVoidEntry(invoice, entry) {
             if (entry.state === 'ENTRY_STATE_VOID') {
                 newStatus = 'draft'
+                entry.state = 'ENTRY_STATE_DRAFT'
+                this.$set(entry, 'editable', false);
+                invoice.total_hours = invoice.total_hours + entry.duration_hours;
+                invoice.total_fees = invoice.total_fees + entry.fee;
+                invoice.total_amount = invoice.total_fees + invoice.total_adjustments;
             } else {
                 newStatus = 'void'
+                this.$set(entry, 'editable', false);
+                entry.editable = false;
+                entry.state = 'ENTRY_STATE_VOID';
+                invoice.total_hours = invoice.total_hours - entry.duration_hours;
+                invoice.total_fees = invoice.total_fees - entry.fee;
+                invoice.total_amount = invoice.total_fees + invoice.adjustments;
+
             }
             axios({
                 method: 'post',
                 url: '/api/entries/state/' + entry.entry_id.toString() + '/' + newStatus,
                 headers: {'Content-Type': 'application/json', 'x-access-token': window.localStorage.snowpack_token},
             })
+            .then(response => {
+                console.log(response)
+                entry.state = response.data.State
+            })
+            .catch(error => {
+                console.log(error)
+            })
+
+        },
+        getAdjustmentType(type) {
+            let index = this.adjustmentTypes.findIndex(x => x.value === type);
+            return this.adjustmentTypes[index];
+        },
+        addInvoiceAdjustment(invoice) {
+            let postForm = new FormData();
+            postForm.set("invoice_id", invoice.ID)
+            postForm.set("type", this.adjustmentType)
+            postForm.set("amount", this.invoiceAdjustmentAmount)
+            postForm.set("notes", this.invoiceAdjustmentDescription)
+            axios({
+                method: 'post',
+                url: '/api/adjustments/',
+                headers: {'Content-Type': 'application/json', 'x-access-token': window.localStorage.snowpack_token},
+                data: postForm,
+            })
+            .then(response => {
+                console.log(response)
+                invoice.adjustments.push(response.data)
+            })
+            .catch(error => {
+                console.log(error)
+            })
+        },
+        toggleAdjustmentVoidStatus(adjustment) {
+            let newStatus = '';
+            if (adjustment.state === 'ADJUSTMENT_STATE_VOID') {
+                newStatus = 'draft'
+            } else {
+                newStatus = 'void'
+            }
+            axios({
+                method: 'post',
+                url: '/api/adjustments/state/' + adjustment.ID.toString() + '/' + newStatus,
+                headers: {'Content-Type': 'application/json', 'x-access-token': window.localStorage.snowpack_token},
+            })
                 .then(response => {
                     console.log(response)
-                    entry.state = response.data.State
+                    adjustment.state = response.data.State
                 })
                 .catch(error => {
                     console.log(error)
                 })
-            let componentKey = 'draft' + entry.entry_id;
-            let secondKey = 'void' + entry.entry_id;
+            let componentKey = 'draft' + adjustment.ID;
+            let secondKey = 'void' + adjustment.ID;
             this.componentKey += 1;
             this.secondKey += 1;
         },
@@ -823,6 +909,31 @@ var App = new Vue({
             .catch(error => {
                 console.log(error)
             })
+        }
+    },
+    watch: {
+        // Watch for changes to the 'editable' property of each entry within each invoice
+        'draftInvoices': {
+            deep: true,
+            handler(newInvoices) {
+                newInvoices.forEach(invoice => {
+                    invoice.line_items.forEach(entry => {
+                        this.$nextTick(() => {
+                            const tdElements = document.querySelectorAll(`td[contenteditable="${entry.editable}"]`);
+                            tdElements.forEach(td => {
+                                td.setAttribute('contenteditable', entry.editable);
+                                if (entry.state == 'ENTRY_STATE_VOID') {
+                                    console.log(entry.state)
+                                    td.classList.add('strikeout');
+                                } else {
+                                    td.classList.remove('strikeout')
+                                }
+                            });
+
+                        });
+                    });
+                });
+            }
         }
     },
     mounted() {

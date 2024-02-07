@@ -44,7 +44,8 @@ func main() {
 		// database connection which must be established via a local cloud sql proxy
 		cronosApp.InitializeLocal(user, password, dbHost, databaseName)
 		// Only call migration when we are in development mode
-		cronosApp.Migrate()
+		// I often comment this out if I'm doing a fast development cycle
+		// cronosApp.Migrate()
 	} else {
 		// If no environment is set, default to the local database connection
 		// which must be established via a local SQLite instance, you will need to
@@ -102,6 +103,8 @@ func main() {
 	api.HandleFunc("/rates/{id:[0-9]+}", a.RateHandler).Methods("GET", "PUT", "POST", "DELETE")
 	api.HandleFunc("/billing_codes", a.BillingCodesListHandler).Methods("GET")
 	api.HandleFunc("/billing_codes/{id:[0-9]+}", a.BillingCodeHandler).Methods("GET", "PUT", "POST", "DELETE")
+	api.HandleFunc("/adjustments/{id:[0-9]+}", a.AdjustmentHandler).Methods("GET", "PUT", "POST", "DELETE")
+	api.HandleFunc("/adjustments/{id:[0-9]+}/{state:(?:void)|(?:draft)|(?:approve)}", a.AdjustmentStateHandler).Methods("POST")
 
 	// Logging for web server
 	f, _ := os.Create("/var/log/golang/golang-server.log")

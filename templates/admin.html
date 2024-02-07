@@ -194,29 +194,65 @@
                                 <th>Staff</th>
                                 <th>Description</th>
                                 <th>Hours</th>
-                                <th>Fee</th>
+                                <th>Amount</th>
                             </tr>
-                            <tr v-for="entry in invoice.line_items">
+                            <tr v-for="(entry, index) in invoice.line_items" :key="entry.id">
                                 <td>
-                                    <button @click="toggleVoidStatus(entry)" style="color:none;border:none;background-color:white">
-                                        <img src="../assets/img/void.png" v-show="entry.state == 'ENTRY_STATE_VOID'" width="14px;">
-                                        <img src="../assets/img/draft.png" v-show="entry.state != 'ENTRY_STATE_VOID'" width="14px;">
+                                    <button v-show="entry.editable != true" @click="editEntry(invoice, entry)" style="color:none;border:none;background-color:white">
+                                        <i class="fa-solid fa-pen-to-square"></i>
+                                    </button>
+                                    <button v-show="entry.editable == true" @click="saveEntry(invoice, entry)" style="color:none;border:none;background-color:white">
+                                        <i class="fa-solid fa-circle-check" style="color:darkgreen"></i>
+                                    </button>
+                                    <button v-show="(entry.editable == true && entry.state != 'ENTRY_STATE_VOID')" @click="toggleVoidEntry(invoice, entry)" style="color:none;border:none;background-color:white">
+                                        <i class="fa-solid fa-circle-xmark" style="color:darkred"></i>
+                                    </button>
+                                    <button v-show="(entry.editable == true && entry.state == 'ENTRY_STATE_VOID')" @click="toggleVoidEntry(invoice, entry)" style="color:none;border:none;background-color:white">
+                                        <i class="fa-solid fa-circle-plus" style="color:darkgreen"></i>
+                                    </button>
+
+                                </td>
+                                <td :class="{'strikeout' : entry.state == 'ENTRY_STATE_VOID'}">{{ entry.start_date }} </td>
+                                <td :class="{'strikeout' : entry.state == 'ENTRY_STATE_VOID'}">{{ entry.billing_code }}</td>
+                                <td :class="{'strikeout' : entry.state == 'ENTRY_STATE_VOID'}">{{ entry.user_name }}</td>
+                                <td :class="{'editable' : entry.editable, 'strikeout' : entry.state == 'ENTRY_STATE_VOID'}" :contenteditable="entry.editable" @blur="updateEditedValue(entry, $event)">{{ entry.notes }}</td>
+                                <td :class="{'strikeout' : entry.state == 'ENTRY_STATE_VOID'}">{{ entry.duration_hours }}</td>
+                                <td :class="{'strikeout' : entry.state == 'ENTRY_STATE_VOID'}">${{ entry.fee }}</td>
+                            </tr>
+                            <tr v-for="a in invoice.adjustments">
+                                <td>
+                                    <button @click="toggleAdjustmentVoidStatus(a)" style="color:none;border:none;background-color:white">
+                                        <img src="../assets/img/void.png" v-show="a.state == 'ENTRY_STATE_VOID'" width="14px;">
+                                        <img src="../assets/img/draft.png" v-show="a.state != 'ENTRY_STATE_VOID'" width="14px;">
                                     </button>
                                 </td>
-                                <td>{{ entry.start_date }} </td>
-                                <td>{{ entry.billing_code }}</td>
-                                <td>{{ entry.user_name }}</td>
-                                <td>{{ entry.notes }}</td>
-                                <td>{{ entry.duration_hours }}</td>
-                                <td>${{ entry.fee }}</td>
+                                <td>{{ formatDate(a.CreatedAt, 'MMMM DD') }}</td>
+                                <td>{{ getAdjustmentType(a.type).name }}</td>
+                                <td></td>
+                                <td>{{ a.notes }}</td>
+                                <td></td>
+                                <td>${{ a.amount }}</td>
+                            </tr>
+                            <tr style="font-style:italic;font-weight:bold;border-top:1px dotted black">
+                                <td colspan="5"></td>
+                                <td>Total Fees</td>
+                                <td>${{invoice.total_fees}}</td>
                             </tr>
                             <tr style="font-style:italic;font-weight:bold;">
-                                <td colspan="4"></td>
-                                <td>Total Hours: {{invoice.total_hours}}</td>
-                                <td>Total Fee: ${{invoice.total_fees}}</td>
+                                <td colspan="5"></td>
+                                <td>Total Adjustments</td>
+                                <td>{{ invoice.total_adjustments }}</td>
+                            </tr>
+                            <tr style="font-style:italic;font-weight:bold;">
+                                <td colspan="5"></td>
+                                <td>Total</td>
+                                <td>{{ invoice.total_amount }}</td>
+                            </tr>
                         </table>
+
                     <div>
                         <button @click="markInvoiceApproved(invoice)" :class="{ 'button-ready': invoice.period_closed, 'button-locked' : !invoice.period_closed}">Lock & Approve</button>
+                        <button @click="addInvoiceAdjustment(invoice)" class="button-info">+ Adjustment</button>
                         <button @click="markInvoiceVoid(invoice)" class="button-void">Void</button>
                     </div>
                     </div>
