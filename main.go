@@ -33,23 +33,42 @@ func main() {
 	cronosApp := cronos.App{}
 	dbURI := fmt.Sprintf("user=%s password=%s database=%s host=%s", user, password, databaseName, socketPath)
 	fmt.Println(dbURI)
-	if os.Getenv("ENVIRONMENT") == "production" {
-		cronosApp.InitializeCloud(dbURI)
-	} else {
-		cronosApp.InitializeLocal(user, password, dbHost, databaseName)
-	}
-	// Only call migration when we are in development
-	//cronosApp.Migrate()
 
+	// Establish a different connection based on the environment
+	if os.Getenv("ENVIRONMENT") == "production" {
+		// Production environments should have a production flag to default to the google cloud
+		// database connection provided through the application default credentials
+		cronosApp.InitializeCloud(dbURI)
+	} else if os.Getenv("ENVIRONMENT") == "development" {
+		// Development environments should have a development flag to default to the local
+		// database connection which must be established via a local cloud sql proxy
+		cronosApp.InitializeLocal(user, password, dbHost, databaseName)
+		// Only call migration when we are in development mode
+		cronosApp.Migrate()
+	} else {
+		// If no environment is set, default to the local database connection
+		// which must be established via a local SQLite instance, you will need to
+		// run the migration to create the database schema
+		cronosApp.InitializeSQLite()
+		cronosApp.Migrate()
+	}
+
+	// Add the cronos app to our webapp struct to access it across handlers
 	a := &App{cronosApp: &cronosApp}
 
+	// Mux is a subrouter generator that allows us to handle requests and route them to the appropriate handler
+	// the router allows us to handle a couple high level subrouters and then specific routes.
 	r := mux.NewRouter()
 	// Define a subrouter to handle files at static for accessing static content
+	// static, api, and r are all subrouters that allow us to handle different types of requests
 	static := r.PathPrefix("/assets").Subrouter()
 	static.Handle("/{*}/{*}", http.StripPrefix("/assets/", http.FileServer(http.Dir("./assets"))))
+
+	// All requests to the api subrouter will be verified by the JwtVerify middleware
 	api := r.PathPrefix("/api").Subrouter()
 	api.Use(JwtVerify)
 
+	// our main routes are handled by the main router and are not protected by JWT
 	r.HandleFunc("/", indexHandler)
 	r.HandleFunc("/services", servicesHandler)
 	r.HandleFunc("/reports/examples/nba-report", exampleReportHandler)
@@ -95,6 +114,7 @@ func main() {
 	//logger := handlers.CombinedLoggingHandler(os.Stdout, r)
 
 	port := os.Getenv("PORT")
+	// GCP will set the port for us, but if it is not set, default to 8080
 	if port == "" {
 		port = "8080"
 		log.Printf("Defaulting to port %s", port)
