@@ -1,11 +1,11 @@
 {
-  "id" : 0,
+  "id" : 9,
   "title" : "Case Study: Mosaic.tech",
   "subtitle": "Metric Development and Modeling a Reporting Layer",
   "splash" : "web.jpg",
   "author" : "Snowpack Data",
   "slug" : "case-study-mosaic",
-  "tags" : ["product analytics", "data services", "consulting", "dbt", "snowpipe", "snowflake"],
+  "tags" : ["case-study", "product analytics", "data services", "consulting", "dbt", "snowpipe", "snowflake"],
   "date" : "February 6, 2024",
   "content" : "case-study-mosaic.html"
 }
