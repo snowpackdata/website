@@ -35,7 +35,10 @@ func main() {
 	fmt.Println(dbURI)
 	if os.Getenv("ENVIRONMENT") == "production" {
 		cronosApp.InitializeCloud(dbURI)
-	} else {
+	} else if os.Getenv("ENVIRONMENT") == "local" {
+		cronosApp.InitializeSQLite()
+	}
+	else {
 		cronosApp.InitializeLocal(user, password, dbHost, databaseName)
 	}
 	// Only call migration when we are in development
