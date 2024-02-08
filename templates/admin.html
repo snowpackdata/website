@@ -221,17 +221,26 @@
                             </tr>
                             <tr v-for="a in invoice.adjustments">
                                 <td>
-                                    <button @click="toggleAdjustmentVoidStatus(a)" style="color:none;border:none;background-color:white">
-                                        <img src="../assets/img/void.png" v-show="a.state == 'ENTRY_STATE_VOID'" width="14px;">
-                                        <img src="../assets/img/draft.png" v-show="a.state != 'ENTRY_STATE_VOID'" width="14px;">
+                                    <button v-show="a.editable != true" @click="editAdjustment(invoice, a)" style="color:none;border:none;background-color:white">
+                                        <i class="fa-solid fa-pen-to-square"></i>
                                     </button>
+                                    <button v-show="a.editable == true" @click="saveAdjustment(invoice, a)" style="color:none;border:none;background-color:white">
+                                        <i class="fa-solid fa-circle-check" style="color:darkgreen"></i>
+                                    </button>
+                                    <button v-show="(a.editable == true && a.state != 'ADJUSTMENT_STATE_VOID')" @click="toggleVoidAdjustment(invoice, a)" style="color:none;border:none;background-color:white">
+                                        <i class="fa-solid fa-circle-xmark" style="color:darkred"></i>
+                                    </button>
+                                    <button v-show="(a.editable == true && a.state == 'ADJUSTMENT_STATE_VOID')" @click="toggleVoidAdjustment(invoice, a)" style="color:none;border:none;background-color:white">
+                                        <i class="fa-solid fa-circle-plus" style="color:darkgreen"></i>
+                                    </button>
+
                                 </td>
-                                <td>{{ formatDate(a.CreatedAt, 'MMMM DD') }}</td>
-                                <td>{{ getAdjustmentType(a.type).name }}</td>
+                                <td :class="{'strikeout' : a.state == 'ADJUSTMENT_STATE_VOID'}">{{ formatDate(a.CreatedAt, 'MMMM DD') }}</td>
+                                <td :class="{'strikeout' : a.state == 'ADJUSTMENT_STATE_VOID'}">{{ getAdjustmentType(a.type).name }}</td>
+                                <td :class="{'strikeout' : a.state == 'ADJUSTMENT_STATE_VOID'}"></td>
+                                <td :class="{'strikeout' : a.state == 'ADJUSTMENT_STATE_VOID'}">{{ a.notes }}</td>
                                 <td></td>
-                                <td>{{ a.notes }}</td>
-                                <td></td>
-                                <td>${{ a.amount }}</td>
+                                <td :class="{'strikeout' : a.state == 'ADJUSTMENT_STATE_VOID'}">${{ a.amount }}</td>
                             </tr>
                             <tr style="font-style:italic;font-weight:bold;border-top:1px dotted black">
                                 <td colspan="5"></td>

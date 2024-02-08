@@ -145,7 +145,6 @@ var App = new Vue({
                 invoice.total_hours = invoice.total_hours - entry.duration_hours;
                 invoice.total_fees = invoice.total_fees - entry.fee;
                 invoice.total_amount = invoice.total_fees + invoice.adjustments;
-
             }
             axios({
                 method: 'post',
@@ -160,6 +159,66 @@ var App = new Vue({
                 console.log(error)
             })
 
+        },
+        editAdjustment(invoice, adjustment) {
+            this.$set(adjustment, 'editable', true);
+            adjustment.editable = true;
+        },
+        updateAdjustmentValue(adjustment, event) {
+            const newValue = event.target.innerText;
+            adjustment.notes = newValue;
+        },
+        saveAdjustment(invoice, adjustment) {
+            this.$set(adjustment, 'editable', false);
+            adjustment.editable = false;
+            let postForm = new FormData();
+            postForm.set("notes", adjustment.notes)
+            axios({
+                method: 'put',
+                url: '/api/adjustments/' + adjustment.ID.toString(),
+                headers: {'Content-Type': 'application/json', 'x-access-token': window.localStorage.snowpack_token},
+                data: postForm,
+            })
+            .then(response => {
+                console.log(response)
+                adjustment = response.data
+            })
+            .catch(error => {
+                console.log(error)
+            })
+        },
+        toggleVoidAdjustment(invoice, adjustment) {
+            multiplier = 1.0
+            if (adjustment.type === 'ADJUSTMENT_TYPE_CREDIT') {
+                multiplier = -1
+            }
+            if (adjustment.state === 'ADJUSTMENT_STATE_VOID') {
+                newStatus = 'draft'
+                adjustment.state = 'ADJUSTMENT_STATE_DRAFT'
+                this.$set(adjustment, 'editable', false);
+                invoice.total_adjustments = invoice.total_adjustments + (adjustment.amount * multiplier);
+                invoice.total_amount = invoice.total_fees + invoice.total_adjustments;
+            } else {
+                newStatus = 'void'
+                this.$set(adjustment, 'editable', false);
+                adjustment.editable = false;
+                adjustment.state = 'ADJUSTMENT_STATE_VOID';
+                invoice.total_adjustments = invoice.total_adjustments - (adjustment.amount * multiplier);
+                invoice.total_amount = invoice.total_fees + invoice.total_adjustments;
+
+            }
+            axios({
+                method: 'post',
+                url: '/api/adjustments/state/' + adjustment.ID.toString() + '/' + newStatus,
+                headers: {'Content-Type': 'application/json', 'x-access-token': window.localStorage.snowpack_token},
+            })
+                .then(response => {
+                    console.log(response)
+                    adjustment.state = response.data.state
+                })
+                .catch(error => {
+                    console.log(error)
+                })
         },
         getAdjustmentType(type) {
             let index = this.adjustmentTypes.findIndex(x => x.value === type);
@@ -185,31 +244,6 @@ var App = new Vue({
                 console.log(error)
             })
         },
-        toggleAdjustmentVoidStatus(adjustment) {
-            let newStatus = '';
-            if (adjustment.state === 'ADJUSTMENT_STATE_VOID') {
-                newStatus = 'draft'
-            } else {
-                newStatus = 'void'
-            }
-            axios({
-                method: 'post',
-                url: '/api/adjustments/state/' + adjustment.ID.toString() + '/' + newStatus,
-                headers: {'Content-Type': 'application/json', 'x-access-token': window.localStorage.snowpack_token},
-            })
-                .then(response => {
-                    console.log(response)
-                    adjustment.state = response.data.State
-                })
-                .catch(error => {
-                    console.log(error)
-                })
-            let componentKey = 'draft' + adjustment.ID;
-            let secondKey = 'void' + adjustment.ID;
-            this.componentKey += 1;
-            this.secondKey += 1;
-        },
-
         markInvoiceApproved(invoice) {
             axios({
                 method: 'post',

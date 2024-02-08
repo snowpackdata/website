@@ -104,7 +104,7 @@ func main() {
 	api.HandleFunc("/billing_codes", a.BillingCodesListHandler).Methods("GET")
 	api.HandleFunc("/billing_codes/{id:[0-9]+}", a.BillingCodeHandler).Methods("GET", "PUT", "POST", "DELETE")
 	api.HandleFunc("/adjustments/{id:[0-9]+}", a.AdjustmentHandler).Methods("GET", "PUT", "POST", "DELETE")
-	api.HandleFunc("/adjustments/{id:[0-9]+}/{state:(?:void)|(?:draft)|(?:approve)}", a.AdjustmentStateHandler).Methods("POST")
+	api.HandleFunc("/adjustments/state/{id:[0-9]+}/{state:(?:void)|(?:draft)|(?:approve)}", a.AdjustmentStateHandler).Methods("POST")
 
 	// Logging for web server
 	f, _ := os.Create("/var/log/golang/golang-server.log")
