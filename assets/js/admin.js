@@ -65,6 +65,7 @@ var App = new Vue({
             {name : 'Credit', value : 'ADJUSTMENT_TYPE_CREDIT', factor : -1},
             {name : 'Fee', value: 'ADJUSTMENT_TYPE_FEE', factor : 1},
         ],
+        newAdjustment : {type : '', amount: 0, notes: ''},
         calendarWidth: 135, // Adjust as needed, represents the percentage width of the calendar
         hourBlockHeight: 40, // Adjust as needed, represents the height of each hour block in pixels
         days: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
@@ -164,15 +165,21 @@ var App = new Vue({
             this.$set(adjustment, 'editable', true);
             adjustment.editable = true;
         },
-        updateAdjustmentValue(adjustment, event) {
-            const newValue = event.target.innerText;
-            adjustment.notes = newValue;
+        updateAdjustmentValue(adjustment, value, event) {
+            var newValue = event.target.innerText;
+            if (value === 'amount') {
+                // strip off the dollar sign if it's there
+                newValue = newValue.replace('$', '');
+                newValue = parseFloat(newValue);
+            }
+            adjustment[value] = newValue;
         },
         saveAdjustment(invoice, adjustment) {
             this.$set(adjustment, 'editable', false);
             adjustment.editable = false;
             let postForm = new FormData();
             postForm.set("notes", adjustment.notes)
+            postForm.set("amount", adjustment.amount)
             axios({
                 method: 'put',
                 url: '/api/adjustments/' + adjustment.ID.toString(),
@@ -182,6 +189,20 @@ var App = new Vue({
             .then(response => {
                 console.log(response)
                 adjustment = response.data
+                multiplier = 1.0
+                if (adjustment.type === 'ADJUSTMENT_TYPE_CREDIT') {
+                    multiplier = -1
+                }
+                // re-sum the total adjustments
+                invoice.total_adjustments = 0;
+                invoice.adjustments.forEach(adjustment => {
+                    multiplier = 1.0
+                    if (adjustment.type === 'ADJUSTMENT_TYPE_CREDIT') {
+                        multiplier = -1
+                    }
+                    invoice.total_adjustments = invoice.total_adjustments + (adjustment.amount * multiplier);
+                })
+                invoice.total_amount = invoice.total_fees + invoice.total_adjustments;
             })
             .catch(error => {
                 console.log(error)
@@ -226,22 +247,30 @@ var App = new Vue({
         },
         addInvoiceAdjustment(invoice) {
             let postForm = new FormData();
-            postForm.set("invoice_id", invoice.ID)
-            postForm.set("type", this.adjustmentType)
-            postForm.set("amount", this.invoiceAdjustmentAmount)
-            postForm.set("notes", this.invoiceAdjustmentDescription)
+            postForm.set("invoice_id", this.newAdjustment.invoice_id)
+            postForm.set("type", this.newAdjustment.type)
+            postForm.set("amount", this.newAdjustment.amount)
+            postForm.set("notes", this.newAdjustment.notes)
             axios({
                 method: 'post',
-                url: '/api/adjustments/',
+                url: '/api/adjustments/0',
                 headers: {'Content-Type': 'application/json', 'x-access-token': window.localStorage.snowpack_token},
                 data: postForm,
             })
             .then(response => {
                 console.log(response)
-                invoice.adjustments.push(response.data)
+                adjustment = response.data
+                invoice.adjustments.push(adjustment)
+                multiplier = 1.0
+                if (adjustment.type === 'ADJUSTMENT_TYPE_CREDIT') {
+                    multiplier = -1
+                }
+                invoice.total_adjustments = invoice.total_adjustments + (adjustment.amount * multiplier);
+                invoice.total_amount = invoice.total_fees + invoice.total_adjustments;
+                this.hideAdjustmentModal();
             })
             .catch(error => {
-                console.log(error)
+                alert(error)
             })
         },
         markInvoiceApproved(invoice) {
@@ -405,6 +434,13 @@ var App = new Vue({
         },
         hideModal() {
             $('#entry-modal').modal('hide');
+        },
+        showAdjustmentModal(invoice) {
+            this.newAdjustment = {type : '', amount: 0, notes: '', 'invoice_id': invoice.ID};
+            $('#adjustment-modal').modal('show');
+        },
+        hideAdjustmentModal() {
+            $('#adjustment-modal').modal('hide');
         },
 
         updateWorkingScreen(screen) {

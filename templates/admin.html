@@ -227,7 +227,7 @@
                                     <button v-show="a.editable == true" @click="saveAdjustment(invoice, a)" style="color:none;border:none;background-color:white">
                                         <i class="fa-solid fa-circle-check" style="color:darkgreen"></i>
                                     </button>
-                                    <button v-show="(a.editable == true && a.state != 'ADJUSTMENT_STATE_VOID')" @click="toggleVoidAdjustment(invoice, a)" style="color:none;border:none;background-color:white">
+                                    <button v-show="(a.editable == true && a.state != 'ADJUSTMENT_STATE_VOID')" @click="toggleVoidAdjustment(invoice, a)"  style="color:none;border:none;background-color:white">
                                         <i class="fa-solid fa-circle-xmark" style="color:darkred"></i>
                                     </button>
                                     <button v-show="(a.editable == true && a.state == 'ADJUSTMENT_STATE_VOID')" @click="toggleVoidAdjustment(invoice, a)" style="color:none;border:none;background-color:white">
@@ -238,9 +238,9 @@
                                 <td :class="{'strikeout' : a.state == 'ADJUSTMENT_STATE_VOID'}">{{ formatDate(a.CreatedAt, 'MMMM DD') }}</td>
                                 <td :class="{'strikeout' : a.state == 'ADJUSTMENT_STATE_VOID'}">{{ getAdjustmentType(a.type).name }}</td>
                                 <td :class="{'strikeout' : a.state == 'ADJUSTMENT_STATE_VOID'}"></td>
-                                <td :class="{'strikeout' : a.state == 'ADJUSTMENT_STATE_VOID'}">{{ a.notes }}</td>
+                                <td :class="{'strikeout' : a.state == 'ADJUSTMENT_STATE_VOID', 'editable' : a.editable}" :contenteditable="a.editable" @blur="updateAdjustmentValue(a, 'notes', $event)">{{ a.notes }}</td>
                                 <td></td>
-                                <td :class="{'strikeout' : a.state == 'ADJUSTMENT_STATE_VOID'}">${{ a.amount }}</td>
+                                <td :class="{'strikeout' : a.state == 'ADJUSTMENT_STATE_VOID', 'editable' : a.editable}" :contenteditable="a.editable" @blur="updateAdjustmentValue(a, 'amount', $event)">${{ a.amount }}</td>
                             </tr>
                             <tr style="font-style:italic;font-weight:bold;border-top:1px dotted black">
                                 <td colspan="5"></td>
@@ -258,10 +258,37 @@
                                 <td>{{ invoice.total_amount }}</td>
                             </tr>
                         </table>
-
+                        <div id="adjustment-modal" class="modal" role="dialog" @keydown.esc="hideAdjustmentModal()" tabindex="0" style="margin-top:5%">
+                            <div class="modal-dialog" role="document">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h3 class="blog-title" style="">Add Adjustment</h3>
+                                        <span @click="hideAdjustmentModal()" style="margin-left:40%"><i class="fa-solid fa-circle-xmark fa-lg"></i></span>
+                                        </button>
+                                    </div>
+                                    <div class="modal-body" style="">
+                                        <label>Select Adjustment Type</label>
+                                        <select v-model="newAdjustment.type">
+                                            <option v-for="a in adjustmentTypes" :value="a.value">
+                                                {{a.name}}
+                                            </option>
+                                        </select>
+                                        <hr>
+                                        <label>Amount</label>
+                                        <input type="number" v-model="newAdjustment.amount">
+                                        <hr>
+                                        <label>Notes</label>
+                                        <textarea style="width:100%;height:80px;" v-model="newAdjustment.notes"></textarea>
+                                    </div>
+                                    <div class="modal-footer" style="display:flex;justify-content: space-between">
+                                        <button @click="addInvoiceAdjustment(invoice)" class="save-button" style="margin-left:5%;margin-right:auto;">Add</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     <div>
                         <button @click="markInvoiceApproved(invoice)" :class="{ 'button-ready': invoice.period_closed, 'button-locked' : !invoice.period_closed}">Lock & Approve</button>
-                        <button @click="addInvoiceAdjustment(invoice)" class="button-info">+ Adjustment</button>
+                        <button @click="showAdjustmentModal(invoice)" class="button-info">+ Adjustment</button>
                         <button @click="markInvoiceVoid(invoice)" class="button-void">Void</button>
                     </div>
                     </div>

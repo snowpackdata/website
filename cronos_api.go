@@ -634,16 +634,20 @@ func (a *App) InvoiceStateHandler(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 		a.cronosApp.DB.Save(&entries)
+		for i, _ := range invoice.Adjustments {
+			if invoice.Adjustments[i].State == cronos.AdjustmentStateDraft.String() {
+				invoice.Adjustments[i].State = cronos.AdjustmentStateApproved.String()
+			}
+		}
+		a.cronosApp.DB.Save(&invoice.Adjustments)
 		// Update the invoice totals from the associated entries
 		a.cronosApp.UpdateInvoiceTotals(&invoice)
-		// Save the invoice
 
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		_ = json.NewEncoder(w).Encode(struct {
 			State string
 			ID    uint
 		}{cronos.InvoiceStateApproved.String(), invoice.ID})
-		return
 	case state == "void":
 		// Set the invoice state to void and mark the time
 		invoice.State = cronos.InvoiceStateVoid.String()
@@ -662,7 +666,6 @@ func (a *App) InvoiceStateHandler(w http.ResponseWriter, r *http.Request) {
 			State string
 			ID    uint
 		}{cronos.InvoiceStateVoid.String(), invoice.ID})
-		return
 	case state == "send":
 		invoice.State = cronos.InvoiceStateSent.String()
 		invoice.SentAt = time.Now()
@@ -677,6 +680,18 @@ func (a *App) InvoiceStateHandler(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 		a.cronosApp.DB.Save(&entries)
+		var adjustments []cronos.Adjustment
+		a.cronosApp.DB.Where("invoice_id = ?", invoice.ID).Find(&adjustments)
+		for i, _ := range entries {
+			if adjustments[i].State == cronos.AdjustmentStateApproved.String() {
+				adjustments[i].State = cronos.AdjustmentStateSent.String()
+			}
+		}
+		a.cronosApp.DB.Save(&adjustments)
+
+		// Reload the invoice total before saving
+		a.cronosApp.UpdateInvoiceTotals(&invoice)
+
 		// Save the locked file to GCS
 		err := a.cronosApp.SaveInvoiceToGCS(&invoice)
 		if err != nil {
@@ -687,7 +702,6 @@ func (a *App) InvoiceStateHandler(w http.ResponseWriter, r *http.Request) {
 			State string
 			ID    uint
 		}{cronos.InvoiceStateSent.String(), invoice.ID})
-		return
 
 	case state == "paid":
 		invoice.State = cronos.InvoiceStatePaid.String()
@@ -705,8 +719,8 @@ func (a *App) InvoiceStateHandler(w http.ResponseWriter, r *http.Request) {
 			State string
 			ID    uint
 		}{cronos.InvoiceStatePaid.String(), invoice.ID})
-		return
 	}
+	return
 }
 
 func (a *App) AdjustmentHandler(w http.ResponseWriter, r *http.Request) {
@@ -736,9 +750,11 @@ func (a *App) AdjustmentHandler(w http.ResponseWriter, r *http.Request) {
 	case r.Method == "POST":
 		invoiceID, _ := strconv.Atoi(r.FormValue("invoice_id"))
 		adjustment.InvoiceID = uint(invoiceID)
+		adjustment.Type = r.FormValue("type")
 		amountFloat, _ := strconv.ParseFloat(r.FormValue("amount"), 64)
 		adjustment.Amount = amountFloat
 		adjustment.Notes = r.FormValue("notes")
+		adjustment.State = cronos.AdjustmentStateDraft.String()
 		a.cronosApp.DB.Create(&adjustment)
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(http.StatusCreated)
