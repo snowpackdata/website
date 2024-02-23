@@ -504,7 +504,6 @@ func (a *App) EntryHandler(w http.ResponseWriter, r *http.Request) {
 		var billingCode cronos.BillingCode
 		a.cronosApp.DB.Where("id = ?", r.FormValue("billing_code_id")).First(&billingCode)
 		entry.BillingCodeID = billingCode.ID
-		entry.BillingCode = billingCode
 		entry.ProjectID = billingCode.ProjectID
 		entry.Internal = false
 		entry.Notes = r.FormValue("notes")
@@ -530,9 +529,7 @@ func (a *App) EntryHandler(w http.ResponseWriter, r *http.Request) {
 		a.cronosApp.DB.Omit("LinkedEntry").Create(&linkedEntry)
 		// Next add associations
 		entry.LinkedEntryID = &linkedEntry.ID
-		entry.LinkedEntry = &linkedEntry
 		linkedEntry.LinkedEntryID = &entry.ID
-		linkedEntry.LinkedEntry = &entry
 
 		a.cronosApp.DB.Omit("LinkedEntry").Save(&entry)
 		a.cronosApp.DB.Omit("LinkedEntry").Save(&linkedEntry)
