@@ -1,10 +1,11 @@
 {
-    "id" : 11,
-    "title" : "Case Study: Addressing temporary staffing constrains in fast-growing organizations",
+    "id" : 10,
+    "title" : "Case Study: Workforce Enhancement",
+    "subtitle" : "Addressing key analytics staffing constraints in fast-growing organizations",
     "splash" : "snowpack-splash.jpg",
     "author" : "Kevin Koenitzer",
     "slug" : "staffing-constraints",
-    "tags" : ["team management", "staffing and resourcing", "data services", "consulting"],
-    "date" : "July 5, 2023",
+    "tags" : ["case-study", "staffing and resourcing", "data services", "consulting"],
+    "date" : "February 28, 2024",
     "content" : "staffing-case-study.html"
   }
