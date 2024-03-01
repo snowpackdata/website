@@ -679,7 +679,7 @@ func (a *App) InvoiceStateHandler(w http.ResponseWriter, r *http.Request) {
 		a.cronosApp.DB.Save(&entries)
 		var adjustments []cronos.Adjustment
 		a.cronosApp.DB.Where("invoice_id = ?", invoice.ID).Find(&adjustments)
-		for i, _ := range entries {
+		for i, _ := range adjustments {
 			if adjustments[i].State == cronos.AdjustmentStateApproved.String() {
 				adjustments[i].State = cronos.AdjustmentStateSent.String()
 			}
