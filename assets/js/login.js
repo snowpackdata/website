@@ -3,7 +3,6 @@ var App = new Vue({
 // Vue instance options here
     el: '#app', //
     data : {
-        testValue: "hello world",
         user_id : null,
         first_name : null,
         last_name : null,
@@ -78,10 +77,14 @@ var App = new Vue({
                 let token = response.data["token"];
                 console.log(token)
                 localStorage.setItem('snowpack_token', token)
-                if (response.status === 200) {
+                tokenJson = parseJwt(token)
+                if (response.status === 200 && tokenJson["isStaff"] === true) {
                     window.location.assign("/admin");
-                } else {
-                 window.location.assign("/cronos")
+                } else if (response.status === 200 && tokenJson["isStaff"] === false) {
+                    window.location.assign("/cronos")
+                }
+                else {
+                    this.registerResponse = "Registration Failed"
                 }
             })
             .catch(error => {});
@@ -106,12 +109,31 @@ var App = new Vue({
                 }
                 let token = response.data["token"];
                 console.log(token)
+                tokenJson = parseJwt(token)
                 localStorage.setItem('snowpack_token', token)
-                window.location.assign("/admin");
+                if (response.status === 200 && tokenJson["isStaff"] === true) {
+                    window.location.assign("/admin");
+                } else if (response.status === 200 && tokenJson["isStaff"] === false) {
+                    window.location.assign("/cronos")
+                }
+                else {
+                    this.registerResponse = "Registration Failed"
+                }
             })
             .catch(error => {});
         },
     }
 })
+
+function parseJwt (token) {
+    var base64Url = token.split('.')[1];
+    var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    var jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
+        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+    }).join(''));
+
+    return JSON.parse(jsonPayload);
+}
+
 Vue.config.devtools = true;
 
