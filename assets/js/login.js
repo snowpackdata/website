@@ -110,10 +110,11 @@ var App = new Vue({
                 let token = response.data["token"];
                 console.log(token)
                 tokenJson = parseJwt(token)
+                console.log(tokenJson)
                 localStorage.setItem('snowpack_token', token)
-                if (response.status === 200 && tokenJson["isStaff"] === true) {
+                if (response.status === 200 && tokenJson["IsStaff"] === true) {
                     window.location.assign("/admin");
-                } else if (response.status === 200 && tokenJson["isStaff"] === false) {
+                } else if (response.status === 200 && tokenJson["IsStaff"] === false) {
                     window.location.assign("/cronos")
                 }
                 else {
