@@ -60,6 +60,8 @@ var App = new Vue({
         billingFrequencies: [
             { name : 'Monthly', value: 'BILLING_TYPE_MONTHLY'},
             { name : 'Project', value: 'BILLING_TYPE_PROJECT'},
+            { name : 'BiWeekly', value: 'BILLING_TYPE_BIWEEKLY'},
+            { name : 'Weekly', value: 'BILLING_TYPE_WEEKLY'},
         ],
         adjustmentTypes : [
             {name : 'Credit', value : 'ADJUSTMENT_TYPE_CREDIT', factor : -1},
