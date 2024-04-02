@@ -51,7 +51,7 @@ func main() {
 		// which must be established via a local SQLite instance, you will need to
 		// run the migration to create the database schema
 		cronosApp.InitializeSQLite()
-		cronosApp.Migrate()
+		//cronosApp.Migrate()
 	}
 
 	// Add the cronos app to our webapp struct to access it across handlers

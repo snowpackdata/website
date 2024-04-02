@@ -128,7 +128,6 @@ func (a *App) ProjectHandler(w http.ResponseWriter, r *http.Request) {
 			var account cronos.Account
 			a.cronosApp.DB.Where("id = ?", r.FormValue("account_id")).First(&account)
 			project.AccountID = account.ID
-			project.Account = account
 		}
 		if r.FormValue("active_start") != "" {
 			// first convert the string to a time.Time object
@@ -498,7 +497,6 @@ func (a *App) EntryHandler(w http.ResponseWriter, r *http.Request) {
 
 		// Need to first create the entries before we can associate them
 		a.cronosApp.DB.Create(&entry)
-		a.cronosApp.DB.Save(&entry)
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(http.StatusCreated)
 		err = json.NewEncoder(w).Encode(entry.GetAPIEntry())
@@ -670,14 +668,15 @@ func (a *App) InvoiceStateHandler(w http.ResponseWriter, r *http.Request) {
 		invoice.ClosedAt = time.Now()
 		// Save the invoice
 		a.cronosApp.DB.Save(&invoice)
-		var entries []cronos.Entry
-		a.cronosApp.DB.Where("invoice_id = ?", invoice.ID).Find(&entries)
-		for i, _ := range entries {
-			entries[i].State = cronos.EntryStatePaid.String()
+		for i, _ := range invoice.Entries {
+			if invoice.Entries[i].State != cronos.EntryStateSent.String() {
+				continue
+			}
+			invoice.Entries[i].State = cronos.EntryStatePaid.String()
 		}
-		a.cronosApp.DB.Save(&entries)
-		a.cronosApp.GenerateBills(&invoice)
-		a.cronosApp.AddJournalEntries(&invoice)
+		a.cronosApp.DB.Save(&invoice)
+		go a.cronosApp.GenerateBills(&invoice)
+		go a.cronosApp.AddJournalEntries(&invoice)
 
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		_ = json.NewEncoder(w).Encode(struct {
@@ -714,7 +713,7 @@ func (a *App) AdjustmentHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	case r.Method == "POST":
 		invoiceID, _ := strconv.Atoi(r.FormValue("invoice_id"))
-		adjustment.InvoiceID = uint(invoiceID)
+		*adjustment.InvoiceID = uint(invoiceID)
 		adjustment.Type = r.FormValue("type")
 		amountFloat, _ := strconv.ParseFloat(r.FormValue("amount"), 64)
 		adjustment.Amount = amountFloat
