@@ -7,8 +7,9 @@ To install and run this application locally, follow these steps:
 
 1. Go download the latest version of Go from [here](https://golang.org/dl/)
 2. Clone this repository to your local machine.
-3. Navigate to the project directory in your terminal.
-4. Run `go run.` to build and run the executable file.
+3. Navigate to the project directory in your terminal
+4. Conenect to google cloud proxy `~/cloud-sql-proxy --port 3306 snowpack-368423:us-central1:cronos`
+1. Run `go run.` to build and run the executable file.
 
 ## Configuration
 
