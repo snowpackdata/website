@@ -67,7 +67,7 @@ func (a *App) EntriesListHandler(w http.ResponseWriter, r *http.Request) {
 	userIDInt := r.Context().Value("user_id")
 	a.cronosApp.DB.Where("user_id = ?", userIDInt).First(&employee)
 
-	a.cronosApp.DB.Preload("BillingCode").Preload("Employee").Preload("LinkedEntry").Where("employee_id = ?", employee.ID).Where("internal = ?", false).Find(&entries)
+	a.cronosApp.DB.Preload("BillingCode").Preload("Employee").Where("employee_id = ?", employee.ID).Where("internal = ?", false).Find(&entries)
 	apiEntries := make([]cronos.ApiEntry, len(entries))
 	for i, entry := range entries {
 		apiEntry := entry.GetAPIEntry()
@@ -128,7 +128,6 @@ func (a *App) ProjectHandler(w http.ResponseWriter, r *http.Request) {
 			var account cronos.Account
 			a.cronosApp.DB.Where("id = ?", r.FormValue("account_id")).First(&account)
 			project.AccountID = account.ID
-			project.Account = account
 		}
 		if r.FormValue("active_start") != "" {
 			// first convert the string to a time.Time object
@@ -470,25 +469,8 @@ func (a *App) EntryHandler(w http.ResponseWriter, r *http.Request) {
 		if r.FormValue("notes") != "" {
 			entry.Notes = r.FormValue("notes")
 		}
-		var linkedEntry cronos.Entry
-		a.cronosApp.DB.Where("id = ?", entry.LinkedEntryID).First(&linkedEntry)
-		err := a.cronosApp.AssociateEntry(&entry, entry.ProjectID)
-		if err != nil {
-			fmt.Println(err)
-		}
+
 		a.cronosApp.DB.Save(&entry)
-		var billingCode cronos.BillingCode
-		a.cronosApp.DB.Where("id = ?", r.FormValue("billing_code_id")).First(&billingCode)
-		linkedEntry.BillingCodeID = entry.BillingCodeID
-		entry.BillingCode = billingCode
-		linkedEntry.Start = entry.Start
-		linkedEntry.End = entry.End
-		linkedEntry.Notes = entry.Notes
-		err = a.cronosApp.AssociateEntry(&linkedEntry, linkedEntry.ProjectID)
-		if err != nil {
-			fmt.Println(err)
-		}
-		a.cronosApp.DB.Save(&linkedEntry)
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		_ = json.NewEncoder(w).Encode(entry.GetAPIEntry())
 		return
@@ -504,38 +486,17 @@ func (a *App) EntryHandler(w http.ResponseWriter, r *http.Request) {
 		var billingCode cronos.BillingCode
 		a.cronosApp.DB.Where("id = ?", r.FormValue("billing_code_id")).First(&billingCode)
 		entry.BillingCodeID = billingCode.ID
-		entry.BillingCode = billingCode
 		entry.ProjectID = billingCode.ProjectID
 		entry.Internal = false
 		entry.Notes = r.FormValue("notes")
 
-		// right now journalID is always set to accounts receivable
-		//journalID, _ := strconv.Atoi(r.FormValue("journal_id"))
-		journalID := 1
-		entry.JournalID = uint(journalID)
-		linkedEntry := a.generateLinkedEntry(&entry)
-		// Finally, update the invoice status
 		err := a.cronosApp.AssociateEntry(&entry, entry.ProjectID)
 		if err != nil {
 			fmt.Println(err)
 		}
-		// For now we are not associating linked entries as we're only doing external invoicing
-		//err = a.cronosApp.AssociateEntry(&linkedEntry, linkedEntry.ProjectID)
-		//if err != nil {
-		//	fmt.Println(err)
-		//}
 
 		// Need to first create the entries before we can associate them
-		a.cronosApp.DB.Omit("LinkedEntry").Create(&entry)
-		a.cronosApp.DB.Omit("LinkedEntry").Create(&linkedEntry)
-		// Next add associations
-		entry.LinkedEntryID = &linkedEntry.ID
-		entry.LinkedEntry = &linkedEntry
-		linkedEntry.LinkedEntryID = &entry.ID
-		linkedEntry.LinkedEntry = &entry
-
-		a.cronosApp.DB.Omit("LinkedEntry").Save(&entry)
-		a.cronosApp.DB.Omit("LinkedEntry").Save(&linkedEntry)
+		a.cronosApp.DB.Create(&entry)
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(http.StatusCreated)
 		err = json.NewEncoder(w).Encode(entry.GetAPIEntry())
@@ -634,16 +595,19 @@ func (a *App) InvoiceStateHandler(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 		a.cronosApp.DB.Save(&entries)
+		for i, _ := range invoice.Adjustments {
+			if invoice.Adjustments[i].State == cronos.AdjustmentStateDraft.String() {
+				invoice.Adjustments[i].State = cronos.AdjustmentStateApproved.String()
+			}
+		}
+		a.cronosApp.DB.Save(&invoice.Adjustments)
 		// Update the invoice totals from the associated entries
 		a.cronosApp.UpdateInvoiceTotals(&invoice)
-		// Save the invoice
-
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		_ = json.NewEncoder(w).Encode(struct {
 			State string
 			ID    uint
 		}{cronos.InvoiceStateApproved.String(), invoice.ID})
-		return
 	case state == "void":
 		// Set the invoice state to void and mark the time
 		invoice.State = cronos.InvoiceStateVoid.String()
@@ -662,7 +626,6 @@ func (a *App) InvoiceStateHandler(w http.ResponseWriter, r *http.Request) {
 			State string
 			ID    uint
 		}{cronos.InvoiceStateVoid.String(), invoice.ID})
-		return
 	case state == "send":
 		invoice.State = cronos.InvoiceStateSent.String()
 		invoice.SentAt = time.Now()
@@ -677,6 +640,18 @@ func (a *App) InvoiceStateHandler(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 		a.cronosApp.DB.Save(&entries)
+		var adjustments []cronos.Adjustment
+		a.cronosApp.DB.Where("invoice_id = ?", invoice.ID).Find(&adjustments)
+		for i, _ := range adjustments {
+			if adjustments[i].State == cronos.AdjustmentStateApproved.String() {
+				adjustments[i].State = cronos.AdjustmentStateSent.String()
+			}
+		}
+		a.cronosApp.DB.Save(&adjustments)
+
+		// Reload the invoice total before saving
+		a.cronosApp.UpdateInvoiceTotals(&invoice)
+
 		// Save the locked file to GCS
 		err := a.cronosApp.SaveInvoiceToGCS(&invoice)
 		if err != nil {
@@ -687,24 +662,103 @@ func (a *App) InvoiceStateHandler(w http.ResponseWriter, r *http.Request) {
 			State string
 			ID    uint
 		}{cronos.InvoiceStateSent.String(), invoice.ID})
-		return
 
 	case state == "paid":
 		invoice.State = cronos.InvoiceStatePaid.String()
 		invoice.ClosedAt = time.Now()
 		// Save the invoice
 		a.cronosApp.DB.Save(&invoice)
-		var entries []cronos.Entry
-		a.cronosApp.DB.Where("invoice_id = ?", invoice.ID).Find(&entries)
-		for i, _ := range entries {
-			entries[i].State = cronos.EntryStatePaid.String()
+		for i, _ := range invoice.Entries {
+			if invoice.Entries[i].State != cronos.EntryStateSent.String() {
+				continue
+			}
+			invoice.Entries[i].State = cronos.EntryStatePaid.String()
 		}
-		a.cronosApp.DB.Save(&entries)
+		a.cronosApp.DB.Save(&invoice)
+		go a.cronosApp.GenerateBills(&invoice)
+		go a.cronosApp.AddJournalEntries(&invoice)
+
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		_ = json.NewEncoder(w).Encode(struct {
 			State string
 			ID    uint
 		}{cronos.InvoiceStatePaid.String(), invoice.ID})
+	}
+	return
+}
+
+func (a *App) AdjustmentHandler(w http.ResponseWriter, r *http.Request) {
+	// CRUD for our Adjustment Object
+	vars := mux.Vars(r)
+	var adjustment cronos.Adjustment
+	switch {
+	case r.Method == "GET":
+		a.cronosApp.DB.First(&adjustment, vars["id"])
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		w.WriteHeader(http.StatusOK)
+		_ = json.NewEncoder(w).Encode(&adjustment)
+		return
+	case r.Method == "PUT":
+		a.cronosApp.DB.First(&adjustment, vars["id"])
+		if r.FormValue("amount") != "" {
+			amountFloat, _ := strconv.ParseFloat(r.FormValue("amount"), 64)
+			adjustment.Amount = amountFloat
+		}
+		if r.FormValue("notes") != "" {
+			adjustment.Notes = r.FormValue("notes")
+		}
+		a.cronosApp.DB.Save(&adjustment)
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		_ = json.NewEncoder(w).Encode(&adjustment)
+		return
+	case r.Method == "POST":
+		invoiceID, _ := strconv.Atoi(r.FormValue("invoice_id"))
+		*adjustment.InvoiceID = uint(invoiceID)
+		adjustment.Type = r.FormValue("type")
+		amountFloat, _ := strconv.ParseFloat(r.FormValue("amount"), 64)
+		adjustment.Amount = amountFloat
+		adjustment.Notes = r.FormValue("notes")
+		adjustment.State = cronos.AdjustmentStateDraft.String()
+		a.cronosApp.DB.Create(&adjustment)
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		w.WriteHeader(http.StatusCreated)
+		_ = json.NewEncoder(w).Encode(&adjustment)
+		return
+	case r.Method == "DELETE":
+		a.cronosApp.DB.Where("id = ?", vars["id"]).Delete(&cronos.Adjustment{})
+		_ = json.NewEncoder(w).Encode("Deleted Record")
+		return
+	default:
+		fmt.Println("Fatal Error")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+}
+
+func (a *App) AdjustmentStateHandler(w http.ResponseWriter, r *http.Request) {
+	// State handler for adjustments, functionally identical to the invoice state handler
+	vars := mux.Vars(r)
+	var adjustment cronos.Adjustment
+	a.cronosApp.DB.First(&adjustment, vars["id"])
+	status := vars["state"]
+	switch {
+	case status == "approve":
+		adjustment.State = cronos.AdjustmentStateApproved.String()
+		a.cronosApp.DB.Save(&adjustment)
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		_ = json.NewEncoder(w).Encode(struct{ State string }{cronos.AdjustmentStateApproved.String()})
+		return
+	case status == "void":
+		adjustment.State = cronos.AdjustmentStateVoid.String()
+		a.cronosApp.DB.Save(&adjustment)
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		_ = json.NewEncoder(w).Encode(struct{ State string }{cronos.AdjustmentStateVoid.String()})
+		return
+	case status == "draft":
+		adjustment.State = cronos.AdjustmentStateDraft.String()
+		a.cronosApp.DB.Save(&adjustment)
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		_ = json.NewEncoder(w).Encode(struct{ State string }{cronos.AdjustmentStateDraft.String()})
 		return
 	}
 }
@@ -719,15 +773,27 @@ func (a *App) BackfillProjectInvoicesHandler(w http.ResponseWriter, r *http.Requ
 	return
 }
 
-func (a *App) generateLinkedEntry(entry *cronos.Entry) cronos.Entry {
-	var linkedEntry cronos.Entry
-	linkedEntry.ProjectID = entry.ProjectID
-	linkedEntry.EmployeeID = entry.EmployeeID
-	linkedEntry.BillingCodeID = entry.BillingCodeID
-	linkedEntry.Start = entry.Start
-	linkedEntry.End = entry.End
-	linkedEntry.Internal = true
-	linkedEntry.Notes = entry.Notes
-	linkedEntry.JournalID = 2
-	return linkedEntry
+func (a *App) ClientInvoiceHandler(w http.ResponseWriter, r *http.Request) {
+	// Retrieve the user_id from the context
+	userID := r.Context().Value("user_id")
+	// Get the company associated with this user
+	var user cronos.User
+	a.cronosApp.DB.Where("id = ?", userID).First(&user)
+	// Retrieve the invoices associated with this company
+	// Retrieve projects associated with this company
+	var projects []cronos.Project
+	a.cronosApp.DB.Where("account_id = ?", user.AccountID).Find(&projects)
+	// Get a list of project IDs
+	var projectIDs []uint
+	for _, project := range projects {
+		projectIDs = append(projectIDs, project.ID)
+	}
+	// Find the invoices associated with these projects
+	var invoices []cronos.Invoice
+	a.cronosApp.DB.Preload("Project").Where("project_id in ? and state != ? and type = ?", projectIDs, cronos.InvoiceStateVoid, cronos.InvoiceTypeAR).Find(&invoices)
+	// Retrieve the draft invoices associated with this company
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	_ = json.NewEncoder(w).Encode(invoices)
+	w.WriteHeader(http.StatusOK)
+	return
 }

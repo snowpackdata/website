@@ -60,8 +60,14 @@ var App = new Vue({
         billingFrequencies: [
             { name : 'Monthly', value: 'BILLING_TYPE_MONTHLY'},
             { name : 'Project', value: 'BILLING_TYPE_PROJECT'},
+            { name : 'BiWeekly', value: 'BILLING_TYPE_BIWEEKLY'},
+            { name : 'Weekly', value: 'BILLING_TYPE_WEEKLY'},
         ],
-
+        adjustmentTypes : [
+            {name : 'Credit', value : 'ADJUSTMENT_TYPE_CREDIT', factor : -1},
+            {name : 'Fee', value: 'ADJUSTMENT_TYPE_FEE', factor : 1},
+        ],
+        newAdjustment : {type : '', amount: 0, notes: ''},
         calendarWidth: 135, // Adjust as needed, represents the percentage width of the calendar
         hourBlockHeight: 40, // Adjust as needed, represents the height of each hour block in pixels
         days: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
@@ -99,31 +105,176 @@ var App = new Vue({
         },
     },
     methods : {
-        toggleVoidStatus(entry) {
-            let newStatus = '';
+        editEntry(invoice, entry) {
+            this.$set(entry, 'editable', true);
+            entry.editable = true;
+        },
+        updateEditedValue(entry, event) {
+            const newValue = event.target.innerText;
+            entry.notes = newValue;
+        },
+        saveEntry(invoice, entry) {
+            this.$set(entry, 'editable', false);
+            entry.editable = false;
+            let postForm = new FormData();
+            postForm.set("notes", entry.notes)
+            axios({
+                method: 'put',
+                url: '/api/entries/' + entry.entry_id.toString(),
+                headers: {'Content-Type': 'application/json', 'x-access-token': window.localStorage.snowpack_token},
+                data: postForm,
+            })
+            .then(response => {
+                console.log(response)
+                entry = response.data
+            })
+            .catch(error => {
+                console.log(error)
+            })
+        },
+        toggleVoidEntry(invoice, entry) {
             if (entry.state === 'ENTRY_STATE_VOID') {
                 newStatus = 'draft'
+                entry.state = 'ENTRY_STATE_DRAFT'
+                this.$set(entry, 'editable', false);
+                invoice.total_hours = invoice.total_hours + entry.duration_hours;
+                invoice.total_fees = invoice.total_fees + entry.fee;
+                invoice.total_amount = invoice.total_fees + invoice.total_adjustments;
             } else {
                 newStatus = 'void'
+                this.$set(entry, 'editable', false);
+                entry.editable = false;
+                entry.state = 'ENTRY_STATE_VOID';
+                invoice.total_hours = invoice.total_hours - entry.duration_hours;
+                invoice.total_fees = invoice.total_fees - entry.fee;
+                invoice.total_amount = invoice.total_fees + invoice.adjustments;
             }
             axios({
                 method: 'post',
                 url: '/api/entries/state/' + entry.entry_id.toString() + '/' + newStatus,
                 headers: {'Content-Type': 'application/json', 'x-access-token': window.localStorage.snowpack_token},
             })
+            .then(response => {
+                console.log(response)
+                entry.state = response.data.State
+            })
+            .catch(error => {
+                console.log(error)
+            })
+
+        },
+        editAdjustment(invoice, adjustment) {
+            this.$set(adjustment, 'editable', true);
+            adjustment.editable = true;
+        },
+        updateAdjustmentValue(adjustment, value, event) {
+            var newValue = event.target.innerText;
+            if (value === 'amount') {
+                // strip off the dollar sign if it's there
+                newValue = newValue.replace('$', '');
+                newValue = parseFloat(newValue);
+            }
+            adjustment[value] = newValue;
+        },
+        saveAdjustment(invoice, adjustment) {
+            this.$set(adjustment, 'editable', false);
+            adjustment.editable = false;
+            let postForm = new FormData();
+            postForm.set("notes", adjustment.notes)
+            postForm.set("amount", adjustment.amount)
+            axios({
+                method: 'put',
+                url: '/api/adjustments/' + adjustment.ID.toString(),
+                headers: {'Content-Type': 'application/json', 'x-access-token': window.localStorage.snowpack_token},
+                data: postForm,
+            })
+            .then(response => {
+                console.log(response)
+                adjustment = response.data
+                multiplier = 1.0
+                if (adjustment.type === 'ADJUSTMENT_TYPE_CREDIT') {
+                    multiplier = -1
+                }
+                // re-sum the total adjustments
+                invoice.total_adjustments = 0;
+                invoice.adjustments.forEach(adjustment => {
+                    multiplier = 1.0
+                    if (adjustment.type === 'ADJUSTMENT_TYPE_CREDIT') {
+                        multiplier = -1
+                    }
+                    invoice.total_adjustments = invoice.total_adjustments + (adjustment.amount * multiplier);
+                })
+                invoice.total_amount = invoice.total_fees + invoice.total_adjustments;
+            })
+            .catch(error => {
+                console.log(error)
+            })
+        },
+        toggleVoidAdjustment(invoice, adjustment) {
+            multiplier = 1.0
+            if (adjustment.type === 'ADJUSTMENT_TYPE_CREDIT') {
+                multiplier = -1
+            }
+            if (adjustment.state === 'ADJUSTMENT_STATE_VOID') {
+                newStatus = 'draft'
+                adjustment.state = 'ADJUSTMENT_STATE_DRAFT'
+                this.$set(adjustment, 'editable', false);
+                invoice.total_adjustments = invoice.total_adjustments + (adjustment.amount * multiplier);
+                invoice.total_amount = invoice.total_fees + invoice.total_adjustments;
+            } else {
+                newStatus = 'void'
+                this.$set(adjustment, 'editable', false);
+                adjustment.editable = false;
+                adjustment.state = 'ADJUSTMENT_STATE_VOID';
+                invoice.total_adjustments = invoice.total_adjustments - (adjustment.amount * multiplier);
+                invoice.total_amount = invoice.total_fees + invoice.total_adjustments;
+
+            }
+            axios({
+                method: 'post',
+                url: '/api/adjustments/state/' + adjustment.ID.toString() + '/' + newStatus,
+                headers: {'Content-Type': 'application/json', 'x-access-token': window.localStorage.snowpack_token},
+            })
                 .then(response => {
                     console.log(response)
-                    entry.state = response.data.State
+                    adjustment.state = response.data.state
                 })
                 .catch(error => {
                     console.log(error)
                 })
-            let componentKey = 'draft' + entry.entry_id;
-            let secondKey = 'void' + entry.entry_id;
-            this.componentKey += 1;
-            this.secondKey += 1;
         },
-
+        getAdjustmentType(type) {
+            let index = this.adjustmentTypes.findIndex(x => x.value === type);
+            return this.adjustmentTypes[index];
+        },
+        addInvoiceAdjustment(invoice) {
+            let postForm = new FormData();
+            postForm.set("invoice_id", this.newAdjustment.invoice_id)
+            postForm.set("type", this.newAdjustment.type)
+            postForm.set("amount", this.newAdjustment.amount)
+            postForm.set("notes", this.newAdjustment.notes)
+            axios({
+                method: 'post',
+                url: '/api/adjustments/0',
+                headers: {'Content-Type': 'application/json', 'x-access-token': window.localStorage.snowpack_token},
+                data: postForm,
+            })
+            .then(response => {
+                console.log(response)
+                adjustment = response.data
+                invoice.adjustments.push(adjustment)
+                multiplier = 1.0
+                if (adjustment.type === 'ADJUSTMENT_TYPE_CREDIT') {
+                    multiplier = -1
+                }
+                invoice.total_adjustments = invoice.total_adjustments + (adjustment.amount * multiplier);
+                invoice.total_amount = invoice.total_fees + invoice.total_adjustments;
+                this.hideAdjustmentModal();
+            })
+            .catch(error => {
+                alert(error)
+            })
+        },
         markInvoiceApproved(invoice) {
             axios({
                 method: 'post',
@@ -285,6 +436,13 @@ var App = new Vue({
         },
         hideModal() {
             $('#entry-modal').modal('hide');
+        },
+        showAdjustmentModal(invoice) {
+            this.newAdjustment = {type : '', amount: 0, notes: '', 'invoice_id': invoice.ID};
+            $('#adjustment-modal').modal('show');
+        },
+        hideAdjustmentModal() {
+            $('#adjustment-modal').modal('hide');
         },
 
         updateWorkingScreen(screen) {
@@ -823,6 +981,31 @@ var App = new Vue({
             .catch(error => {
                 console.log(error)
             })
+        }
+    },
+    watch: {
+        // Watch for changes to the 'editable' property of each entry within each invoice
+        'draftInvoices': {
+            deep: true,
+            handler(newInvoices) {
+                newInvoices.forEach(invoice => {
+                    invoice.line_items.forEach(entry => {
+                        this.$nextTick(() => {
+                            const tdElements = document.querySelectorAll(`td[contenteditable="${entry.editable}"]`);
+                            tdElements.forEach(td => {
+                                td.setAttribute('contenteditable', entry.editable);
+                                if (entry.state == 'ENTRY_STATE_VOID') {
+                                    console.log(entry.state)
+                                    td.classList.add('strikeout');
+                                } else {
+                                    td.classList.remove('strikeout')
+                                }
+                            });
+
+                        });
+                    });
+                });
+            }
         }
     },
     mounted() {
