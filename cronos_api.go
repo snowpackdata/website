@@ -489,14 +489,14 @@ func (a *App) EntryHandler(w http.ResponseWriter, r *http.Request) {
 		entry.ProjectID = billingCode.ProjectID
 		entry.Internal = false
 		entry.Notes = r.FormValue("notes")
+		// Need to first create the entries before we can associate them
+		a.cronosApp.DB.Create(&entry)
 
 		err := a.cronosApp.AssociateEntry(&entry, entry.ProjectID)
 		if err != nil {
 			fmt.Println(err)
 		}
 
-		// Need to first create the entries before we can associate them
-		a.cronosApp.DB.Create(&entry)
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(http.StatusCreated)
 		err = json.NewEncoder(w).Encode(entry.GetAPIEntry())
