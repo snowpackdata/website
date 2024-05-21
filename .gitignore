@@ -9,6 +9,7 @@
 *.DS_Store
 .DS_Store
 .idea/*
+.idea/workspace.xml
 # Test binary, built with `go test -c`
 *.test
 
