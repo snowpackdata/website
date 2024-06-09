@@ -362,6 +362,19 @@ var App = new Vue({
             return this.getColumnWidth();
         },
 
+        displayEntryState(state) {
+            const stateMapping = {
+                ENTRY_STATE_UNAFFILIATED: 'Unaffiliated',
+                ENTRY_STATE_DRAFT: 'Draft',
+                ENTRY_STATE_APPROVED: 'Approved',
+                ENTRY_STATE_SENT: 'Sent',
+                ENTRY_STATE_PAID: 'Paid',
+                ENTRY_STATE_VOID: 'Void'
+            };
+
+            return stateMapping[state] || state;
+        },
+
         updateEventSizes() {
             const columnWidth = this.getColumnWidth();
             const hourBlockHeight = this.getHourBlockHeight();
@@ -966,6 +979,45 @@ var App = new Vue({
             });
             return weeklyEntries
         },
+
+        sumEntryHours(day = null) {
+            if (day !== null) {
+                let hoursForDay = 0;
+                this.weeklyEntries.forEach(entry => {
+                    const entryDate = new Date(entry.start);
+                    if (entryDate.getDay() === day) { // Check if entry is for the specified day
+                        hoursForDay += entry.duration_hours;
+                    }
+                });
+                return hoursForDay;
+            } else {
+                let totalHours = 0;
+                this.weeklyEntries.forEach(entry => {
+                    totalHours += entry.duration_hours;
+                });
+                return totalHours;
+            }
+        },
+
+        sumEntryFee(day = null) {
+            if (day !== null) {
+                let feeForDay = 0;
+                this.weeklyEntries.forEach(entry => {
+                    const entryDate = new Date(entry.start);
+                    if (entryDate.getDay() === day) { // Check if entry is for the specified day
+                        feeForDay += entry.fee;
+                    }
+                });
+                return feeForDay;
+            } else {
+                let totalFee = 0;
+                this.weeklyEntries.forEach(entry => {
+                    totalFee += entry.fee;
+                });
+                return totalFee;
+            }
+        },        
+
         backfillProjectEntries(project) {
             let postForm = new FormData();
             postForm.set("project_id", project.ID)

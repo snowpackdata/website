@@ -133,12 +133,16 @@
                                     </option>
                                 </select>
                                 <hr>
+                                <label>Entry State: {{ displayEntryState(selectedEntry.state) }}</label>
+                                <br>
                                 <label>Start Time</label>
                                 <input type="datetime-local" v-model="selectedEntry.start_vis">
                                 <label>End Time</label>
                                 <input type="datetime-local" v-model="selectedEntry.end_vis">
                                 <div>
                                     Length : {{ selectedEntry.duration_hours }} hours
+                                    <br>
+                                    Fee : ${{ selectedEntry.fee }}
                                 </div>
                                 <hr>
                                 <label>Notes</label>
@@ -154,11 +158,19 @@
                 <div id="calendar-container">
                     <table id="calendar">
                         <thead>
-                        <tr>
-                            <th style="width: 12.5%;">Day</th>
-                            <th v-for="(day, index) in days" style="width: 12.5%;">{{ day }} <br>
-                            {{ currentWeekDaysFormatted[index] }}</th>
-                        </tr>
+                            <tr>
+                                <th style="width: 12.5%;">
+                                    <div>Hours: {{ sumEntryHours() }}</div>
+                                    <div>Fee: ${{ sumEntryFee() }}</div>
+                                </th>
+                                <!-- New row for sum of hours -->
+                                <th v-for="(day, index) in days" style="width: 12.5%;">
+                                    {{ day }} <br>
+                                    {{ currentWeekDaysFormatted[index] }}
+                                    <div>Hours: {{ sumEntryHours(index) }}</div>
+                                    <div>Fee: ${{ sumEntryFee(index) }}</div>
+                                </th>
+                            </tr>
                         </thead>
                         <tbody>
                         <tr v-for="(hour, hourIndex) in hours" :key="hourIndex">
@@ -167,8 +179,13 @@
                                 <!-- You can use Vue.js data and methods to dynamically generate entries here -->
                                 <div v-for="entry in getEntries(day, hour)" :key="entry.id"
                                      @click="showEntryModal(entry)"
-                                     :style="{ height: calculateEntryHeight(entry) + 'px', top: calculateEntryTop(entry) + 'px', left: calculateEntryLeft(dayIndex) + 'px', width: calculateEntryWidth(dayIndex) + 'px'}"
-                                     class="entry">{{ entry.billing_code }}
+                                     :style="{ 
+                                        height: calculateEntryHeight(entry) + 'px', 
+                                        top: calculateEntryTop(entry) + 'px', 
+                                        left: calculateEntryLeft(dayIndex) + 'px', 
+                                        width: calculateEntryWidth(dayIndex) + 'px'
+                                        }"
+                                     :class="['entry', entry.state]">{{ entry.billing_code_name }}: Entry {{ displayEntryState(entry.state) }}
                                 </div>
                             </td>
                         </tr>
