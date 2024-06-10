@@ -165,8 +165,10 @@
                                 </th>
                                 <!-- New row for sum of hours -->
                                 <th v-for="(day, index) in days" style="width: 12.5%;">
-                                    {{ day }} <br>
+                                    <div>{{ day }} <br>
                                     {{ currentWeekDaysFormatted[index] }}
+                                    </div>
+                                    <br>
                                     <div>Hours: {{ sumEntryHours(index) }}</div>
                                     <div>Fee: ${{ sumEntryFee(index) }}</div>
                                 </th>
