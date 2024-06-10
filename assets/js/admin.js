@@ -985,7 +985,7 @@ var App = new Vue({
                 let hoursForDay = 0;
                 this.weeklyEntries.forEach(entry => {
                     const entryDate = new Date(entry.start);
-                    if (entryDate.getDay() === day) { // Check if entry is for the specified day
+                    if (entryDate.getDay() === day && entry.state !== 'ENTRY_STATE_UNAFFILIATED' && entry.state !== 'ENTRY_STATE_VOID') { // Check if entry is for the specified day
                         hoursForDay += entry.duration_hours;
                     }
                 });
@@ -993,7 +993,9 @@ var App = new Vue({
             } else {
                 let totalHours = 0;
                 this.weeklyEntries.forEach(entry => {
-                    totalHours += entry.duration_hours;
+                    if (entry.state !== 'ENTRY_STATE_UNAFFILIATED' && entry.state !== 'ENTRY_STATE_VOID') {
+                        totalHours += entry.duration_hours;
+                    }
                 });
                 return totalHours;
             }
@@ -1004,7 +1006,8 @@ var App = new Vue({
                 let feeForDay = 0;
                 this.weeklyEntries.forEach(entry => {
                     const entryDate = new Date(entry.start);
-                    if (entryDate.getDay() === day) { // Check if entry is for the specified day
+                    if (entryDate.getDay() === day && entry.state !== 'ENTRY_STATE_UNAFFILIATED' && entry.state !== 'ENTRY_STATE_VOID') { 
+                        // Check if entry is for the specified day and state is not UNAFFILIATED or VOID
                         feeForDay += entry.fee;
                     }
                 });
@@ -1012,11 +1015,14 @@ var App = new Vue({
             } else {
                 let totalFee = 0;
                 this.weeklyEntries.forEach(entry => {
-                    totalFee += entry.fee;
+                    if (entry.state !== 'ENTRY_STATE_UNAFFILIATED' && entry.state !== 'ENTRY_STATE_VOID') { 
+                        // Check if state is not UNAFFILIATED or VOID
+                        totalFee += entry.fee;
+                    }
                 });
                 return totalFee;
             }
-        },        
+        },
 
         backfillProjectEntries(project) {
             let postForm = new FormData();
