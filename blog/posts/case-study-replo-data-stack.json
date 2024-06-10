@@ -1,0 +1,11 @@
+{
+  "id" : 11,
+  "title" : "Case Study: Building Replo's ETL Process",
+  "subtitle": "Building a modern end-to-end data stack",
+  "splash" : "fuji-cityscape.jpeg",
+  "author" : "Danny Blumenthal",
+  "slug" : "case-study-replo",
+  "tags" : ["case-study", "data-stack", "etl", "consulting", "dbt", "snowflake", "airbyte", "dagster"],
+  "date" : "June 10, 2024",
+  "content" : "case-study-replo.html"
+}
