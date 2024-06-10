@@ -12273,6 +12273,32 @@ h3.blog-subtitle  {
   cursor: pointer;
   margin-left: 4px;
   margin-right: 4px;
+
+  font-size: min(.9vw, .9vh);
+}
+
+.entry.ENTRY_STATE_UNAFFILIATED {
+    background-color: #FFC107; /* Yellow */
+  }
+  
+.entry.ENTRY_STATE_DRAFT {
+background-color: #4CAF50; /* Green */
+}
+
+.entry.ENTRY_STATE_APPROVED {
+background-color: #4c9baf; /* blue */
+}
+
+.entry.ENTRY_STATE_SENT {
+background-color: #684caf; /* purple */
+}
+
+.entry.ENTRY_STATE_PAID {
+background-color: #af4c96; /* pink */
+}
+
+.entry.ENTRY_STATE_VOID {
+background-color: #af774c; /* orange */
 }
 
 .entry:hover {
