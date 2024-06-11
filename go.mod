@@ -10,7 +10,7 @@ require (
 	github.com/golang-jwt/jwt/v5 v5.1.0
 	github.com/gorilla/handlers v1.5.2
 	github.com/gorilla/mux v1.8.0
-	github.com/snowpackdata/cronos v1.0.20
+	github.com/snowpackdata/cronos v1.0.21
 	golang.org/x/crypto v0.18.0
 	gorm.io/gorm v1.25.5
 )
