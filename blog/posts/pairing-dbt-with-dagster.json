@@ -1,0 +1,11 @@
+{
+  "id" : 12,
+  "title" : "Dagster and dbt: A Perfect Match",
+  "subtitle": "A powerful combo for orchestrating your data worfklows",
+  "splash" : "spaceship-cockpit.jpg",
+  "author" : "Danny Blumenthal",
+  "slug" : "pairing-dbt-and-dagster",
+  "tags" : ["data-stack", "etl", "dbt", "dagster", "orchestration"],
+  "date" : "June 11, 2024",
+  "content" : "pairing-dbt-and-dagster.html"
+}
