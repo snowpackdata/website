@@ -59,6 +59,10 @@ func servicesHandler(w http.ResponseWriter, req *http.Request) {
 	http.ServeFile(w, req, "./templates/services.html")
 }
 
+func aboutHandler(w http.ResponseWriter, req *http.Request) {
+	http.ServeFile(w, req, "./templates/about.html")
+}
+
 // Services page for all /services url requests
 func exampleReportHandler(w http.ResponseWriter, req *http.Request) {
 	http.ServeFile(w, req, "./templates/example_report.html")
