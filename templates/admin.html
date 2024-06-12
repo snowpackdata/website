@@ -160,21 +160,26 @@
                         <thead>
                             <tr>
                                 <th style="width: 12.5%;">
-                                    <div>Hours: {{ sumEntryHours() }}</div>
-                                    <div>Fee: ${{ sumEntryFee() }}</div>
+                                    <div>Weekly Hours: {{ sumEntryHours() }}</div>
+                                    <div>Weekly Fee: ${{ sumEntryFee() }}</div>
                                 </th>
                                 <!-- New row for sum of hours -->
                                 <th v-for="(day, index) in days" style="width: 12.5%;">
                                     <div>{{ day }} <br>
                                     {{ currentWeekDaysFormatted[index] }}
                                     </div>
-                                    <br>
-                                    <div>Hours: {{ sumEntryHours(index) }}</div>
-                                    <div>Fee: ${{ sumEntryFee(index) }}</div>
                                 </th>
                             </tr>
                         </thead>
                         <tbody>
+                <tr class="time-summary">
+                    <td style="width: 12.5%;">
+                        Summary
+                    </td>
+                    <td v-for="(day, dayIndex) in days" :key="dayIndex">
+                        <div>{{ sumEntryHours(dayIndex) }} Hours </div>
+                    </td>
+                </tr>
                         <tr v-for="(hour, hourIndex) in hours" :key="hourIndex">
                             <td>{{ hour.display }}</td>
                             <td v-for="(day, dayIndex) in days" :key="dayIndex" class="hour-block">
@@ -187,7 +192,10 @@
                                         left: calculateEntryLeft(dayIndex) + 'px', 
                                         width: calculateEntryWidth(dayIndex) + 'px'
                                         }"
-                                     :class="['entry', entry.state]">{{ entry.billing_code_name }}: Entry {{ displayEntryState(entry.state) }}
+                                     :class="['entry', entry.state]">
+                                        <div><u><strong>{{ displayEntryState(entry.state) }}</strong></u></div>
+                                        <div>{{ entry.billing_code_name }}</div>
+                                        <div>{{ entry.duration_hours }} hours</div>
                                 </div>
                             </td>
                         </tr>
