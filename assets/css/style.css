@@ -7955,6 +7955,7 @@ textarea.form-control-lg {
 
 .rounded-pill {
   border-radius: 50rem !important;
+  width: 50%;
 }
 
 .rounded-top {
@@ -12223,7 +12224,9 @@ h3.blog-subtitle  {
 }
 
 #calendar th {
-  background-color: #f2f2f2;
+  color: #f2f2f2;
+  font-size: 9pt;
+  background-color: #18375a;
 }
 #calender tr {
     height: 40px;
@@ -12269,12 +12272,14 @@ h3.blog-subtitle  {
   padding: 5px;
   border-radius: 5px;
   position: absolute;
-  opacity:50%;
+  opacity:70%;
   cursor: pointer;
   margin-left: 4px;
   margin-right: 4px;
+  overflow: hidden;
 
-  font-size: min(.9vw, .9vh);
+  font-size: .8vw;
+
 }
 
 .entry.ENTRY_STATE_UNAFFILIATED {
@@ -12298,7 +12303,7 @@ background-color: #4CAF50; /* green */
 }
 
 .entry.ENTRY_STATE_VOID {
-background-color: #000000; /*black*/
+background-color: #1a1e21; /*black*/
 }
 
 .entry:hover {
@@ -12410,4 +12415,19 @@ background-color: #000000; /*black*/
   font-size: 8pt;
   border-radius: 4px;
   border:none;
+}
+
+.time-summary {
+  background-color: #f2f2f2;
+  font-style: italic;
+
+}
+
+.time-pill {
+  border-radius: 20%/50%;
+  background-color: #222222;
+  color: #f2f2f2;
+  margin-left:25%;
+  margin-right:25%;
+  width:50%;
 }
