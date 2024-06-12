@@ -397,7 +397,8 @@
                            <div class="col-6">
                                <div class=""><h3>{{ project.name }}</h3></div>
                                <div class="client-widget" :class="{ 'client-internal' : project.internal}">{{ project.account.name}}
-                                   <button @click="backfillProjectEntries(project)" class="button-icon"><i class="fa-solid fa-tags"></i>  Invoice</button> </div>
+<!--                                   <button @click="backfillProjectEntries(project)" class="button-icon"><i class="fa-solid fa-tags"></i>  Invoice</button>-->
+                               </div>
                            </div>
                            <div class="col-6">
                                <div class="">{{ parseDate(project.active_start, 'll') }} to {{ parseDate(project.active_end, 'll') }}</div>
