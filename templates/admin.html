@@ -184,13 +184,13 @@
                             <td>{{ hour.display }}</td>
                             <td v-for="(day, dayIndex) in days" :key="dayIndex" class="hour-block">
                                 <!-- You can use Vue.js data and methods to dynamically generate entries here -->
-                                <div v-for="entry in getEntries(day, hour)" :key="entry.id"
+                                <div v-for="entry in getEntries(day, hour.hour)" :key="entry.entry_id" :id="entry.entry_id"
                                      @click="showEntryModal(entry)"
                                      :style="{ 
                                         height: calculateEntryHeight(entry) + 'px', 
                                         top: calculateEntryTop(entry) + 'px', 
-                                        left: calculateEntryLeft(dayIndex) + 'px', 
-                                        width: calculateEntryWidth(dayIndex) + 'px'
+                                        left: calculateEntryLeft(entry, day, hour.hour) + 'px',
+                                        width: calculateEntryWidth(day, hour.hour) + 'px'
                                         }"
                                      :class="['entry', entry.state]">
                                         <div><u><strong>{{ displayEntryState(entry.state) }}</strong></u></div>
