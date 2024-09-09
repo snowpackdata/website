@@ -167,7 +167,7 @@ When we reach this stage we’ll likely need 3 separate dbt models:</p>
 <p>I’m going to focus on #3 for the rest of this section, to show how you might set up your model to execute your logistic regression. I will heavily rely on Jinja in this dbt model in an attempt to make it flexible, reusable, and efficient.</p>
 <p>First, we’ll bring in the feature names from our saved coefficient seed, and store them in a named list which we’ll reference throughout the model:</p>
 
-<pre><code>{# List out the names of saved features #}
+<pre><code class="language-python">{# List out the names of saved features #}
 {%- set feature_list = dbt_utils.get_column_values(
     table=ref('saved_coefficients_seed'),
     column='feature_name'
@@ -179,8 +179,7 @@ When we reach this stage we’ll likely need 3 separate dbt models:</p>
 <p>Next, we’ll pivot out the coefficients into a wide format, so that we only have to join it once to our prep data. The end output of this step should be one row, with each feature separated out into its own column.</p>
 <p>Note: I had considered using the <a href="https://github.com/dbt-labs/dbt-utils?tab=readme-ov-file#pivot-source"><u>pivot function</u></a> from dbt_utils here, but it defaults to including an “else” condition of 0 which can result in unexpected outputs if you’re not careful. Rather than risking it, I decided to just write my own code here to make sure it worked exactly as I intended:</p>
 
-<pre><code>
-{# Transform feature list into a wide table with one row, and each coefficient in its own column #}
+<pre><code class="language-python">{# Transform feature list into a wide table with one row, and each coefficient in its own column #}
 WITH pivoted_model_coefficients as (
   SELECT
     {%- for feature in feature_list %}
@@ -200,8 +199,7 @@ In the next step, we’ll prepare our data for prediction by joining in the wide
 <p>&beta;<sub>0&nbsp;</sub> + &beta;<sub>1&nbsp;</sub>x<sub>1</sub> + ... + &beta;<sub>k&nbsp;</sub>x<sub>k</sub></p>
 <p>Where “x” represents a particular feature, “&beta;” represents the respective coefficient for the feature, and &beta;<sub>0&nbsp;</sub>​ is the intercept:</p>
 
-<pre><code>
-{# Create the linear combination of ((feature_value_1 * coefficient_value_1) + (feature_value_2 * coefficient_value_2) + ...etc.) for all saved features and their coefficients #}
+<pre><code class="language-python">{# Create the linear combination of ((feature_value_1 * coefficient_value_1) + (feature_value_2 * coefficient_value_2) + ...etc.) for all saved features and their coefficients #}
 
 sigmoid_prep as (
   SELECT 
@@ -230,8 +228,7 @@ sigmoid_prep as (
 
 <p>Where “x” represents the linear combination of features and coefficients outlined above.</p>
 <p>At this point, all we need to do is pass through the value we calculated in the previous step to the sigmoid function and we’ll arrive at our final probability outputs between 0 and 1:</p>
-<pre><code>
-SELECT 
+<pre><code class="language-sql">SELECT 
   *,
   1 / (1 + EXP(-linear_combination)) as predicted_success_probability
 FROM sigmoid_prep
@@ -248,8 +245,7 @@ FROM sigmoid_prep
 
 <p>To accomplish this, you can add the following additional code to your dbt model:</p>
 
-<pre><code>
-{# List out the names of each column in the input data #}
+<pre><code class="language-python">{# List out the names of each column in the input data #}
 {%- set input_data_columns = dbt_utils.get_filtered_columns_in_relation(
     from=ref('prep_new_data_for_prediction'))
 -%}
@@ -257,6 +253,7 @@ FROM sigmoid_prep
 
 <p></p>
 <p>From there, you can update the “sigmoid_prep” CTE to construct your additional json column. The syntax will vary depending on your data warehouse, but the following examples should work for either BigQuery or Snowflake:</p>
+
 <pre><code>
 {# BigQuery version #}
 --Store metadata for the input data in json value
