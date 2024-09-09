@@ -1,0 +1,306 @@
+<style>
+    a {
+        color: #007bff;
+        text-decoration: none;
+        background-color: transparent;
+    }
+
+    i {
+        font-size: 12pt;
+    }
+
+    .center {
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+        width: 50%;
+    }
+
+    .caption {
+        font-size: .95em;
+        font-style: italic;
+        text-align: center;
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+        margin-bottom: 2%;
+        width: 51%;
+    }
+
+    a.footnote {
+        text-decoration: none;
+        background-color: rgba(187, 238, 254, 0.99);
+        color: rgba(5, 42, 58, 0.99);
+        padding-left: 2px;
+        padding-right: 2px;
+        margin-right: 2px;
+        -webkit-transition: all 2s ease;
+        -moz-transition: all 2s ease;
+        -o-transition: all 2s ease;
+        transition: all 2s ease;
+    }
+
+    a.footnote span {
+        z-index: -1;
+        opacity: 0;
+        position: fixed;
+        left: 15px;
+        bottom: 40px;
+        margin-left: 0px;
+        margin-right: 18px;
+        padding: 14px 20px;
+        border-radius: 4px;
+        box-shadow: 5px 5px 8px #CCC;
+        border: 1px solid #aab6dd;
+        background-color: rgba(187, 238, 254, 0.99);
+        -webkit-transition: all 2s ease;
+        -moz-transition: all 2s ease;
+        -o-transition: all 2s ease;
+        transition: all 2s ease;
+    }
+
+    a.footnote:hover span {
+        z-index: 9;
+        opacity: 1;
+        -webkit-transition: all 2s ease;
+        -moz-transition: all 2s ease;
+        -o-transition: all 2s ease;
+        transition: all 2s ease;
+    }
+
+    ol {
+        font-size: initial;
+        margin-left: 2%;
+    }
+
+    #unorderedlist {
+        font-size: initial;
+        margin-left: 2%;
+    }
+
+    pre {
+        background-color: #f8f9fa;
+        padding: 10px;
+        border-radius: 0px;
+        font-size: 10pt;
+        overflow-x: auto;
+        white-space: pre-wrap; /* Enable wrapping of long lines */
+        margin: 20px 0;
+    }
+
+    code {
+        color: #d63384;
+    }
+    
+</style>
+
+
+<h2>Introduction</h2>
+<p>Working in Analytics, you’re bound to come across a problem at some point that requires building and implementing a predictive model. Despite what many think, not every problem requires an advanced enterprise-grade ML solution: sometimes you just want to make an existing process a little bit smarter and add some more rigor to how your company evaluates a potential outcome. In many cases like this, the good old tried-and-true supervised learning models that you learned about in your college stats class (e.g. linear and logistic regressions) are more than enough to help you accomplish your goal. </p>
+<p></p>
+<p>The beauty of these models lies in their simplicity and interpretability. Once trained and tested, the coefficient values in regression formulas directly show how each independent (input) variable affects the dependent (outcome) variable. Because the form of these regressions is fairly simple (i.e., feature1 * coefficient1 + feature2 * coefficient2), we can easily express them with just SQL and Jinja via dbt. </p>
+
+<h2>The Problem</h2>
+<p>While this blog post is focused on how you might be able to save yourself some time at the tail-end of a predictive modeling project (i.e. the deployment phase after you have already trained the model), you will still need to follow all of the same steps as you normally would in the exploratory analysis and model-building phase. You will likely need to use your scripting language of choice (e.g. Python or R) to collect historical data, identify potential features, clean and prep your data, check for collinearity, fit your model, select the most significant features, evaluate model performance, etc. For your project to succeed, you can’t cut corners and skip these steps. But also, why would you want to? That’s the fun part of a data science project: actually <i>building</i> the model.</p>
+<p>Once you’ve done all that and feel good about your model, the less fun part for many people is figuring out <i>how</i> to deploy it and have it run on a regular cadence. If your company is already actively using an orchestration tool (like Dagster or Airflow), this might not be a problem for you. But if you’re not already deploying Python models on a schedule, or maybe your company is only using dbt Cloud to manage your ELT process, you might be wondering how to proceed without investing time and money to set up new infrastructure. If that resonates with you, I have good news: you might just be able to have your model run natively in dbt with just SQL and Jinja code.</p>
+<p></p>
+
+<h2>The Process</h2>
+<p>I used a logistic regression for a project I was working on, which I will use for the example that I outline below. I wanted to predict the probability of success before deciding to trigger an action for a given user. Logistic regression can be used for binary classification problems, and uses the logistic function (or sigmoid function) to convert the linear combination of features and coefficients into a probability score between 0 and 1. Aside from the transformation at the end, the process outlined below is almost identical if you were to use a linear regression instead.</p>
+<p></p>
+<p>Here's a general outline of the process once we’re ready to implement in dbt:</p>
+<ol>
+    <li>
+        <strong>Save the Coefficients</strong>: Extract the coefficients for your selected features from your model.
+    </li>
+    <li>
+        <strong>Create a dbt Seed</strong>: Store these coefficients in a dbt seed for easy access.
+    </li>
+    <li>
+        <strong>Join new Data to Model Coefficients</strong>: Pivot the coefficients into a wide format and join them with your prepped data in a dbt model.
+    </li>
+    <li>
+        <strong>Calculate Predictions</strong>: Loop through all saved features, multiply their values by their coefficients, and sum them to get the linear combination.
+    </li>
+    <li>
+        <strong>Apply the Sigmoid Function</strong>: Use the sigmoid function to convert the linear combination into a predicted probability.
+    </li>
+</ol>
+
+<p><br></p>
+<p><strong>Save the Coefficients</strong>
+<br>    
+Once you have trained your model in Python or R, you will need to save and export the regression coefficients so that we can store them in your dbt project as a CSV seed. Regardless of whatever statistical package you use, you should be able to access the coefficient and intercept values of your model, and I’ve included the code below that I used to export these from my scikit-learn model in Python as an example:</p>
+
+<pre><code class="language-python"># Save list of feature names & list of coefficient values
+feature_list = ['intercept'] + list(X.columns)
+coefficient_array = np.concatenate([log_reg.intercept_, log_reg.coef_[0]])
+
+# Create a dataframe of features & their coefficients
+df_coefficients = pd.DataFrame(feature_list, columns=['Feature'])
+df_coefficients.insert(len(df_coefficients.columns), "Coef", coefficient_array.transpose())
+
+# Save to CSV
+df_coefficients.to_csv('df_coefficients.csv')
+</code></pre>
+
+<p>From here, we can add our CSV of saved coefficient values to our dbt project, which we’ll use to calculate predictions for new data.</p>
+
+<p></p>
+<p><strong>Combine New Data & Model Coefficients</strong>
+<br>    
+When we reach this stage we’ll likely need 3 separate dbt models:</p>
+<ol>
+    <li>
+        The coefficient seed table
+    </li>
+    <li>
+        A prep model for feeding data into your regression: constructs your feature columns, performs any required data cleaning, etc.
+    </li>
+    <li>
+        The dbt model that will execute the regression, which I’ll outline below
+    </li>
+</ol>
+
+<p>I’m going to focus on #3 for the rest of this section, to show how you might set up your model to execute your logistic regression. I will heavily rely on Jinja in this dbt model in an attempt to make it flexible, reusable, and efficient.</p>
+<p>First, we’ll bring in the feature names from our saved coefficient seed, and store them in a named list which we’ll reference throughout the model:</p>
+
+<pre><code>{# List out the names of saved features #}
+{%- set feature_list = dbt_utils.get_column_values(
+    table=ref('saved_coefficients_seed'),
+    column='feature_name'
+    )
+-%}    
+</code></pre>
+
+<p>Next, we’ll pivot out the coefficients into a wide format, so that we only have to join it once to our prep data. The end output of this step should be one row, with each feature separated out into its own column.</p>
+<p>Note: I had considered using the <a href="https://github.com/dbt-labs/dbt-utils?tab=readme-ov-file#pivot-source"><u>pivot function</u></a> from dbt_utils here, but it defaults to including an “else” condition of 0 which can result in unexpected outputs if you’re not careful. Rather than risking it, I decided to just write my own code here to make sure it worked exactly as I intended:</p>
+
+<pre><code>
+{# Transform feature list into a wide table with one row, and each coefficient in its own column #}
+WITH pivoted_model_coefficients as (
+  SELECT
+    {%- for feature in feature_list %}
+    any_value(
+    case when feature_name = '{{feature}}' then coefficient end
+    ) as {{feature}}{%- if not loop.last %},{%- endif -%}
+    {% endfor %}
+  FROM {{ ref('saved_coefficients_seed') }}
+),
+</code></pre>
+
+<p></p>
+<p><strong>Apply Regression Formula</strong>
+<br>    
+In the next step, we’ll prepare our data for prediction by joining in the wide-format coefficient values, and finding the linear combination of features & coefficients. I won’t go super in-depth on the math here, but it’s helpful to have a basic understanding of how a logistic regression works under the hood in order to understand the code below. </p>
+<p>Similar to a linear regression, we’ll first find a linear combination of features and their coefficients with the basic formula of:</p>
+<p>&beta;<sub>0&nbsp;</sub> + &beta;<sub>1&nbsp;</sub>x<sub>1</sub> + ... + &beta;<sub>k&nbsp;</sub>x<sub>k</sub></p>
+<p>Where “x” represents a particular feature, “&beta;” represents the respective coefficient for the feature, and &beta;<sub>0&nbsp;</sub>​ is the intercept:</p>
+
+<pre><code>
+{# Create the linear combination of ((feature_value_1 * coefficient_value_1) + (feature_value_2 * coefficient_value_2) + ...etc.) for all saved features and their coefficients #}
+
+sigmoid_prep as (
+  SELECT 
+    p.*,
+    (
+    {% for feature in feature_list %}
+      {% if feature == 'intercept' -%}
+      c.{{feature}}
+      {%- else %}
+      (p.{{feature}} * c.{{feature}})
+      {%- endif %}{%- if not loop.last %} +{%- endif -%}
+    {% endfor %}
+    ) as linear_combination
+  FROM {{ ref('prep_new_data_for_prediction') }} as p
+    --Join in model coefficients
+    JOIN pivoted_model_coefficients as c
+      ON 1=1
+)    
+</code></pre>
+
+<p>From here, we’re ready to apply the sigmoid function. As I mentioned before, the code above would effectively work as-is if you were working on a linear regression. The main differentiation between the two models is that linear regression predicts a continuous outcome, while logistic regression predicts a probability of the outcome belonging to a particular class, and outputs probability scores that are bound between 0 and 1.</p>
+
+<p>In order to transform our linear combination above, we can use the sigmoid function to transform the output variable into something that represents a probability. The sigmoid function is defined as:</p>
+<p>\( \sigma(x) = \frac{1}{1 + e^{-x}} \)</p>
+
+<p>Where “x” represents the linear combination of features and coefficients outlined above.</p>
+<p>At this point, all we need to do is pass through the value we calculated in the previous step to the sigmoid function and we’ll arrive at our final probability outputs between 0 and 1:</p>
+<pre><code>
+SELECT 
+  *,
+  1 / (1 + EXP(-linear_combination)) as predicted_success_probability
+FROM sigmoid_prep
+</code></pre>
+<p>And voila, if you put together all of the code blocks above, you will now have a functioning logistic regression in SQL that will return the same results as your Python model if you use the same inputs!</p>
+
+<p></p>
+<h2>Future-Proofing</h2>
+<p>We will want to evaluate our model’s performance over time, and it is always helpful to be able to refer back to what the state of our data was at the time of prediction. It’s a good idea to create a historical table for analysis purposes by creating an additional downstream table that either appends rows or snapshots your model inputs+outputs.</p>
+
+<p>In order to future-proof your snapshot table, I would suggest storing your input values in a json column so that your table will be resilient to the addition/removal of feature columns. This will ensure that you will not break your snapshot table if you ship a new version of the model that adds 2 new features and removes one of the previous features, for example.</p>
+
+<p>To accomplish this, you can add the following additional code to your dbt model:</p>
+
+<pre><code>
+{# List out the names of each column in the input data #}
+{%- set input_data_columns = dbt_utils.get_filtered_columns_in_relation(
+    from=ref('prep_new_data_for_prediction'))
+-%}
+</code></pre>
+
+<p>From there, you can update the “sigmoid_prep” CTE to construct your additional json column. The syntax will vary depending on your data warehouse, but the following examples should work for either BigQuery or Snowflake:</p>
+<pre><code>
+{# BigQuery version #}
+--Store metadata for the input data in json value
+TO_JSON(
+  STRUCT(
+    {%- for column in input_data_columns %}
+    p.{{column}}
+    {%- if not loop.last %},{% endif -%}
+    {% endfor %}
+  )
+) as input_data_json
+
+
+{# Snowflake version #}
+--Store metadata for the input data in json value
+OBJECT_CONSTRUCT(
+  {%- for column in input_data_columns %}
+  'p.{{column}}', p.{{column}}
+  {%- if not loop.last %},{% endif -%}
+  {% endfor %}
+) as input_data_json
+</code></pre>
+
+<p>If you want to extend this further, you can also store your features and coefficients in a json column for additional metadata in your historical table. The pattern would be almost identical, and would leverage the “feature_list” variable we set at the beginning:</p>
+<pre><code>
+{# BigQuery version #}
+--Store model features and coefficients for this run in json value
+TO_JSON(
+  STRUCT(
+    {%- for feature in feature_list %}
+    c.{{feature}}
+    {%- if not loop.last %},{% endif -%}
+    {% endfor %}
+  )
+) as model_coefficient_json
+
+
+{# Snowflake version #}
+--Store model features and coefficients for this run in json value
+OBJECT_CONSTRUCT(
+  {%- for feature in feature_list %}
+  'p.{{feature}}', p.{{feature}}
+  {%- if not loop.last %},{% endif -%}
+  {% endfor %}
+) as model_coefficient_json
+</code></pre>
+
+<p>From there, we can build a lightweight and flexible table for snapshotting that only includes our “model_coefficient_json”, “input_data_json”, "predicted_success_probability” and a timestamp of the model run. This provides ample metadata for analysis purposes, while still being resilient to future updates to our model.</p>
+
+<p></p>
+<h2>Wrapup</h2>
+<p>The ability to blend SQL and Jinja makes dbt very powerful, opening the door to a lot of creative applications. If you already have the infrastructure in place to run machine learning models, you might not ever need to do this. But if you have limited tools at your disposal or maybe you're using dbt Cloud and don't want the overhead of setting up another orchestration tool, you might just be in luck!</p>
+
+<p>Taking the MVP of a predictive model from a notebook and having it run in a production system is a heavy lift, and in some cases is not 100% worth the effort if it’s a slow-moving model. An often overlooked solution is to understand what calculations these models are actually performing under the hood, and recreating that logic directly in SQL. We've used dbt to standardize this so that it can be applied en masse with minimal overhead required (i.e. you can just export your model coefficients and weights to a CSV whenever you make updates to the model). This dbt pattern is extensible to multiple types of models including logistic regressions, linear regressions, etc. and it is flexible to any number of fitted features in your model.</p>
