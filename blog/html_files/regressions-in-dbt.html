@@ -84,8 +84,8 @@
         border-radius: 0px;
         font-size: 10pt;
         overflow-x: auto;
-        white-space: pre-wrap; /* Enable wrapping of long lines */
-        margin: 20px 0;
+        white-space: pre;
+        margin: 0;
     }
 
     code {
@@ -100,11 +100,12 @@
 <p></p>
 <p>The beauty of these models lies in their simplicity and interpretability. Once trained and tested, the coefficient values in regression formulas directly show how each independent (input) variable affects the dependent (outcome) variable. Because the form of these regressions is fairly simple (i.e., feature1 * coefficient1 + feature2 * coefficient2), we can easily express them with just SQL and Jinja via dbt. </p>
 
+<p><br></p>
 <h2>The Problem</h2>
 <p>While this blog post is focused on how you might be able to save yourself some time at the tail-end of a predictive modeling project (i.e. the deployment phase after you have already trained the model), you will still need to follow all of the same steps as you normally would in the exploratory analysis and model-building phase. You will likely need to use your scripting language of choice (e.g. Python or R) to collect historical data, identify potential features, clean and prep your data, check for collinearity, fit your model, select the most significant features, evaluate model performance, etc. For your project to succeed, you can’t cut corners and skip these steps. But also, why would you want to? That’s the fun part of a data science project: actually <i>building</i> the model.</p>
 <p>Once you’ve done all that and feel good about your model, the less fun part for many people is figuring out <i>how</i> to deploy it and have it run on a regular cadence. If your company is already actively using an orchestration tool (like Dagster or Airflow), this might not be a problem for you. But if you’re not already deploying Python models on a schedule, or maybe your company is only using dbt Cloud to manage your ELT process, you might be wondering how to proceed without investing time and money to set up new infrastructure. If that resonates with you, I have good news: you might just be able to have your model run natively in dbt with just SQL and Jinja code.</p>
-<p></p>
 
+<p><br></p>
 <h2>The Process</h2>
 <p>I used a logistic regression for a project I was working on, which I will use for the example that I outline below. I wanted to predict the probability of success before deciding to trigger an action for a given user. Logistic regression can be used for binary classification problems, and uses the logistic function (or sigmoid function) to convert the linear combination of features and coefficients into a probability score between 0 and 1. Aside from the transformation at the end, the process outlined below is almost identical if you were to use a linear regression instead.</p>
 <p></p>
@@ -144,6 +145,7 @@ df_coefficients.insert(len(df_coefficients.columns), "Coef", coefficient_array.t
 df_coefficients.to_csv('df_coefficients.csv')
 </code></pre>
 
+<p></p>
 <p>From here, we can add our CSV of saved coefficient values to our dbt project, which we’ll use to calculate predictions for new data.</p>
 
 <p></p>
@@ -173,6 +175,7 @@ When we reach this stage we’ll likely need 3 separate dbt models:</p>
 -%}    
 </code></pre>
 
+<p></p>
 <p>Next, we’ll pivot out the coefficients into a wide format, so that we only have to join it once to our prep data. The end output of this step should be one row, with each feature separated out into its own column.</p>
 <p>Note: I had considered using the <a href="https://github.com/dbt-labs/dbt-utils?tab=readme-ov-file#pivot-source"><u>pivot function</u></a> from dbt_utils here, but it defaults to including an “else” condition of 0 which can result in unexpected outputs if you’re not careful. Rather than risking it, I decided to just write my own code here to make sure it worked exactly as I intended:</p>
 
@@ -189,7 +192,7 @@ WITH pivoted_model_coefficients as (
 ),
 </code></pre>
 
-<p></p>
+<p><br></p>
 <p><strong>Apply Regression Formula</strong>
 <br>    
 In the next step, we’ll prepare our data for prediction by joining in the wide-format coefficient values, and finding the linear combination of features & coefficients. I won’t go super in-depth on the math here, but it’s helpful to have a basic understanding of how a logistic regression works under the hood in order to understand the code below. </p>
@@ -216,9 +219,10 @@ sigmoid_prep as (
     --Join in model coefficients
     JOIN pivoted_model_coefficients as c
       ON 1=1
-)    
+)
 </code></pre>
 
+<p></p>
 <p>From here, we’re ready to apply the sigmoid function. As I mentioned before, the code above would effectively work as-is if you were working on a linear regression. The main differentiation between the two models is that linear regression predicts a continuous outcome, while logistic regression predicts a probability of the outcome belonging to a particular class, and outputs probability scores that are bound between 0 and 1.</p>
 
 <p>In order to transform our linear combination above, we can use the sigmoid function to transform the output variable into something that represents a probability. The sigmoid function is defined as:</p>
@@ -232,9 +236,11 @@ SELECT
   1 / (1 + EXP(-linear_combination)) as predicted_success_probability
 FROM sigmoid_prep
 </code></pre>
-<p>And voila, if you put together all of the code blocks above, you will now have a functioning logistic regression in SQL that will return the same results as your Python model if you use the same inputs!</p>
 
 <p></p>
+<p>And voila, if you put together all of the code blocks above, you will now have a functioning logistic regression in SQL that will return the same results as your Python model if you use the same inputs!</p>
+
+<p><br></p>
 <h2>Future-Proofing</h2>
 <p>We will want to evaluate our model’s performance over time, and it is always helpful to be able to refer back to what the state of our data was at the time of prediction. It’s a good idea to create a historical table for analysis purposes by creating an additional downstream table that either appends rows or snapshots your model inputs+outputs.</p>
 
@@ -249,6 +255,7 @@ FROM sigmoid_prep
 -%}
 </code></pre>
 
+<p></p>
 <p>From there, you can update the “sigmoid_prep” CTE to construct your additional json column. The syntax will vary depending on your data warehouse, but the following examples should work for either BigQuery or Snowflake:</p>
 <pre><code>
 {# BigQuery version #}
@@ -273,6 +280,7 @@ OBJECT_CONSTRUCT(
 ) as input_data_json
 </code></pre>
 
+<p></p>
 <p>If you want to extend this further, you can also store your features and coefficients in a json column for additional metadata in your historical table. The pattern would be almost identical, and would leverage the “feature_list” variable we set at the beginning:</p>
 <pre><code>
 {# BigQuery version #}
@@ -297,9 +305,10 @@ OBJECT_CONSTRUCT(
 ) as model_coefficient_json
 </code></pre>
 
+<p></p>
 <p>From there, we can build a lightweight and flexible table for snapshotting that only includes our “model_coefficient_json”, “input_data_json”, "predicted_success_probability” and a timestamp of the model run. This provides ample metadata for analysis purposes, while still being resilient to future updates to our model.</p>
 
-<p></p>
+<p><br></p>
 <h2>Wrapup</h2>
 <p>The ability to blend SQL and Jinja makes dbt very powerful, opening the door to a lot of creative applications. If you already have the infrastructure in place to run machine learning models, you might not ever need to do this. But if you have limited tools at your disposal or maybe you're using dbt Cloud and don't want the overhead of setting up another orchestration tool, you might just be in luck!</p>
 
