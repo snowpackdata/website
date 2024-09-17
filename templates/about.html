@@ -42,6 +42,9 @@
         gtag('config', 'G-TRLQYPPXKE');
     </script>
     <style>
+        main {
+            font-size: 16px;
+        }
         .about-us-container {
             padding: 20px;
         }
@@ -51,13 +54,14 @@
             margin-bottom: 40px;
             height: 200px;
         }
-        .partners:nth-child(odd) {
+        .partners-section :nth-child(even) {
             flex-direction: row-reverse;
         }
         .partner img {
             max-width: 150px;
             margin: 0 20px;
             border-radius: 50%;
+            border: 1px solid #ccc;
         }
         .partner-content {
             flex: 1;
@@ -84,18 +88,18 @@
         <h2>Who We Are</h2>
         <p>
             We are a team of analytics professionals with experience spanning the data stack from backend data engineering through data modeling, and predictive analytics.
-            Our mission is to provide high quality, bespoke work for our clients that accelerates their data maturity and empowers decision making.
+            Our mission is to provide high quality, bespoke work for our clients that accelerates their data maturity and empowers decision-making.
         </p>
     </section>
     <section class="mission-section">
         <h2>Why Snowpack</h2>
         <p>
             The name Snowpack Data was derived from the process avalanche forecasters and backcountry skiers use to assess the stability of snow in the mountains. The members of our team
-            are passionate about skiing and the science of snowpack stability has many parallels to the work we do in data analytics. We believe that the best data analytics work is done
-            when the data is stable supported by well-defined layers across the analytical stack from ingestion to modeling and finally reporting.
+            are passionate about the mountains and the science of snowpack stability has many parallels to the work we do in data analytics. We believe that the best data analytics work is done
+            when the underlying data is stable, supported by well-defined layers across the stack from ingestion to modeling and finally reporting.
         </p>
         <p>
-            With our time-tested approach to analytics Snowpack offers an efficient option for companies looking to jumpstart their analytics organization or provide key
+            Snowpack offers an efficient option for companies looking to jumpstart their analytics organization or provide key
             support to their existing team. As consultants we are able to quickly deliver on key projects and provide a roadmap for future work that your team can execute on.
         </p>
     </section>
@@ -103,13 +107,14 @@
         <h2>Our Working Model</h2>
         <p>
             We work with our clients in two primary ways. The first is through project-based consulting. Our team will work with you to scope out a project with clear
-            deliverables and timelines and execute on that project independently from your existing staff. This allows your organization to quickly deliver
+            deliverables and timelines and execute independent of your existing staff. We are great at solving the <em>hard problems</em> in data from end to end. This allows your organization to quickly deliver
             on key projects without the need to hire additional staff.
 
             The second is through an ongoing retainer. We select this option for clients who have flexible needs and want access to experts to either augment their
-            existing staff or provide ongoing support for particularly large and complicated projects where their team may not have the right expertise.
+            existing staff or provide ongoing support for particularly large and complicated projects where their team may not have the right expertise. Scalable access to experienced professionals allows our clients to surge on key projects and get access to subject matters experts without the  of hiring and training.
         </p>
     </section>
+    <section class="expertise-section">
     <h2>Our Expertise</h2>
     <p>
         We specialize in the following areas and technologies:
@@ -145,6 +150,7 @@
     <section class="partners-section">
         <h2>Our Partners</h2>
         <hr>
+        <div></div>
         <div class="partner">
             <img src="assets/img/nate-profile.jpeg" alt="Partner 1 Photo">
             <div class="partner-content">
@@ -153,19 +159,21 @@
                     Nate is one of the founding partners of Snowpack Data. Before starting Snowpack, Nate was a Staff Data Analyst at Flexport focusing on advanced analytics including projects like customer retention and churn prediction, as well as workforce optimization and operational forecasting. Nate loves to leverage his background in chemical engineering to solve complex problems and apply empirical models to real world systems. Nate often focuses on projects in the Data Science/Predictive Analytics end of the data spectrum.
                 </p>
                 <p>
-                    In his free time, Nate enjoys skiing, hiking and time in the mountains. You can expect to find him in the backcountry on the weekends, or running through San Francisco's Golden Gate Park during the week.
+                    In his free time, Nate enjoys skiing, hiking, and time in the mountains. You can expect to find him in the backcountry on the weekends, or running through San Francisco's Golden Gate Park during the week.
                 </p>
             </div>
         </div>
         <hr>
+        <div></div>
         <div class="partner">
             <img src="assets/img/kevin-profile.jpeg" alt="Partner 2 Photo">
             <div class="partner-content">
                 <h3>Kevin Koenitzer</h3>
-                <p><!-- Add Partner 1 bio here --></p>
+                <p>Kevin is a founding partner of Snowpack Data. He began his journey in data by chance as a financial planner and quickly discovered his passion for analytics. Kevin has built ML applications, databases, and led analytics teams across industries, always pushing the boundaries of the field. With a focus on both technical excellence and people management, Kevin is dedicated to building strong, impactful analytics practices.</p>
             </div>
         </div>
         <hr>
+        <div></div>
         <div class="partner">
             <img src="assets/img/danny-profile.jpeg" alt="Partner 3 Photo">
             <div class="partner-content">
@@ -179,6 +187,7 @@
             </div>
         </div>
         <hr>
+        <div></div>
         <div class="partner">
             <img src="assets/img/shore-profile.jpeg" alt="Partner 4 Photo">
             <div class="partner-content">
