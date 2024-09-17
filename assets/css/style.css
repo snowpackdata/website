@@ -12261,14 +12261,14 @@ h3.blog-subtitle  {
 }
 .hour-block {
   position: relative;
-  height:40px;
+  height:45px;
 }
 
 .entry {
   z-index: 999;
   box-sizing: border-box;
   background-color: #4CAF50;
-  color: white;
+  color: #fffafa;
   padding: 5px;
   border-radius: 5px;
   position: absolute;
@@ -12276,6 +12276,8 @@ h3.blog-subtitle  {
   cursor: pointer;
   margin-left: 4px;
   margin-right: 4px;
+  margin-top:2px;
+  margin-bottom:2px;
   overflow: hidden;
 
   font-size: .8vw;
