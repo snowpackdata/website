@@ -388,6 +388,19 @@ var App = new Vue({
             return stateMapping[state] || state;
         },
 
+        displayEntryState(state) {
+            const stateMapping = {
+                ENTRY_STATE_UNAFFILIATED: 'Unaffiliated',
+                ENTRY_STATE_DRAFT: 'Draft',
+                ENTRY_STATE_APPROVED: 'Approved',
+                ENTRY_STATE_SENT: 'Sent',
+                ENTRY_STATE_PAID: 'Paid',
+                ENTRY_STATE_VOID: 'Void'
+            };
+
+            return stateMapping[state] || state;
+        },
+
         updateEventSizes() {
             // This function is invoked whenever the page is resized, it retrieves each of the entries on the page
             // and recalculates their size. This is a bit involved because they are no longer bounded objects
