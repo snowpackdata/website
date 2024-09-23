@@ -59,9 +59,14 @@ func servicesHandler(w http.ResponseWriter, req *http.Request) {
 	http.ServeFile(w, req, "./templates/services.html")
 }
 
-// Services page for all /services url requests
+// Example report page for all /example_report url requests
 func exampleReportHandler(w http.ResponseWriter, req *http.Request) {
 	http.ServeFile(w, req, "./templates/example_report.html")
+}
+
+// Data Assessment page for all /data-assessment url requests
+func dataAssessmentHandler(w http.ResponseWriter, req *http.Request) {
+	http.ServeFile(w, req, "./templates/data_assessment.html")
 }
 
 func blogLandingHandler(w http.ResponseWriter, req *http.Request) {
