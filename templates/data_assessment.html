@@ -52,18 +52,28 @@
     }
 
     .submit-container {
-        max-width: 60%;
+        display: flex;
+        justify-content: space-between;
     }
 
     .question {
         margin-bottom: 20px;
-        font-size: 1.1rem;
+        font-size: 1.25rem;
+        font-weight: normal;
+    }
+
+    .question-label {
+       font-size: 1.5rem; 
+    }
+
+    .answer-option-label {
+        font-weight: normal;
     }
 
     input[type="email"] {
         max-width: 75%;
-        min-width: 25%;
-        font-size: 1.2rem;
+        min-width: 40%;
+        font-size: 1.25rem;
     }
 
     textarea {
@@ -81,6 +91,7 @@
         margin-right: 10px;
         padding: 10px 20px;
         background-color: #2e417f;
+        font-size: 1.3rem;
         color: white;
         border: none;
         cursor: pointer;
@@ -97,7 +108,7 @@
         width: 100%;
         background-color: #e0e0e0;
         margin-top: 15px;
-        margin-bottom: 15px;
+        margin-bottom: 25px;
         height: 20px;
         border-radius: 5px;
     }
@@ -146,7 +157,7 @@
     <form id="data-maturity-survey">
         <h1>Data Maturity Benchmark</h1>
         
-        <p style="font-size: 1.25rem">    
+        <p style="font-size: 1.4rem">    
             Please fill out all of the questions below to the best of your ability. We will use your responses to send you a <b>free summary</b> of how you compare against similar companies, as well as recommendations on what to focus on next to further improve your data capabilities.
         </p>
 
@@ -156,7 +167,8 @@
         
         <!-- Email Input -->
         <div class="question" id="email-question">
-            <label for="email">Please enter your email to receive your benchmark results & write-up:</label>
+            <label class="question-label" for="email">Please enter your email to receive your benchmark results & write-up:</label>
+            <br>
             <input type="email" id="email" name="email" placeholder="Your email" required>
             <div id="email-error" style="color:red; display:none;">
                 Please enter a valid email address.
@@ -164,15 +176,15 @@
         </div>
         
         <!-- Question 1 -->
-        <div class="question" id="q1" required>
-            <label>1. Do you have a data warehouse set up? If yes, what do you use?</label>
+        <div class="question" id="q1">
+            <label class="question-label">1. Do you have a data warehouse set up? If yes, what do you use?</label>
             <div class="options">
                 <input type="radio" id="q1a" name="q1" value="cloud-dwh">
-                <label for="q1a">Yes, we use a modern cloud data warehouse (e.g., Snowflake, BigQuery)</label><br>
+                <label class="answer-option-label" for="q1a">Yes, we use a modern cloud data warehouse (e.g., Snowflake, BigQuery)</label><br>
                 <input type="radio" id="q1b" name="q1" value="on-premise">
-                <label for="q1b">Yes, we use an on-premise data warehouse</label><br>
+                <label class="answer-option-label" for="q1b">Yes, we use an on-premise data warehouse</label><br>
                 <input type="radio" id="q1c" name="q1" value="no-dwh">
-                <label for="q1c">No, we don’t have a data warehouse</label>
+                <label class="answer-option-label" for="q1c">No, we don’t have a data warehouse</label>
             </div>
             <textarea name="q1_text" placeholder="Optional: Provide additional details"></textarea>
             <div class="error-message" style="display:none;"></div>
@@ -180,16 +192,16 @@
 
         <!-- Question 2 -->
         <div class="question" id="q2">
-            <label>2. Who manages data pipelines at your company?</label>
+            <label class="question-label">2. Who manages data pipelines at your company?</label>
             <div class="options">
                 <input type="radio" id="q2a" name="q2" value="data-engineering-team">
-                <label for="q2a">Dedicated data engineering team.</label><br>
+                <label class="answer-option-label" for="q2a">Dedicated data engineering team.</label><br>
                 <input type="radio" id="q2b" name="q2" value="shared-responsibility">
-                <label for="q2b">Shared responsibility across different teams.</label><br>
+                <label class="answer-option-label" for="q2b">Shared responsibility across different teams.</label><br>
                 <input type="radio" id="q2c" name="q2" value="engineering-fill-gap">
-                <label for="q2c">Engineering team currently fills the gap here</label><br>
+                <label class="answer-option-label" for="q2c">Engineering team currently fills the gap here</label><br>
                 <input type="radio" id="q2d" name="q2" value="no-ownership">
-                <label for="q2d">No one currently owns this</label>
+                <label class="answer-option-label" for="q2d">No one currently owns this</label>
             </div>
             <textarea name="q2_text" placeholder="Optional: Provide additional details"></textarea>
             <div class="error-message" style="display:none;"></div>
@@ -197,14 +209,14 @@
 
         <!-- Question 3 -->
         <div class="question" id="q3">
-            <label>3. What tools do you use for data ingestion and transformation?</label>
+            <label class="question-label">3. What tools do you use for data ingestion and transformation?</label>
             <div class="options">
                 <input type="radio" id="q3a" name="q3" value="custom-scripts">
-                <label for="q3a">Custom-built scripts or ETL processes</label><br>
+                <label class="answer-option-label" for="q3a">Custom-built scripts or ETL processes</label><br>
                 <input type="radio" id="q3b" name="q3" value="third-party-tools">
-                <label for="q3b">Third-party tools (e.g., Airbyte, Fivetran, dbt)</label><br>
+                <label class="answer-option-label" for="q3b">Third-party tools (e.g., Airbyte, Fivetran, dbt)</label><br>
                 <input type="radio" id="q3c" name="q3" value="no-defined-process">
-                <label for="q3c">We don’t have a defined process for this yet</label>
+                <label class="answer-option-label" for="q3c">We don’t have a defined process for this yet</label>
             </div>
             <textarea name="q3_text" placeholder="Optional: Provide additional details"></textarea>
             <div class="error-message" style="display:none;"></div>
@@ -212,18 +224,18 @@
 
         <!-- Question 4 -->
         <div class="question" id="q4">
-            <label>4. Do you currently have any data engineers, analysts, or data scientists on your team?</label>
+            <label class="question-label">4. Do you currently have any data engineers, analysts, or data scientists on your team?</label>
             <div class="options">
                 <input type="radio" id="q4a" name="q4" value="dedicated-data-team">
-                <label for="q4a">Yes, we have a dedicated data team</label><br>
+                <label class="answer-option-label" for="q4a">Yes, we have a dedicated data team</label><br>
                 <input type="radio" id="q4b" name="q4" value="external-support">
-                <label for="q4b">No, we rely on external support or contractors</label><br>
+                <label class="answer-option-label" for="q4b">No, we rely on external support or contractors</label><br>
                 <input type="radio" id="q4c" name="q4" value="eng-team-supporting-etl">
-                <label for="q4c">We have engineers that support ETL, but no dedicated analytics support</label><br>
+                <label class="answer-option-label" for="q4c">We have engineers that support ETL, but no dedicated analytics support</label><br>
                 <input type="radio" id="q4d" name="q4" value="data-savvy-business-analysts">
-                <label for="q4d">We have data-savvy business analysts, but no dedicated owners of our ETL process</label><br>
+                <label class="answer-option-label" for="q4d">We have data-savvy business analysts, but no dedicated owners of our ETL process</label><br>
                 <input type="radio" id="q4e" name="q4" value="other">
-                <label for="q4e">Other (Please provide additional details)</label>
+                <label class="answer-option-label" for="q4e">Other (Please provide additional details)</label>
             </div>
             <textarea name="q4_text" placeholder="Optional: Provide additional details"></textarea>
             <div class="error-message" style="display:none;"></div>
@@ -231,16 +243,16 @@
 
         <!-- Question 5 -->
         <div class="question" id="q5">
-            <label>5. What is the approximate scale of data you work with?</label>
+            <label class="question-label">5. What is the approximate scale of data you work with?</label>
             <div class="options">
                 <input type="radio" id="q5a" name="q5" value="thousands-rows">
-                <label for="q5a">Thousands of rows</label><br>
+                <label class="answer-option-label" for="q5a">Thousands of rows</label><br>
                 <input type="radio" id="q5b" name="q5" value="millions-rows">
-                <label for="q5b">Millions of rows</label><br>
+                <label class="answer-option-label" for="q5b">Millions of rows</label><br>
                 <input type="radio" id="q5c" name="q5" value="billions-rows">
-                <label for="q5c">Billions of rows</label><br>
+                <label class="answer-option-label" for="q5c">Billions of rows</label><br>
                 <input type="radio" id="q5d" name="q5" value="unsure-scale">
-                <label for="q5d">We’re not sure of the exact scale</label>
+                <label class="answer-option-label" for="q5d">We’re not sure of the exact scale</label>
             </div>
             <textarea name="q5_text" placeholder="Optional: Provide additional details"></textarea>
             <div class="error-message" style="display:none;"></div>
@@ -248,16 +260,16 @@
 
         <!-- Question 6 -->
         <div class="question" id="q6">
-            <label>6. How frequently do you refresh or update your data?</label>
+            <label class="question-label">6. How frequently do you refresh or update your data?</label>
             <div class="options">
                 <input type="radio" id="q6a" name="q6" value="daily-or-less-refresh">
-                <label for="q6a">Daily or multiple times per day</label><br>
+                <label class="answer-option-label" for="q6a">Daily or multiple times per day</label><br>
                 <input type="radio" id="q6b" name="q6" value="real-time-refresh">
-                <label for="q6b">Real-time or streaming</label><br>
+                <label class="answer-option-label" for="q6b">Real-time or streaming</label><br>
                 <input type="radio" id="q6c" name="q6" value="weekly-refresh">
-                <label for="q6c">Weekly</label><br>
+                <label class="answer-option-label" for="q6c">Weekly</label><br>
                 <input type="radio" id="q6d" name="q6" value="monthly-ad-hoc">
-                <label for="q6d">Monthly or ad-hoc</label>
+                <label class="answer-option-label" for="q6d">Monthly or ad-hoc</label>
             </div>
             <textarea name="q6_text" placeholder="Optional: Provide additional details"></textarea>
             <div class="error-message" style="display:none;"></div>
@@ -265,18 +277,18 @@
 
         <!-- Question 7 -->
         <div class="question" id="q7">
-            <label>7. What kind of business insights do you generate from your data?</label>
+            <label class="question-label">7. What kind of business insights do you generate from your data?</label>
             <div class="options">
                 <input type="checkbox" id="q7a" name="q7" value="descriptive">
-                <label for="q7a">Descriptive (e.g., reporting, dashboards)</label><br>
+                <label class="answer-option-label" for="q7a">Descriptive (e.g., reporting, dashboards)</label><br>
                 <input type="checkbox" id="q7b" name="q7" value="diagnostic">
-                <label for="q7b">Diagnostic (e.g., root cause analysis)</label><br>
+                <label class="answer-option-label" for="q7b">Diagnostic (e.g., root cause analysis)</label><br>
                 <input type="checkbox" id="q7c" name="q7" value="predictive">
-                <label for="q7c">Predictive (e.g., forecasting, machine learning)</label><br>
+                <label class="answer-option-label" for="q7c">Predictive (e.g., forecasting, machine learning)</label><br>
                 <input type="checkbox" id="q7d" name="q7" value="prescriptive">
-                <label for="q7d">Prescriptive (e.g., optimization, recommendation engines)</label><br>
+                <label class="answer-option-label" for="q7d">Prescriptive (e.g., optimization, recommendation engines)</label><br>
                 <input type="checkbox" id="q7e" name="q7" value="no-insights">
-                <label for="q7e">We don’t currently generate business insights from our data</label>
+                <label class="answer-option-label" for="q7e">We don’t currently generate business insights from our data</label>
             </div>
             <textarea name="q7_text" placeholder="Optional: Provide additional details"></textarea>
             <div class="error-message" style="display:none;"></div>
@@ -284,16 +296,16 @@
 
         <!-- Question 8 -->
         <div class="question" id="q8">
-            <label>8. How do you ensure data quality at your company?</label>
+            <label class="question-label">8. How do you ensure data quality at your company?</label>
             <div class="options">
                 <input type="radio" id="q8a" name="q8" value="manual-checks">
-                <label for="q8a">We perform manual checks</label><br>
+                <label class="answer-option-label" for="q8a">We perform manual checks</label><br>
                 <input type="radio" id="q8b" name="q8" value="automated-validation">
-                <label for="q8b">We have automated data validation processes</label><br>
+                <label class="answer-option-label" for="q8b">We have automated data validation processes</label><br>
                 <input type="radio" id="q8c" name="q8" value="external-tools">
-                <label for="q8c">We rely on external tools for data quality</label><br>
+                <label class="answer-option-label" for="q8c">We rely on external tools for data quality</label><br>
                 <input type="radio" id="q8d" name="q8" value="no-process">
-                <label for="q8d">We don’t currently have a data quality process in place</label>
+                <label class="answer-option-label" for="q8d">We don’t currently have a data quality process in place</label>
             </div>
             <textarea name="q8_text" placeholder="Optional: Provide additional details"></textarea>
             <div class="error-message" style="display:none;"></div>
@@ -301,18 +313,18 @@
 
         <!-- Question 9 -->
         <div class="question" id="q9">
-            <label>9. What are your current pain points in your data processes?</label>
+            <label class="question-label">9. What are your current pain points in your data processes?</label>
             <div class="options">
                 <input type="checkbox" id="q9a" name="q9" value="unreliable-data">
-                <label for="q9a">Inconsistent or unreliable data</label><br>
+                <label class="answer-option-label" for="q9a">Inconsistent or unreliable data</label><br>
                 <input type="checkbox" id="q9b" name="q9" value="difficulty-integrating-new-data">
-                <label for="q9b">Difficulty integrating data from different sources</label><br>
+                <label class="answer-option-label" for="q9b">Difficulty integrating data from different sources</label><br>
                 <input type="checkbox" id="q9c" name="q9" value="lack-expertise">
-                <label for="q9c">Lack of expertise or resources to manage data</label><br>
+                <label class="answer-option-label" for="q9c">Lack of expertise or resources to manage data</label><br>
                 <input type="checkbox" id="q9d" name="q9" value="difficulty-drawing-insights">
-                <label for="q9d">Difficulty drawing insights or value from the data collected</label><br>
+                <label class="answer-option-label" for="q9d">Difficulty drawing insights or value from the data collected</label><br>
                 <input type="checkbox" id="q9e" name="q9" value="other">
-                <label for="q9e">Other (Please provide additional details)</label>
+                <label class="answer-option-label" for="q9e">Other (Please provide additional details)</label>
             </div>
             <textarea name="q9_text" placeholder="Optional: Provide additional details"></textarea>
             <div class="error-message" style="display:none;"></div>
@@ -320,20 +332,20 @@
 
         <!-- Question 10 -->
         <div class="question" id="q10">
-            <label>10. What are your goals for improving your data capabilities in the next 12 months?</label>
+            <label class="question-label">10. What are your goals for improving your data capabilities in the next 12 months?</label>
             <div class="options">
                 <input type="radio" id="q10a" name="q10" value="establish-upgrade-dwh">
-                <label for="q10a">Establish or upgrade a data warehouse</label><br>
+                <label class="answer-option-label" for="q10a">Establish or upgrade a data warehouse</label><br>
                 <input type="radio" id="q10b" name="q10" value="expand-analytics">
-                <label for="q10b">Expand reporting and analytics capabilities</label><br>
+                <label class="answer-option-label" for="q10b">Expand reporting and analytics capabilities</label><br>
                 <input type="radio" id="q10c" name="q10" value="improve-quality-governance">
-                <label for="q10c">Improve data quality and governance</label><br>
+                <label class="answer-option-label" for="q10c">Improve data quality and governance</label><br>
                 <input type="radio" id="q10d" name="q10" value="establish-data-team">
-                <label for="q10d">Establish a data team</label><br>
+                <label class="answer-option-label" for="q10d">Establish a data team</label><br>
                 <input type="radio" id="q10e" name="q10" value="no-goals">
-                <label for="q10e">We haven’t defined any specific goals yet</label><br>
+                <label class="answer-option-label" for="q10e">We haven’t defined any specific goals yet</label><br>
                 <input type="radio" id="q10f" name="q10" value="other">
-                <label for="q10f">Other (Please provide additional details)</label>
+                <label class="answer-option-label" for="q10f">Other (Please provide additional details)</label>
             </div>
             <textarea name="q10_text" placeholder="Optional: Provide additional details"></textarea>
             <div class="error-message" style="display:none;"></div>
@@ -341,16 +353,16 @@
 
         <!-- Question 11 -->
         <div class="question" id="q11">
-            <label>11. What BI tools, if any, do you use for reporting and analytics?</label>
+            <label class="question-label">11. What BI tools, if any, do you use for reporting and analytics?</label>
             <div class="options">
                 <input type="radio" id="q11a" name="q11" value="modern-bi-tools">
-                <label for="q11a">Modern BI tools (e.g., Looker, Tableau, etc.)</label><br>
+                <label class="answer-option-label" for="q11a">Modern BI tools (e.g., Looker, Tableau, etc.)</label><br>
                 <input type="radio" id="q11b" name="q11" value="no-bi-tool">
-                <label for="q11b">We don’t currently use a BI tool</label><br>
+                <label class="answer-option-label" for="q11b">We don’t currently use a BI tool</label><br>
                 <input type="radio" id="q11c" name="q11" value="custom-solutions">
-                <label for="q11c">In-house/custom reporting solutions</label><br>
+                <label class="answer-option-label" for="q11c">In-house/custom reporting solutions</label><br>
                 <input type="radio" id="q11d" name="q11" value="spreadsheets">
-                <label for="q11d">We mostly use spreadsheets for reporting</label>
+                <label class="answer-option-label" for="q11d">We mostly use spreadsheets for reporting</label>
             </div>
             <textarea name="q11_text" placeholder="Optional: Provide additional details"></textarea>
             <div class="error-message" style="display:none;"></div>
@@ -358,16 +370,16 @@
 
         <!-- Question 12 -->
         <div class="question" id="q12">
-            <label>12. How accessible is your data within the company?</label>
+            <label class="question-label">12. How accessible is your data within the company?</label>
             <div class="options">
                 <input type="radio" id="q12a" name="q12" value="sql-users-only">
-                <label for="q12a">Data is accessible only to those with SQL knowledge</label><br>
+                <label class="answer-option-label" for="q12a">Data is accessible only to those with SQL knowledge</label><br>
                 <input type="radio" id="q12b" name="q12" value="self-serve-access">
-                <label for="q12b">Data is accessible to anyone (non-SQL users) via self-serve tools</label><br>
+                <label class="answer-option-label" for="q12b">Data is accessible to anyone (non-SQL users) via self-serve tools</label><br>
                 <input type="radio" id="q12c" name="q12" value="very-limited-access">
-                <label for="q12c">Only a few people have access to data</label><br>
+                <label class="answer-option-label" for="q12c">Only a few people have access to data</label><br>
                 <input type="radio" id="q12d" name="q12" value="restricted-access">
-                <label for="q12d">Data access is very restricted due to compliance/security reasons</label>
+                <label class="answer-option-label" for="q12d">Data access is very restricted due to compliance/security reasons</label>
             </div>
             <textarea name="q12_text" placeholder="Optional: Provide additional details"></textarea>
             <div class="error-message" style="display:none;"></div>
@@ -375,16 +387,16 @@
 
         <!-- Question 13 -->
         <div class="question" id="q13">
-            <label>13. Are you currently using any AI or machine learning capabilities?</label>
+            <label class="question-label">13. Are you currently using any AI or machine learning capabilities?</label>
             <div class="options">
                 <input type="radio" id="q13a" name="q13" value="yes-production">
-                <label for="q13a">Yes, we have deployed AI/ML models in production</label><br>
+                <label class="answer-option-label" for="q13a">Yes, we have deployed AI/ML models in production</label><br>
                 <input type="radio" id="q13b" name="q13" value="experimental">
-                <label for="q13b">Yes, but we are still in the experimental or development phase</label><br>
+                <label class="answer-option-label" for="q13b">Yes, but we are still in the experimental or development phase</label><br>
                 <input type="radio" id="q13c" name="q13" value="exploring">
-                <label for="q13c">No, but we are exploring AI/ML</label><br>
+                <label class="answer-option-label" for="q13c">No, but we are exploring AI/ML</label><br>
                 <input type="radio" id="q13d" name="q13" value="no-plans">
-                <label for="q13d">No, we have no plans to use AI/ML in the near future</label>
+                <label class="answer-option-label" for="q13d">No, we have no plans to use AI/ML in the near future</label>
             </div>
             <textarea name="q13_text" placeholder="Optional: Provide additional details"></textarea>
             <div class="error-message" style="display:none;"></div>
@@ -392,16 +404,16 @@
 
         <!-- Question 14 -->
         <div class="question" id="q14">
-            <label>14. How much trust is there in the data across your organization?</label>
+            <label class="question-label">14. How much trust is there in the data across your organization?</label>
             <div class="options">
                 <input type="radio" id="q14a" name="q14" value="high-trust">
-                <label for="q14a">High trust: data quality is consistently good, and people rely on it for decision-making</label><br>
+                <label class="answer-option-label" for="q14a">High trust: data quality is consistently good, and people rely on it for decision-making</label><br>
                 <input type="radio" id="q14b" name="q14" value="moderate-trust">
-                <label for="q14b">Moderate trust: occasional issues with data quality, but mostly reliable</label><br>
+                <label class="answer-option-label" for="q14b">Moderate trust: occasional issues with data quality, but mostly reliable</label><br>
                 <input type="radio" id="q14c" name="q14" value="low-trust">
-                <label for="q14c">Low trust: frequent issues with data quality, leading to conflicting insights</label><br>
+                <label class="answer-option-label" for="q14c">Low trust: frequent issues with data quality, leading to conflicting insights</label><br>
                 <input type="radio" id="q14d" name="q14" value="no-trust">
-                <label for="q14d">No trust: data quality is poor, resulting in decisions being made without data</label>
+                <label class="answer-option-label" for="q14d">No trust: data quality is poor, resulting in decisions being made without data</label>
             </div>
             <textarea name="q14_text" placeholder="Optional: Provide additional details"></textarea>
             <div class="error-message" style="display:none;"></div>
@@ -409,16 +421,16 @@
 
         <!-- Question 15 -->
         <div class="question" id="q15">
-            <label>15. What level of standardization do you have for metrics and KPIs?</label>
+            <label class="question-label">15. What level of standardization do you have for metrics and KPIs?</label>
             <div class="options">
                 <input type="radio" id="q15a" name="q15" value="not-standardized">
-                <label for="q15a">Metrics are not standardized, leading to differing conclusions</label><br>
+                <label class="answer-option-label" for="q15a">Metrics are not standardized, leading to differing conclusions</label><br>
                 <input type="radio" id="q15b" name="q15" value="fully-standardized">
-                <label for="q15b">Metrics and KPIs are fully standardized and agreed upon by all teams</label><br>
+                <label class="answer-option-label" for="q15b">Metrics and KPIs are fully standardized and agreed upon by all teams</label><br>
                 <input type="radio" id="q15c" name="q15" value="partially-standardized">
-                <label for="q15c">Some metrics are standardized, but there are discrepancies between teams</label><br>
+                <label class="answer-option-label" for="q15c">Some metrics are standardized, but there are discrepancies between teams</label><br>
                 <input type="radio" id="q15d" name="q15" value="no-defined-metrics">
-                <label for="q15d">We don’t currently have any defined metrics or KPIs</label>
+                <label class="answer-option-label" for="q15d">We don’t currently have any defined metrics or KPIs</label>
             </div>
             <textarea name="q15_text" placeholder="Optional: Provide additional details"></textarea>
             <div class="error-message" style="display:none;"></div>
