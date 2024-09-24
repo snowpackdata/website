@@ -461,6 +461,30 @@ var App = new Vue({
 
             $('#entry-modal').modal('show');
         },
+        showNewEntryModalPopulated(day, hour) {
+            this.isNew = true;
+            let defaultStart = new Date(day);
+            defaultStart.setHours(hour)
+            defaultStart.setMinutes(0,0,0);
+
+            defaultEnd = new Date(day);
+            defaultEnd.setHours(defaultStart.getHours() + 1, 0,0,0);
+            let blankEntry = {
+                billing_code_id : null,
+                entry_id: null,
+                notes: null,
+                start: null,
+                end: null,
+                start_vis : moment(defaultStart).format( 'yyyy-MM-DDTHH:mm'),
+                end_vis : moment(defaultEnd).format( 'yyyy-MM-DDTHH:mm'),
+                duration_hours: 1,
+                start_day_of_week: day,
+                start_hour: hour,
+            }
+            this.selectedEntry = blankEntry;
+
+            $('#entry-modal').modal('show');
+        },
         showEntryModal(entry) {
             console.log(this.selectedEntry)
             this.selectedEntry = entry;
