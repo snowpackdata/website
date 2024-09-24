@@ -41,75 +41,89 @@
   gtag('config', 'G-TRLQYPPXKE');
 </script>
 <style>
-/* Adjust container size and center it */
-.survey-container {
-    max-width: 60%; /* Set a maximum width for the survey */
-    margin: 0 auto; /* Center the form horizontally */
-    padding: 20px; /* Add some padding around the form */
-    background-color: #f9f9f9; /* Background color for visibility */
-    border-radius: 8px; /* Rounded corners */
-    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1); /* Add a shadow for a clean look */
-}
-
-/* Styling for individual questions */
-.question {
-    margin-bottom: 20px; /* Add spacing between questions */
-    font-size: 1.1rem
-}
-
-/* Styling for email input */
-.email-container {
-    margin-bottom: 25px; /* Add spacing after input */
-    margin-top: 20px; /* Add spacing after input */
-    font-size: 1.2rem
-}
-
-input[type="email"] {
-    max-width: 60%; /* Set a maximum width for the email input */
-    min-width: 40%; /* Set a maximum width for the survey */
-    font-size: 1.2rem
-}
-
-/* Ensure input fields span the full width */
-input[type="radio"] {
-    margin-right: 10px; /* Add space between radio buttons and labels */
-}
-
-textarea {
-    width: 100%; /* Make textareas span full width */
-    min-height: 55px; /* Ensure textareas are not too small */
-    padding: 10px; /* Add some padding inside the textareas */
-    margin-top: 5px; /* Add space between radio buttons and textbox */
-    border: 1px solid #ccc; /* Light border */
-    border-radius: 4px; /* Rounded corners for textareas */
-}
-
-/* Styling for the submit button */
-.submit-container {
-    text-align: center; /* Center the submit button */
-    font-size: 1.3rem
-}
-
-button[type="submit"] {
-    background-color: #0056b3; /* Blue background for the button */
-    color: white; /* White text */
-    padding: 10px 20px; /* Padding for a larger clickable area */
-    border: none; /* Remove border */
-    border-radius: 4px; /* Rounded button */
-    cursor: pointer; /* Pointer cursor on hover */
-}
-
-button[type="submit"]:hover {
-    background-color: #043569; /* Darken the button on hover */
-}
-
-/* Media query for responsiveness */
-@media (max-width: 768px) {
+/* Survey container and layout */
     .survey-container {
-        padding: 15px; /* Adjust padding on smaller screens */
-        max-width: 100%; /* Allow the container to be full-width on mobile */
+        max-width: 60%;
+        margin: 0 auto;
+        padding: 20px;
+        background-color: #f9f9f9;
+        border-radius: 8px;
+        box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
     }
-}
+
+    .submit-container {
+        max-width: 60%;
+    }
+
+    .question {
+        margin-bottom: 20px;
+        font-size: 1.1rem;
+    }
+
+    input[type="email"] {
+        max-width: 75%;
+        min-width: 25%;
+        font-size: 1.2rem;
+    }
+
+    textarea {
+        width: 100%;
+        min-height: 55px;
+        padding: 10px;
+        margin-top: 5px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
+
+    /* Button styling */
+    #prev-btn, #next-btn, #submit-btn {
+        display: inline-block;
+        margin-right: 10px;
+        padding: 10px 20px;
+        background-color: #2e417f;
+        color: white;
+        border: none;
+        cursor: pointer;
+        border-radius: 4px;
+        text-align: center;
+    }
+
+    #prev-btn:hover, #next-btn:hover, #submit-btn:hover {
+        background-color: #0056b3;
+    }
+
+    /* Progress bar styling */
+    .progress-container {
+        width: 100%;
+        background-color: #e0e0e0;
+        margin-top: 15px;
+        margin-bottom: 15px;
+        height: 20px;
+        border-radius: 5px;
+    }
+
+    .progress-bar {
+        width: 0;
+        height: 100%;
+        background-color: #4caf50;
+        border-radius: 5px;
+        transition: width 0.3s;
+    }
+
+    /* Error message styling */
+    .error-message {
+        color: red;
+        margin-top: 5px;
+    }
+
+    /* Media query for mobile responsiveness */
+    @media (max-width: 768px) {
+        .survey-container {
+            padding: 15px;
+            max-width: 100%;
+        }
+    }
+
 </style>
 </head>
 <body>
@@ -136,16 +150,21 @@ button[type="submit"]:hover {
             Please fill out all of the questions below to the best of your ability. We will use your responses to send you a <b>free summary</b> of how you compare against similar companies, as well as recommendations on what to focus on next to further improve your data capabilities.
         </p>
 
+        <div class="progress-container">
+            <div id="progress-bar" class="progress-bar"></div>
+        </div>
+        
         <!-- Email Input -->
-        <div class="email-container">
+        <div class="question" id="email-question">
             <label for="email">Please enter your email to receive your benchmark results & write-up:</label>
-            <br>
-            <input type="email" id="email" name="email" placeholder="your.email@example.com" required>
-            <span id="email-error" class="error-message"></span>
+            <input type="email" id="email" name="email" placeholder="Your email" required>
+            <div id="email-error" style="color:red; display:none;">
+                Please enter a valid email address.
+            </div>
         </div>
         
         <!-- Question 1 -->
-        <div class="question">
+        <div class="question" id="q1" required>
             <label>1. Do you have a data warehouse set up? If yes, what do you use?</label>
             <div class="options">
                 <input type="radio" id="q1a" name="q1" value="cloud-dwh">
@@ -156,10 +175,11 @@ button[type="submit"]:hover {
                 <label for="q1c">No, we don’t have a data warehouse</label>
             </div>
             <textarea name="q1_text" placeholder="Optional: Provide additional details"></textarea>
+            <div class="error-message" style="display:none;"></div>
         </div>
 
         <!-- Question 2 -->
-        <div class="question">
+        <div class="question" id="q2">
             <label>2. Who manages data pipelines at your company?</label>
             <div class="options">
                 <input type="radio" id="q2a" name="q2" value="data-engineering-team">
@@ -172,10 +192,11 @@ button[type="submit"]:hover {
                 <label for="q2d">No one currently owns this</label>
             </div>
             <textarea name="q2_text" placeholder="Optional: Provide additional details"></textarea>
+            <div class="error-message" style="display:none;"></div>
         </div>
 
         <!-- Question 3 -->
-        <div class="question">
+        <div class="question" id="q3">
             <label>3. What tools do you use for data ingestion and transformation?</label>
             <div class="options">
                 <input type="radio" id="q3a" name="q3" value="custom-scripts">
@@ -186,10 +207,11 @@ button[type="submit"]:hover {
                 <label for="q3c">We don’t have a defined process for this yet</label>
             </div>
             <textarea name="q3_text" placeholder="Optional: Provide additional details"></textarea>
+            <div class="error-message" style="display:none;"></div>
         </div>
 
         <!-- Question 4 -->
-        <div class="question">
+        <div class="question" id="q4">
             <label>4. Do you currently have any data engineers, analysts, or data scientists on your team?</label>
             <div class="options">
                 <input type="radio" id="q4a" name="q4" value="dedicated-data-team">
@@ -204,10 +226,11 @@ button[type="submit"]:hover {
                 <label for="q4e">Other (Please provide additional details)</label>
             </div>
             <textarea name="q4_text" placeholder="Optional: Provide additional details"></textarea>
+            <div class="error-message" style="display:none;"></div>
         </div>
 
         <!-- Question 5 -->
-        <div class="question">
+        <div class="question" id="q5">
             <label>5. What is the approximate scale of data you work with?</label>
             <div class="options">
                 <input type="radio" id="q5a" name="q5" value="thousands-rows">
@@ -220,10 +243,11 @@ button[type="submit"]:hover {
                 <label for="q5d">We’re not sure of the exact scale</label>
             </div>
             <textarea name="q5_text" placeholder="Optional: Provide additional details"></textarea>
+            <div class="error-message" style="display:none;"></div>
         </div>
 
         <!-- Question 6 -->
-        <div class="question">
+        <div class="question" id="q6">
             <label>6. How frequently do you refresh or update your data?</label>
             <div class="options">
                 <input type="radio" id="q6a" name="q6" value="daily-or-less-refresh">
@@ -236,10 +260,11 @@ button[type="submit"]:hover {
                 <label for="q6d">Monthly or ad-hoc</label>
             </div>
             <textarea name="q6_text" placeholder="Optional: Provide additional details"></textarea>
+            <div class="error-message" style="display:none;"></div>
         </div>
 
         <!-- Question 7 -->
-        <div class="question">
+        <div class="question" id="q7">
             <label>7. What kind of business insights do you generate from your data?</label>
             <div class="options">
                 <input type="checkbox" id="q7a" name="q7" value="descriptive">
@@ -254,10 +279,11 @@ button[type="submit"]:hover {
                 <label for="q7e">We don’t currently generate business insights from our data</label>
             </div>
             <textarea name="q7_text" placeholder="Optional: Provide additional details"></textarea>
+            <div class="error-message" style="display:none;"></div>
         </div>
 
         <!-- Question 8 -->
-        <div class="question">
+        <div class="question" id="q8">
             <label>8. How do you ensure data quality at your company?</label>
             <div class="options">
                 <input type="radio" id="q8a" name="q8" value="manual-checks">
@@ -270,10 +296,11 @@ button[type="submit"]:hover {
                 <label for="q8d">We don’t currently have a data quality process in place</label>
             </div>
             <textarea name="q8_text" placeholder="Optional: Provide additional details"></textarea>
+            <div class="error-message" style="display:none;"></div>
         </div>
 
         <!-- Question 9 -->
-        <div class="question">
+        <div class="question" id="q9">
             <label>9. What are your current pain points in your data processes?</label>
             <div class="options">
                 <input type="checkbox" id="q9a" name="q9" value="unreliable-data">
@@ -288,10 +315,11 @@ button[type="submit"]:hover {
                 <label for="q9e">Other (Please provide additional details)</label>
             </div>
             <textarea name="q9_text" placeholder="Optional: Provide additional details"></textarea>
+            <div class="error-message" style="display:none;"></div>
         </div>
 
         <!-- Question 10 -->
-        <div class="question">
+        <div class="question" id="q10">
             <label>10. What are your goals for improving your data capabilities in the next 12 months?</label>
             <div class="options">
                 <input type="radio" id="q10a" name="q10" value="establish-upgrade-dwh">
@@ -308,10 +336,11 @@ button[type="submit"]:hover {
                 <label for="q10f">Other (Please provide additional details)</label>
             </div>
             <textarea name="q10_text" placeholder="Optional: Provide additional details"></textarea>
+            <div class="error-message" style="display:none;"></div>
         </div>
 
         <!-- Question 11 -->
-        <div class="question">
+        <div class="question" id="q11">
             <label>11. What BI tools, if any, do you use for reporting and analytics?</label>
             <div class="options">
                 <input type="radio" id="q11a" name="q11" value="modern-bi-tools">
@@ -324,10 +353,11 @@ button[type="submit"]:hover {
                 <label for="q11d">We mostly use spreadsheets for reporting</label>
             </div>
             <textarea name="q11_text" placeholder="Optional: Provide additional details"></textarea>
+            <div class="error-message" style="display:none;"></div>
         </div>
 
         <!-- Question 12 -->
-        <div class="question">
+        <div class="question" id="q12">
             <label>12. How accessible is your data within the company?</label>
             <div class="options">
                 <input type="radio" id="q12a" name="q12" value="sql-users-only">
@@ -340,10 +370,11 @@ button[type="submit"]:hover {
                 <label for="q12d">Data access is very restricted due to compliance/security reasons</label>
             </div>
             <textarea name="q12_text" placeholder="Optional: Provide additional details"></textarea>
+            <div class="error-message" style="display:none;"></div>
         </div>
 
         <!-- Question 13 -->
-        <div class="question">
+        <div class="question" id="q13">
             <label>13. Are you currently using any AI or machine learning capabilities?</label>
             <div class="options">
                 <input type="radio" id="q13a" name="q13" value="yes-production">
@@ -356,10 +387,11 @@ button[type="submit"]:hover {
                 <label for="q13d">No, we have no plans to use AI/ML in the near future</label>
             </div>
             <textarea name="q13_text" placeholder="Optional: Provide additional details"></textarea>
+            <div class="error-message" style="display:none;"></div>
         </div>
 
         <!-- Question 14 -->
-        <div class="question">
+        <div class="question" id="q14">
             <label>14. How much trust is there in the data across your organization?</label>
             <div class="options">
                 <input type="radio" id="q14a" name="q14" value="high-trust">
@@ -372,10 +404,11 @@ button[type="submit"]:hover {
                 <label for="q14d">No trust: data quality is poor, resulting in decisions being made without data</label>
             </div>
             <textarea name="q14_text" placeholder="Optional: Provide additional details"></textarea>
+            <div class="error-message" style="display:none;"></div>
         </div>
 
         <!-- Question 15 -->
-        <div class="question">
+        <div class="question" id="q15">
             <label>15. What level of standardization do you have for metrics and KPIs?</label>
             <div class="options">
                 <input type="radio" id="q15a" name="q15" value="not-standardized">
@@ -388,14 +421,20 @@ button[type="submit"]:hover {
                 <label for="q15d">We don’t currently have any defined metrics or KPIs</label>
             </div>
             <textarea name="q15_text" placeholder="Optional: Provide additional details"></textarea>
+            <div class="error-message" style="display:none;"></div>
         </div>
 
-        <!-- Add more questions in a similar structure -->
-
-        <!-- Submit Button -->
+        <!-- Navigation Buttons -->
         <div class="submit-container">
-            <button type="submit">Submit Survey</button>
+            <button type="button" id="prev-btn" style="display:none;">Previous</button>
+            <button type="button" id="next-btn">Next</button>
+            <button type="submit" id="submit-btn" style="display:none;">Submit</button>
         </div>
+
+        <div id="answer-error" class="error-message" style="color:red; display:none;">
+            Please select an option before proceeding.
+        </div>
+
     </form>
     </div>
 
