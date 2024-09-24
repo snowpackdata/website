@@ -182,7 +182,7 @@
                 </tr>
                         <tr v-for="(hour, hourIndex) in hours" :key="hourIndex">
                             <td>{{ hour.display }}</td>
-                            <td v-for="(day, dayIndex) in days" :key="dayIndex" class="hour-block">
+                            <td v-for="(day, dayIndex) in days" :key="dayIndex" class="hour-block" @click="showNewEntryModalPopulated(currentWeekDaysFormatted[dayIndex], hour.hour)">
                                 <!-- You can use Vue.js data and methods to dynamically generate entries here -->
                                 <div v-for="entry in getEntries(day, hour.hour)" :key="entry.entry_id" :id="entry.entry_id"
                                      @click="showEntryModal(entry)"
