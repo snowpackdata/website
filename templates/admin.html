@@ -57,6 +57,9 @@
         gtag('config', 'G-TRLQYPPXKE');
     </script>
     <style>
+        .highlight {
+          background-color: rgba(255, 255, 0, 0.56); /* or any other highlight color */
+        }
     </style>
     <script>
         // Parse JWT for persisted logins and check if we can route to the correct page
@@ -181,8 +184,8 @@
                     </td>
                 </tr>
                         <tr v-for="(hour, hourIndex) in hours" :key="hourIndex">
-                            <td>{{ hour.display }}</td>
-                            <td v-for="(day, dayIndex) in days" :key="dayIndex" class="hour-block" @click="showNewEntryModalPopulated(currentWeekDaysFormatted[dayIndex], hour.hour)">
+                            <td style="user-select: none">{{ hour.display }}</td>
+                            <td v-for="(day, dayIndex) in days" :key="dayIndex" :class="['hour-block']" @mousedown="startDrag(currentWeekDaysFormatted[dayIndex], hour.hour, $event)" @mouseover="onDragOver(currentWeekDaysFormatted[dayIndex], hour.hour, $event)" @mouseup="endDrag(currentWeekDaysFormatted[dayIndex], hour.hour, $event)" :data-day="currentWeekDays[dayIndex]" :data-hour="hour.hour" >
                                 <!-- You can use Vue.js data and methods to dynamically generate entries here -->
                                 <div v-for="entry in getEntries(day, hour.hour)" :key="entry.entry_id" :id="entry.entry_id"
                                      @click="showEntryModal(entry)"
