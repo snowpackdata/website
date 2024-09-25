@@ -94,6 +94,12 @@ var App = new Vue({
         // Example data for entries
         entries: [],
         weeklyEntries : [],
+
+        // Data for dragging
+        isDragging: false,
+        dragDate: null,
+        dragStartHour: null,
+        dragEndHour: null,
     },
     filters: {
         truncate: function (text, length, suffix) {
@@ -461,14 +467,13 @@ var App = new Vue({
 
             $('#entry-modal').modal('show');
         },
-        showNewEntryModalPopulated(day, hour) {
+        showNewEntryModalPopulated(day, hourStart, hourEnd) {
             this.isNew = true;
             let defaultStart = new Date(day);
-            defaultStart.setHours(hour)
-            defaultStart.setMinutes(0,0,0);
+            defaultStart.setHours(hourStart, 0, 0, 0)
 
             defaultEnd = new Date(day);
-            defaultEnd.setHours(defaultStart.getHours() + 1, 0,0,0);
+            defaultEnd.setHours(hourEnd + 1, 0,0,0);
             let blankEntry = {
                 billing_code_id : null,
                 entry_id: null,
@@ -477,9 +482,9 @@ var App = new Vue({
                 end: null,
                 start_vis : moment(defaultStart).format( 'yyyy-MM-DDTHH:mm'),
                 end_vis : moment(defaultEnd).format( 'yyyy-MM-DDTHH:mm'),
-                duration_hours: 1,
+                duration_hours: hourEnd+1 - hourStart,
                 start_day_of_week: day,
-                start_hour: hour,
+                start_hour: hourStart,
             }
             this.selectedEntry = blankEntry;
 
@@ -1078,12 +1083,48 @@ var App = new Vue({
                 headers: {'Content-Type': 'application/json', 'x-access-token': window.localStorage.snowpack_token},
                 data: postForm,
             })
-            .then(response => {
-                console.log(response)
-            })
-            .catch(error => {
-                console.log(error)
-            })
+                .then(response => {
+                    console.log(response)
+                })
+                .catch(error => {
+                    console.log(error)
+                })
+        },
+
+        // Code below is all used for dragging and selecting in the calendar window
+        // StartDrag is used on an MouseDown Event in the calendar to begin a drag operation
+        startDrag(day, hour, event) {
+            this.isDragging = true;
+            this.dragDate = day
+            this.dragStart = hour;
+            this.dragEnd = hour;
+            event.target.classList.add('highlight');
+          },
+        onDragOver(day, hour, event) {
+            if (!this.isDragging) return;
+            if (this.dragDate !== day) return;
+            if (hour < this.dragStart) {
+                this.dragStart = hour;
+            }
+            if (hour > this.dragEnd) {
+                this.dragEnd = hour;
+            }
+            event.target.classList.add('highlight');
+        },
+        endDrag(day, hour, event) {
+            if (!this.isDragging) return;
+            this.isDragging = false;
+            this.showNewEntryModalPopulated(this.dragDate, this.dragStart, this.dragEnd);
+            this.dragDate = null;
+            this.dragStart = null;
+            this.dragEnd = null;
+            this.removeHighlighting();
+        },
+        removeHighlighting() {
+            const highlightedCells = document.querySelectorAll('.highlight');
+            highlightedCells.forEach(cell => {
+                cell.classList.remove('highlight');
+            });
         }
     },
     watch: {
