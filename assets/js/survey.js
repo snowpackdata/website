@@ -1,12 +1,33 @@
 document.addEventListener('DOMContentLoaded', () => {
-  const form = document.getElementById('data-maturity-survey');
-  const questions = document.querySelectorAll('.question');
+  const surveyForm = document.getElementById('data-maturity-survey');
+  const startBtn = document.getElementById('start-btn');
   const nextButton = document.getElementById('next-btn');
   const prevButton = document.getElementById('prev-btn');
   const submitButton = document.getElementById('submit-btn');
   const emailInput = document.getElementById('email');
   const progressBar = document.getElementById('progress-bar');
+  const progressContainer = document.querySelector('.progress-container');
+  const navButtonContainer = document.querySelector('.navigation-button-container')
+  const emailError = document.getElementById('email-error');
   let currentQuestionIndex = 0;
+
+  const questions = Array.from(document.getElementsByClassName('question'));
+  questions.forEach((q, index) => q.style.display = index === currentQuestionIndex ? 'block' : 'none');
+
+  startBtn.addEventListener('click', function() {
+      if (!isEmailValid()) {
+          emailError.style.display = 'block';
+      } else {
+          emailError.style.display = 'none';
+          document.getElementById('email-question').style.display = 'none';  // Hide email question
+          questions[1].style.display = 'block';                              // Show the first question
+          startBtn.style.display = 'none';                                   // Hide Start button
+          progressContainer.style.display = 'block';                         // Show progress bar
+          navButtonContainer.style.display = 'flex';
+          currentQuestionIndex++;
+          navButtonContainer.style.justifyContent = 'right';
+      }
+  });
 
   // Show the first question and hide the others
   questions.forEach((question, index) => {
@@ -23,18 +44,17 @@ document.addEventListener('DOMContentLoaded', () => {
   function isEmailValid() {
       const emailValue = emailInput.value.trim();
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      const emailError = document.getElementById('email-error');
 
       if (!emailValue) {
-          emailError.style.display = 'block';
           emailError.textContent = "Please enter your email.";
+          emailError.style.display = 'block';
           return false;
       } else if (!emailRegex.test(emailValue)) {
-          emailError.style.display = 'block';
           emailError.textContent = "Please enter a valid email address.";
+          emailError.style.display = 'block';
           return false;
       } else {
-          emailError.style.display = 'none'; // Hide error if email is valid
+          emailError.style.display = 'none';  // Hide error if email is valid
           return true;
       }
   }
@@ -45,9 +65,9 @@ document.addEventListener('DOMContentLoaded', () => {
       const radioInputs = currentQuestion.querySelectorAll('input[type="radio"], input[type="checkbox"]');
       let isAnswered = false;
 
-      // Check email validity for the first step
+      // Skip email step validation
       if (currentQuestionIndex === 0) {
-          return isEmailValid();
+          return true;  // Email already validated
       }
 
       // Check if one of the radio buttons or checkboxes is selected for other questions
@@ -88,6 +108,10 @@ document.addEventListener('DOMContentLoaded', () => {
           questions[currentQuestionIndex].style.display = 'block';
           updateProgressBar();
 
+          if (currentQuestionIndex > 1) {
+            navButtonContainer.style.justifyContent = 'space-between';
+          } // Ensure "next" button is always right-aligned
+
           if (currentQuestionIndex === questions.length - 1) {
               nextButton.style.display = 'none';
               submitButton.style.display = 'block';
@@ -96,13 +120,8 @@ document.addEventListener('DOMContentLoaded', () => {
               submitButton.style.display = 'none';
           }
 
-          if (currentQuestionIndex > 0) {
+          if (currentQuestionIndex > 1) {
               prevButton.style.display = 'block';
-          }
-
-          // Show the progress bar after email input step
-          if (currentQuestionIndex === 1) {
-              progressBar.style.display = 'block';  // Show after email step
           }
       }
   });
@@ -116,14 +135,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (currentQuestionIndex === 0) {
           prevButton.style.display = 'none';
-          progressBar.style.display = 'none';  // Hide progress bar on email input
+          progressContainer.style.display = 'none';  // Hide progress bar on email input
+          navButtonContainer.style.justifyContent = 'right'; // Ensure "next" button is right-aligned
       }
+
+      if (currentQuestionIndex > 0) {
+        navButtonContainer.style.justifyContent = 'space-between'; 
+      } // Ensure "next" button is always right-aligned
 
       nextButton.style.display = 'block';
       submitButton.style.display = 'none';
   });
 
   // Initialize progress bar and hide it initially
-  progressBar.style.display = 'none';
+  progressContainer.style.display = 'none';  // Hide progress container initially
   updateProgressBar();
 });

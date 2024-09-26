@@ -51,9 +51,14 @@
         box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
     }
 
-    .submit-container {
+    .navigation-button-container {
         display: flex;
         justify-content: space-between;
+    }
+
+    .start-button-container {
+        display: flex;
+        justify-content: center;
     }
 
     .question {
@@ -86,7 +91,7 @@
     }
 
     /* Button styling */
-    #prev-btn, #next-btn, #submit-btn {
+    #prev-btn, #next-btn, #submit-btn, #start-btn {
         display: inline-block;
         margin-right: 10px;
         padding: 10px 20px;
@@ -99,7 +104,7 @@
         text-align: center;
     }
 
-    #prev-btn:hover, #next-btn:hover, #submit-btn:hover {
+    #prev-btn:hover, #next-btn:hover, #submit-btn:hover, #start-btn:hover {
         background-color: #0056b3;
     }
 
@@ -161,7 +166,8 @@
             Please fill out all of the questions below to the best of your ability. We will use your responses to send you a <b>free summary</b> of how you compare against similar companies, as well as recommendations on what to focus on next to further improve your data capabilities.
         </p>
 
-        <div class="progress-container">
+        <!-- Progress container hidden initially -->
+        <div class="progress-container" style="display:none;">
             <div id="progress-bar" class="progress-bar"></div>
         </div>
         
@@ -172,6 +178,9 @@
             <input type="email" id="email" name="email" placeholder="Your email" required>
             <div id="email-error" style="color:red; display:none;">
                 Please enter a valid email address.
+            </div>
+            <div class="start-button-container">
+                <button type="button" id="start-btn">Start Survey</button>
             </div>
         </div>
         
@@ -437,9 +446,9 @@
         </div>
 
         <!-- Navigation Buttons -->
-        <div class="submit-container">
-            <button type="button" id="prev-btn" style="display:none;">Previous</button>
-            <button type="button" id="next-btn">Next</button>
+        <div class="navigation-button-container" style="display:none;">
+            <button type="button" id="prev-btn" style="display:none;"><i class="fas fa-chevron-left"></i> Previous</button>
+            <button type="button" id="next-btn">Next <i class="fas fa-chevron-right"></i></button>
             <button type="submit" id="submit-btn" style="display:none;">Submit</button>
         </div>
 
@@ -450,10 +459,7 @@
     </form>
     </div>
 
-    <script src="assets/js/survey.js"></script> 
-    
-
-<!-- Footer-->
+    <!-- Footer-->
   <footer class="footer py-4">
       <div class="container">
           <div class="row align-items-center">
@@ -470,6 +476,8 @@
           </div>
       </div>
   </footer>
-
+  
+  <!-- Load javscript for survey -->
+  <script src="assets/js/survey.js"></script> 
 </body>
 </html>
