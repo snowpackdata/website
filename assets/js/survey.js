@@ -22,10 +22,11 @@ document.addEventListener('DOMContentLoaded', () => {
           document.getElementById('email-question').style.display = 'none';  // Hide email question
           questions[1].style.display = 'block';                              // Show the first question
           startBtn.style.display = 'none';                                   // Hide Start button
-          progressContainer.style.display = 'block';                         // Show progress bar
           navButtonContainer.style.display = 'flex';
-          currentQuestionIndex++;
           navButtonContainer.style.justifyContent = 'right';
+          currentQuestionIndex++;
+          updateProgressBar();
+          progressContainer.style.display = 'block';                         // Show progress bar
       }
   });
 
@@ -63,11 +64,23 @@ document.addEventListener('DOMContentLoaded', () => {
   function isCurrentQuestionAnswered() {
       const currentQuestion = questions[currentQuestionIndex];
       const radioInputs = currentQuestion.querySelectorAll('input[type="radio"], input[type="checkbox"]');
+      const companyInput = currentQuestion.querySelector('input[id="company-name"]');
+      const titleInput = currentQuestion.querySelector('input[id="responder-title"]');
       let isAnswered = false;
+      let isFilledIn = false;
 
       // Skip email step validation
       if (currentQuestionIndex === 0) {
           return true;  // Email already validated
+      }
+
+      // If question 1 (user info), make sure text inputs have been filled in
+      if (currentQuestionIndex === 1) {
+        if (companyInput.value.length >= 3 && titleInput.value.length >= 3) {
+          isFilledIn = true;
+        } else {
+          isFilledIn = false;
+        }
       }
 
       // Check if one of the radio buttons or checkboxes is selected for other questions
@@ -75,13 +88,21 @@ document.addEventListener('DOMContentLoaded', () => {
           if (input.checked) isAnswered = true;
       });
 
-      if (!isAnswered) {
+      if (currentQuestionIndex === 1 && !isFilledIn) {
+          showError(currentQuestion, "Please fill in both fields to begin.");
+      } else if (!isAnswered) {
           showError(currentQuestion, "Please select an option before proceeding.");
       } else {
           hideError(currentQuestion);
       }
 
-      return isAnswered;
+      if (currentQuestionIndex === 1) {
+        return isFilledIn;
+      } else {
+        return isAnswered;
+      }
+  
+
   }
 
   // Function to show error messages below the question/input
@@ -102,6 +123,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Show the next question
   nextButton.addEventListener('click', () => {
+      progressContainer.style.display = 'block'; // Show progress bar
       if (isCurrentQuestionAnswered()) {
           questions[currentQuestionIndex].style.display = 'none';
           currentQuestionIndex++;
@@ -131,6 +153,7 @@ document.addEventListener('DOMContentLoaded', () => {
       questions[currentQuestionIndex].style.display = 'none';
       currentQuestionIndex--;
       questions[currentQuestionIndex].style.display = 'block';
+      hideError(questions[currentQuestionIndex]);
       updateProgressBar();
 
       if (currentQuestionIndex === 0) {
@@ -140,7 +163,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       if (currentQuestionIndex > 0) {
-        navButtonContainer.style.justifyContent = 'space-between'; 
+          navButtonContainer.style.justifyContent = 'space-between'; 
       } // Ensure "next" button is always right-aligned
 
       nextButton.style.display = 'block';

@@ -81,6 +81,12 @@
         font-size: 1.25rem;
     }
 
+    input[type="text"] {
+        max-width: 75%;
+        min-width: 40%;
+        font-size: 1.25rem;
+    }
+
     textarea {
         width: 100%;
         min-height: 55px;
@@ -182,6 +188,20 @@
             <div class="start-button-container">
                 <button type="button" id="start-btn">Start Survey</button>
             </div>
+        </div>
+
+        <!-- Company Name & Role/Title Input -->
+        <div class="question" id="user-info-question">
+            <p>
+            <label class="question-label" for="user-info">To help us a better tailor your summary & recommendations, please provide your current role/title at your company:</label>
+            </p>
+            <p> Company Name:  
+            <input type="text" id="company-name" name="company-name" placeholder="Your Company Name" required>
+            </p>
+            <p> Your Role/Title at your Company:  
+            <input type="text" id="responder-title" name="responder-title" placeholder="e.g. CEO, CTO, Head of Finance" required>
+            </p>
+            <div class="error-message" style="display:none;"></div>
         </div>
         
         <!-- Question 1 -->
