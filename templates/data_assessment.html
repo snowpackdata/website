@@ -10,6 +10,7 @@
 <title>Snowpack Data</title>
 <!-- Favicon-->
 <link rel="shortcut icon" type="icon" href="assets/img/favicon.ico">
+
 <!-- Font Awesome icons (free version)-->
 <script src="https://use.fontawesome.com/releases/v6.1.0/js/all.js" crossorigin="anonymous"></script>
 <!-- Google fonts-->
@@ -186,7 +187,9 @@
                 Please enter a valid email address.
             </div>
             <div class="start-button-container">
+                <p><br>
                 <button type="button" id="start-btn">Start Survey</button>
+                </p>
             </div>
         </div>
 
@@ -224,13 +227,15 @@
             <label class="question-label">2. Who manages data pipelines at your company?</label>
             <div class="options">
                 <input type="radio" id="q2a" name="q2" value="data-engineering-team">
-                <label class="answer-option-label" for="q2a">Dedicated data engineering team.</label><br>
+                <label class="answer-option-label" for="q2a">Dedicated data engineering team</label><br>
                 <input type="radio" id="q2b" name="q2" value="shared-responsibility">
-                <label class="answer-option-label" for="q2b">Shared responsibility across different teams.</label><br>
+                <label class="answer-option-label" for="q2b">Shared responsibility across different teams</label><br>
                 <input type="radio" id="q2c" name="q2" value="engineering-fill-gap">
                 <label class="answer-option-label" for="q2c">Engineering team currently fills the gap here</label><br>
                 <input type="radio" id="q2d" name="q2" value="no-ownership">
-                <label class="answer-option-label" for="q2d">No one currently owns this</label>
+                <label class="answer-option-label" for="q2d">No one currently owns this</label><br>
+                <input type="radio" id="q2e" name="q2" value="not-sure">
+                <label class="answer-option-label" for="q2e">I'm not sure</label>
             </div>
             <textarea name="q2_text" placeholder="Optional: Provide additional details"></textarea>
             <div class="error-message" style="display:none;"></div>
@@ -245,7 +250,9 @@
                 <input type="radio" id="q3b" name="q3" value="third-party-tools">
                 <label class="answer-option-label" for="q3b">Third-party tools (e.g., Airbyte, Fivetran, dbt)</label><br>
                 <input type="radio" id="q3c" name="q3" value="no-defined-process">
-                <label class="answer-option-label" for="q3c">We don’t have a defined process for this yet</label>
+                <label class="answer-option-label" for="q3c">We don’t have a defined process for this yet</label><br>
+                <input type="radio" id="q3d" name="q3" value="not-sure">
+                <label class="answer-option-label" for="q3d">I'm not sure</label>
             </div>
             <textarea name="q3_text" placeholder="Optional: Provide additional details"></textarea>
             <div class="error-message" style="display:none;"></div>
@@ -281,7 +288,7 @@
                 <input type="radio" id="q5c" name="q5" value="billions-rows">
                 <label class="answer-option-label" for="q5c">Billions of rows</label><br>
                 <input type="radio" id="q5d" name="q5" value="unsure-scale">
-                <label class="answer-option-label" for="q5d">We’re not sure of the exact scale</label>
+                <label class="answer-option-label" for="q5d">I'm not sure of the exact scale</label>
             </div>
             <textarea name="q5_text" placeholder="Optional: Provide additional details"></textarea>
             <div class="error-message" style="display:none;"></div>
@@ -298,7 +305,9 @@
                 <input type="radio" id="q6c" name="q6" value="weekly-refresh">
                 <label class="answer-option-label" for="q6c">Weekly</label><br>
                 <input type="radio" id="q6d" name="q6" value="monthly-ad-hoc">
-                <label class="answer-option-label" for="q6d">Monthly or ad-hoc</label>
+                <label class="answer-option-label" for="q6d">Monthly or ad-hoc</label><br>
+                <input type="radio" id="q6e" name="q6" value="not-sure">
+                <label class="answer-option-label" for="q6e">I'm not sure</label>
             </div>
             <textarea name="q6_text" placeholder="Optional: Provide additional details"></textarea>
             <div class="error-message" style="display:none;"></div>
@@ -334,7 +343,9 @@
                 <input type="radio" id="q8c" name="q8" value="external-tools">
                 <label class="answer-option-label" for="q8c">We rely on external tools for data quality</label><br>
                 <input type="radio" id="q8d" name="q8" value="no-process">
-                <label class="answer-option-label" for="q8d">We don’t currently have a data quality process in place</label>
+                <label class="answer-option-label" for="q8d">We don’t currently have a data quality process in place</label><br>
+                <input type="radio" id="q8e" name="q8" value="not-sure">
+                <label class="answer-option-label" for="q8e">I'm not sure</label>
             </div>
             <textarea name="q8_text" placeholder="Optional: Provide additional details"></textarea>
             <div class="error-message" style="display:none;"></div>
@@ -408,7 +419,9 @@
                 <input type="radio" id="q12c" name="q12" value="very-limited-access">
                 <label class="answer-option-label" for="q12c">Only a few people have access to data</label><br>
                 <input type="radio" id="q12d" name="q12" value="restricted-access">
-                <label class="answer-option-label" for="q12d">Data access is very restricted due to compliance/security reasons</label>
+                <label class="answer-option-label" for="q12d">Data access is very restricted due to compliance/security reasons</label><br>
+                <input type="radio" id="q12e" name="q12" value="not-sure">
+                <label class="answer-option-label" for="q12e">I'm not sure</label>
             </div>
             <textarea name="q12_text" placeholder="Optional: Provide additional details"></textarea>
             <div class="error-message" style="display:none;"></div>
@@ -425,7 +438,9 @@
                 <input type="radio" id="q13c" name="q13" value="exploring">
                 <label class="answer-option-label" for="q13c">No, but we are exploring AI/ML</label><br>
                 <input type="radio" id="q13d" name="q13" value="no-plans">
-                <label class="answer-option-label" for="q13d">No, we have no plans to use AI/ML in the near future</label>
+                <label class="answer-option-label" for="q13d">No, we have no plans to use AI/ML in the near future</label><br>
+                <input type="radio" id="q13e" name="q13" value="not-sure">
+                <label class="answer-option-label" for="q13e">I'm not sure</label>
             </div>
             <textarea name="q13_text" placeholder="Optional: Provide additional details"></textarea>
             <div class="error-message" style="display:none;"></div>
@@ -442,7 +457,9 @@
                 <input type="radio" id="q14c" name="q14" value="low-trust">
                 <label class="answer-option-label" for="q14c">Low trust: frequent issues with data quality, leading to conflicting insights</label><br>
                 <input type="radio" id="q14d" name="q14" value="no-trust">
-                <label class="answer-option-label" for="q14d">No trust: data quality is poor, resulting in decisions being made without data</label>
+                <label class="answer-option-label" for="q14d">No trust: data quality is poor, resulting in decisions being made without data</label><br>
+                <input type="radio" id="q14e" name="q14" value="not-sure">
+                <label class="answer-option-label" for="q14e">I'm not sure</label>
             </div>
             <textarea name="q14_text" placeholder="Optional: Provide additional details"></textarea>
             <div class="error-message" style="display:none;"></div>
@@ -459,7 +476,9 @@
                 <input type="radio" id="q15c" name="q15" value="partially-standardized">
                 <label class="answer-option-label" for="q15c">Some metrics are standardized, but there are discrepancies between teams</label><br>
                 <input type="radio" id="q15d" name="q15" value="no-defined-metrics">
-                <label class="answer-option-label" for="q15d">We don’t currently have any defined metrics or KPIs</label>
+                <label class="answer-option-label" for="q15d">We don’t currently have any defined metrics or KPIs</label><br>
+                <input type="radio" id="q15e" name="q15" value="not-sure">
+                <label class="answer-option-label" for="q15e">I'm not sure</label>
             </div>
             <textarea name="q15_text" placeholder="Optional: Provide additional details"></textarea>
             <div class="error-message" style="display:none;"></div>
