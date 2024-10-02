@@ -51,7 +51,7 @@ func main() {
 		// which must be established via a local SQLite instance, you will need to
 		// run the migration to create the database schema
 		cronosApp.InitializeSQLite()
-		//cronosApp.Migrate()
+		cronosApp.Migrate()
 	}
 
 	// Add the cronos app to our webapp struct to access it across handlers
@@ -87,6 +87,10 @@ func main() {
 	r.HandleFunc("/register", a.RegistrationLandingHandler).Methods("GET")
 	r.HandleFunc("/register_user", a.RegisterUser).Methods("POST")
 	r.HandleFunc("/verify_email", a.VerifyEmail).Methods("POST")
+	r.HandleFunc("/surveys/new", a.SurveyUpsert).Methods("POST")
+	r.HandleFunc("/surveys/{id:[0-9]+}/response", a.SurveyResponse).Methods("POST")
+
+	// Our API routes are protected by JWT
 	api.HandleFunc("/invoices/draft", a.DraftInvoiceListHandler).Methods("GET")
 	api.HandleFunc("/invoices/accepted", a.InvoiceListHandler).Methods("GET")
 	api.HandleFunc("/invoices/{id:[0-9]+}/{state:(?:approve)|(?:send)|(?:paid)|(?:void)}", a.InvoiceStateHandler).Methods("POST")
