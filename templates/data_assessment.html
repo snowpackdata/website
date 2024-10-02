@@ -189,27 +189,24 @@
             <div id="email-error" style="color:red; display:none;">
                 Please enter a valid email address.
             </div>
+            <p>
+                <label class="question-label" for="user-info">To help us a better tailor your summary & recommendations, please provide your current role/title at your company:</label>
+            </p>
+            <p> Company Name:
+                <input type="text" id="company-name" name="company-name" placeholder="Your Company Name" required>
+            </p>
+            <p> Your Role/Title at your Company:
+                <input type="text" id="responder-title" name="responder-title" placeholder="e.g. CEO, CTO, Head of Finance" required>
+            </p>
+            <div class="error-message" style="display:none;"></div>
             <div class="start-button-container">
                 <p><br>
-                <button type="button" id="start-btn" onclick="handleStart()">Start Survey</button>
+                    <button type="button" id="start-btn">Start Survey</button>
                 </p>
             </div>
         </div>
 
-        <!-- Company Name & Role/Title Input -->
-        <div class="question" id="user-info-question">
-            <p>
-            <label class="question-label" for="user-info">To help us a better tailor your summary & recommendations, please provide your current role/title at your company:</label>
-            </p>
-            <p> Company Name:  
-            <input type="text" id="company-name" name="company-name" placeholder="Your Company Name" required>
-            </p>
-            <p> Your Role/Title at your Company:  
-            <input type="text" id="responder-title" name="responder-title" placeholder="e.g. CEO, CTO, Head of Finance" required>
-            </p>
-            <div class="error-message" style="display:none;"></div>
-        </div>
-        
+
         <!-- Question 1 -->
         <div class="question" id="q1">
             <label class="question-label">1. Do you have a data warehouse set up? If yes, what do you use?</label>
@@ -489,9 +486,9 @@
 
         <!-- Navigation Buttons -->
         <div class="navigation-button-container" style="display:none;">
-            <button type="button" id="prev-btn" onclick="handlePrevious()" style="display:none;"><i class="fas fa-chevron-left"></i> Previous</button>
-            <button type="button" id="next-btn" onclick="handleNext()">Next <i class="fas fa-chevron-right"></i></button>
-            <button type="submit" id="submit-btn" onclick="handleSubmit()" style="display:none;">Submit</button>
+            <button type="button" id="prev-btn"  style="display:none;"><i class="fas fa-chevron-left"></i> Previous</button>
+            <button type="button" id="next-btn" >Next <i class="fas fa-chevron-right"></i></button>
+            <button type="submit" id="submit-btn" style="display:none;">Submit</button>
         </div>
 
         <div id="answer-error" class="error-message" style="color:red; display:none;">

@@ -14,6 +14,40 @@ document.addEventListener('DOMContentLoaded', () => {
   let currentQuestionIndex = 0;
   let surveyId = null;
 
+  // Add event listeners to the buttons
+    startButton.addEventListener('click', handleStart);
+    nextButton.addEventListener('click', handleNext);
+    prevButton.addEventListener('click', handlePrevious);
+    submitButton.addEventListener('click', handleSubmit);
+
+  // FORM SUBMISSION HANDLER
+async function submitJsonAsForm(jsonObject, actionUrl) {
+    // Create a form element
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = actionUrl;
+
+    // Iterate over the JSON object and create input elements
+    for (const key in jsonObject) {
+        if (jsonObject.hasOwnProperty(key)) {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = key;
+            input.value = jsonObject[key];
+            form.appendChild(input);
+        }
+    }
+
+   // Create a FormData object from the form
+    const formData = new FormData(form);
+
+    // Use fetch to submit the form and return the response
+    const response = await fetch(actionUrl, {
+        method: 'POST',
+        body: formData
+    });
+}
+
     // Function to validate email and show error if invalid
     function isEmailValid() {
       const emailValue = document.getElementById('email').value.trim();
@@ -37,9 +71,10 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!isEmailValid()) {
           emailError.style.display = 'block';          
       } else {
+          console.log('reached start block')
           emailError.style.display = 'none';
           document.getElementById('email-question').style.display = 'none';  // Hide email question
-          document.getElementById('user-info-question').style.display = 'block'; // Show user info question
+          // document.getElementById('user-info-question').style.display = 'block'; // Show user info question
           startButton.style.display = 'none'; // Hide Start button
           navButtonContainer.style.display = 'flex'; // Show Next/Previous navigation buttons
           navButtonContainer.style.justifyContent = 'right'; // Align Next button to the right
@@ -129,21 +164,8 @@ document.addEventListener('DOMContentLoaded', () => {
       user_role: userRoleInput.value,
       company_name: companyNameInput.value,
     };
-
-    fetch('/api/survey', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(surveyData),
-    })
-    .then(response => response.json())
-    .then(data => {
-      surveyId = data.id;  // Store the survey ID for subsequent responses
-    })
-    .catch(error => {
-      console.error('Error creating/updating survey:', error);
-    });
+    console.log(surveyData)
+    response = submitJsonAsForm(surveyData, '/surveys/new');
   }
 
   // Function to save survey response
@@ -248,12 +270,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const progress = (currentQuestionIndex / (questions.length - 1)) * 100;
     progressBar.style.width = `${progress}%`;
   }
-
-  // Add event listeners after defining the functions
-  startButton.addEventListener('click', handleStart);
-  nextButton.addEventListener('click', handleNext);
-  prevButton.addEventListener('click', handlePrevious);
-  submitButton.addEventListener('click', handleSubmit);
 
   const questions = Array.from(document.getElementsByClassName('question'));
   // Show the first question and hide the others
