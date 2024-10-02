@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const navButtonContainer = document.querySelector('.navigation-button-container')
   const emailError = document.getElementById('email-error');
   let currentQuestionIndex = 0;
-  let surveyId = null;
+  let surveyId = 0;
 
   // Add event listeners to the buttons
     startButton.addEventListener('click', handleStart);
@@ -46,6 +46,9 @@ async function submitJsonAsForm(jsonObject, actionUrl) {
         method: 'POST',
         body: formData
     });
+    // Parse the response as JSON
+    const responseData = response.json();
+    return responseData;
 }
 
     // Function to validate email and show error if invalid
@@ -157,15 +160,23 @@ async function submitJsonAsForm(jsonObject, actionUrl) {
   }
 
   // Function to create or update survey
-  function createOrUpdateSurvey() {
+  async function createOrUpdateSurvey() {
     const surveyData = {
       survey_type: "data_maturity_benchmark", 
       user_email: emailInput.value,
       user_role: userRoleInput.value,
       company_name: companyNameInput.value,
     };
-    console.log(surveyData)
-    response = submitJsonAsForm(surveyData, '/surveys/new');
+    // You will need to await for the response to get the survey ID
+    // these functions are asynchronous because they are network requests so
+    // if you don't include the await keyword the code will continue to run
+    await submitJsonAsForm(surveyData, '/surveys/new')
+        .then(data => {
+            // Here we can handle the return data
+            console.log(data);
+            surveyId = data.ID
+        })
+        .catch(error => console.error(error));
   }
 
   // Function to save survey response
