@@ -195,7 +195,8 @@ document.addEventListener('DOMContentLoaded', () => {
       structured_answer: structuredAnswer,
       answer_type: answerType,
       unstructured_answer: freeformAnswer,
-      completed: isComplete
+      completed: isComplete,
+      survey_id: surveyId
     };
 
     // You will need to await for the response to get the survey ID
@@ -205,7 +206,6 @@ document.addEventListener('DOMContentLoaded', () => {
         .then(data => {
             // Here we can handle the return data
             console.log(data);
-            surveyId = data.ID
         })
         .catch(error => console.error(error));
   }
