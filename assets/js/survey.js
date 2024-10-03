@@ -180,13 +180,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const currentQuestion = questions[stepIndex];
     const questionText = currentQuestion.querySelector('label').innerText.trim();
     const inputs = Array.from(currentQuestion.querySelectorAll('input[type="radio"], input[type="checkbox"]'));
-    const structuredAnswer = inputs.filter(input => input.checked).map(input => input.value).join(',');
+    const selectedInputs = inputs.filter(input => input.checked)
+    const structuredAnswer = selectedInputs.map(input => input.value).join(',');
     const freeformAnswer = currentQuestion.querySelector('textarea')?.value || '';
     let answerType = '';
 
     // Get answer type based on the first input type found
-    if (inputs.length > 0) {
-        answerType = inputs[0].type; // Will be either 'radio' or 'checkbox'
+    if (selectedInputs.length > 0) {
+        answerType = selectedInputs[0].type; // Will be either 'radio' or 'checkbox'
     }
 
     const responseData = {
@@ -198,6 +199,8 @@ document.addEventListener('DOMContentLoaded', () => {
       completed: isComplete,
       survey_id: surveyId
     };
+
+    console.log(responseData)
 
     // You will need to await for the response to get the survey ID
     // these functions are asynchronous because they are network requests so

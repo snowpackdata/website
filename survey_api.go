@@ -2,10 +2,11 @@ package main
 
 import (
 	"encoding/json"
-	"github.com/gorilla/mux"
-	"github.com/snowpackdata/cronos"
 	"net/http"
 	"strconv"
+
+	"github.com/gorilla/mux"
+	"github.com/snowpackdata/cronos"
 )
 
 // SurveyUpsert
@@ -57,8 +58,18 @@ func (a *App) SurveyResponse(w http.ResponseWriter, r *http.Request) {
 	surveyResponse.Step = stepInt
 	surveyResponse.Question = r.FormValue("question")
 	surveyResponse.StructuredAnswer = r.FormValue("structured_answer")
+	surveyResponse.AnswerType = r.FormValue("answer_type")
 	surveyResponse.FreeformAnswer = r.FormValue("unstructured_answer")
 	// TODO: Check to make sure there's no sql injection here
+
+	// Check if a response already exists for a given question (step) and survey_id
+	// If so, delete the previous record
+	var existingSurveyResponse cronos.SurveyResponse
+	a.cronosApp.DB.Where("survey_id = ? AND step = ?", surveyResponse.SurveyID, surveyResponse.Step).First(&existingSurveyResponse)
+	if existingSurveyResponse.ID != 0 {
+		// existingSurveyResponse.DeletedAt = time.Now()
+		a.cronosApp.DB.Delete(&existingSurveyResponse)
+	}
 
 	a.cronosApp.DB.Create(&surveyResponse)
 	// If the survey is completed, update the survey to reflect that
