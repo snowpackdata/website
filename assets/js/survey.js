@@ -70,12 +70,10 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function handleStart() {
-    console.log('isEmailValid: ' + isEmailValid())
     if (!isEmailValid()) {
         emailError.style.display = 'block';          
     } 
     if(isEmailValid() && isCurrentQuestionAnswered()) {
-        console.log('reached start block')
         emailError.style.display = 'none';
         document.getElementById('email-question').style.display = 'none';  // Hide email question
         startButton.style.display = 'none'; // Hide Start button
@@ -85,6 +83,7 @@ document.addEventListener('DOMContentLoaded', () => {
         questions[currentQuestionIndex].style.display = 'block';
         updateProgressBar();
         progressContainer.style.display = 'block'; // Show progress bar
+        nextButton.style.display = 'block'; // Show next button
 
         // API call to create the survey
         createOrUpdateSurvey();
@@ -118,7 +117,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
       // API call to save the response for the current step
-      saveSurveyResponse(currentQuestionIndex);
+      saveSurveyResponse(currentQuestionIndex-1);
       }
   }
   
@@ -131,24 +130,24 @@ document.addEventListener('DOMContentLoaded', () => {
     hideError(questions[currentQuestionIndex]);
     updateProgressBar();
 
-    if (currentQuestionIndex === 0) {
+    if (currentQuestionIndex === 1) {
         prevButton.style.display = 'none';
-        progressContainer.style.display = 'none';  // Hide progress bar on email input
-        navButtonContainer.style.justifyContent = 'right'; // Ensure "next" button is right-aligned
+        nextButton.style.display = 'block';
+        navButtonContainer.style.justifyContent = 'right'; // Align Next button to the right
     }
 
-    if (currentQuestionIndex > 0) {
-        navButtonContainer.style.justifyContent = 'space-between'; 
-    } // Ensure "next" button is always right-aligned
+    if (currentQuestionIndex > 1) {
+        navButtonContainer.style.justifyContent = 'space-between'; // Ensure "next" button is always right-aligned
+        nextButton.style.display = 'block';
+    } 
 
-    nextButton.style.display = 'block';
     submitButton.style.display = 'none';
   }
 
   // Actions when "Submit" button is clicked    
   function handleSubmit() {
     // Save the last response and mark the survey as complete
-    saveSurveyResponse(currentQuestionIndex, true);  
+    saveSurveyResponse(currentQuestionIndex-1, true);
   }
 
   // Function to create or update survey
@@ -172,7 +171,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Function to save survey response
-  function saveSurveyResponse(stepIndex, isComplete = false) {
+  async function saveSurveyResponse(stepIndex, isComplete = false) {
     if (!surveyId) {
       console.error("Survey ID is missing. Cannot save response.");
       return;
@@ -180,33 +179,35 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const currentQuestion = questions[stepIndex];
     const questionText = currentQuestion.querySelector('label').innerText.trim();
-    const structuredAnswer = Array.from(currentQuestion.querySelectorAll('input[type="radio"]:checked, input[type="checkbox"]:checked'))
-                                 .map(input => input.value)
-                                 .join(',');
+    const inputs = Array.from(currentQuestion.querySelectorAll('input[type="radio"], input[type="checkbox"]'));
+    const structuredAnswer = inputs.filter(input => input.checked).map(input => input.value).join(',');
     const freeformAnswer = currentQuestion.querySelector('textarea')?.value || '';
+    let answerType = '';
+
+    // Get answer type based on the first input type found
+    if (inputs.length > 0) {
+        answerType = inputs[0].type; // Will be either 'radio' or 'checkbox'
+    }
 
     const responseData = {
-      step: stepIndex + 1,
+      step: stepIndex,
       question: questionText,
       structured_answer: structuredAnswer,
+      answer_type: answerType,
       unstructured_answer: freeformAnswer,
       completed: isComplete
     };
 
-    fetch(`/api/survey-response/${surveyId}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(responseData),
-    })
-    .then(response => response.json())
-    .then(data => {
-      console.log('Survey response saved:', data);
-    })
-    .catch(error => {
-      console.error('Error saving survey response:', error);
-    });
+    // You will need to await for the response to get the survey ID
+    // these functions are asynchronous because they are network requests so
+    // if you don't include the await keyword the code will continue to run
+    await submitJsonAsForm(responseData, `/surveys/${surveyId}/response`)
+        .then(data => {
+            // Here we can handle the return data
+            console.log(data);
+            surveyId = data.ID
+        })
+        .catch(error => console.error(error));
   }
 
     // Check if the current question is answered
