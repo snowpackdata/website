@@ -181,17 +181,20 @@
             <div id="progress-bar" class="progress-bar"></div>
         </div>
         
-        <!-- Email Input -->
+        <!-- Email & User Info Input -->
         <div class="question" id="email-question">
-            <label class="question-label" for="email">Please enter your email to receive your benchmark results & write-up:</label>
-            <br>
-            <input type="email" id="email" name="email" placeholder="Your email" required>
+            <p>
+            <label class="question-label" for="email">Please provide your current role/title at your company to help us a better tailor your summary & recommendations, as well as your email address that we will send your benchmark results & write-up to:</label>
+            </p>
+            
+            <p> Email:
+                <input type="email" id="email" name="email" placeholder="Your Email" required>
+            </p>
+            <p>
             <div id="email-error" style="color:red; display:none;">
                 Please enter a valid email address.
             </div>
-            <p>
-                <label class="question-label" for="user-info">To help us a better tailor your summary & recommendations, please provide your current role/title at your company:</label>
-            </p>
+            </p>            
             <p> Company Name:
                 <input type="text" id="company-name" name="company-name" placeholder="Your Company Name" required>
             </p>

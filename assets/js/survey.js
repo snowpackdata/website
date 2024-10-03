@@ -15,13 +15,13 @@ document.addEventListener('DOMContentLoaded', () => {
   let surveyId = 0;
 
   // Add event listeners to the buttons
-    startButton.addEventListener('click', handleStart);
-    nextButton.addEventListener('click', handleNext);
-    prevButton.addEventListener('click', handlePrevious);
-    submitButton.addEventListener('click', handleSubmit);
+  startButton.addEventListener('click', handleStart);
+  nextButton.addEventListener('click', handleNext);
+  prevButton.addEventListener('click', handlePrevious);
+  submitButton.addEventListener('click', handleSubmit);
 
   // FORM SUBMISSION HANDLER
-async function submitJsonAsForm(jsonObject, actionUrl) {
+  async function submitJsonAsForm(jsonObject, actionUrl) {
     // Create a form element
     const form = document.createElement('form');
     form.method = 'POST';
@@ -38,120 +38,114 @@ async function submitJsonAsForm(jsonObject, actionUrl) {
         }
     }
 
-   // Create a FormData object from the form
+    // Create a FormData object from the form
     const formData = new FormData(form);
 
     // Use fetch to submit the form and return the response
     const response = await fetch(actionUrl, {
-        method: 'POST',
-        body: formData
-    });
+      method: 'POST',
+      body: formData
+      });
     // Parse the response as JSON
     const responseData = response.json();
     return responseData;
-}
+  }
 
-    // Function to validate email and show error if invalid
-    function isEmailValid() {
-      const emailValue = document.getElementById('email').value.trim();
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailValue) {
-          emailError.textContent = "Please enter your email.";
-          emailError.style.display = 'block';
-          return false;
-      } else if (!emailRegex.test(emailValue)) {
-          emailError.textContent = "Please enter a valid email address.";
-          emailError.style.display = 'block';
-          return false;
-      } else {
-          emailError.style.display = 'none';  // Hide error if email is valid
-          return true;
-      }
+  // Function to validate email and show error if invalid
+  function isEmailValid() {
+    const emailValue = document.getElementById('email').value.trim();
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailValue) {
+        emailError.textContent = "Please enter your email.";
+        emailError.style.display = 'block';
+        return false;
+    } else if (!emailRegex.test(emailValue)) {
+        emailError.textContent = "Please enter a valid email address.";
+        emailError.style.display = 'block';
+        return false;
+    } else {
+        emailError.style.display = 'none';  // Hide error if email is valid
+        return true;
     }
+  }
 
-    function handleStart() {
-      console.log(isEmailValid())
-      if (!isEmailValid()) {
-          emailError.style.display = 'block';          
-      } else {
-          console.log('reached start block')
-          emailError.style.display = 'none';
-          document.getElementById('email-question').style.display = 'none';  // Hide email question
-          // document.getElementById('user-info-question').style.display = 'block'; // Show user info question
-          startButton.style.display = 'none'; // Hide Start button
-          navButtonContainer.style.display = 'flex'; // Show Next/Previous navigation buttons
-          navButtonContainer.style.justifyContent = 'right'; // Align Next button to the right
-          currentQuestionIndex++;
-          updateProgressBar();
-          progressContainer.style.display = 'block'; // Show progress bar
+  function handleStart() {
+    console.log('isEmailValid: ' + isEmailValid())
+    if (!isEmailValid()) {
+        emailError.style.display = 'block';          
+    } 
+    if(isEmailValid() && isCurrentQuestionAnswered()) {
+        console.log('reached start block')
+        emailError.style.display = 'none';
+        document.getElementById('email-question').style.display = 'none';  // Hide email question
+        // document.getElementById('user-info-question').style.display = 'block'; // Show user info question
+        startButton.style.display = 'none'; // Hide Start button
+        navButtonContainer.style.display = 'flex'; // Show Next/Previous navigation buttons
+        navButtonContainer.style.justifyContent = 'right'; // Align Next button to the right
+        currentQuestionIndex++;
+        questions[currentQuestionIndex].style.display = 'block';
+        updateProgressBar();
+        progressContainer.style.display = 'block'; // Show progress bar
+        // hideError(questions[currentQuestionIndex]);
 
-          // API call to create the survey
-          createOrUpdateSurvey();
-      }
+        // API call to create the survey
+        createOrUpdateSurvey();
     }
+  }
 
 
-    // Actions when "Next" button is clicked
-    function handleNext() {
-      progressContainer.style.display = 'block'; // Show progress bar
-      if (isCurrentQuestionAnswered()) {
-          // Save responses for the user info question (if it is the second question)
-          if (currentQuestionIndex === 1) {
-            // Call createOrUpdateSurvey at user-info question to update the overall survey
-            createOrUpdateSurvey();
-          } else {
-            // Save response for other steps
-            saveSurveyResponse(currentQuestionIndex);
-          }
+  // Actions when "Next" button is clicked
+  function handleNext() {
+    progressContainer.style.display = 'block'; // Show progress bar
+    if (isCurrentQuestionAnswered()) {
+        questions[currentQuestionIndex].style.display = 'none';
+        currentQuestionIndex++;
+        questions[currentQuestionIndex].style.display = 'block';
+        updateProgressBar();
 
-          questions[currentQuestionIndex].style.display = 'none';
-          currentQuestionIndex++;
-          questions[currentQuestionIndex].style.display = 'block';
-          updateProgressBar();
+        if (currentQuestionIndex > 1) {
+          navButtonContainer.style.justifyContent = 'space-between';
+        } // Ensure "next" button is always right-aligned
 
-          if (currentQuestionIndex > 1) {
-            navButtonContainer.style.justifyContent = 'space-between';
-          } // Ensure "next" button is always right-aligned
-
-          if (currentQuestionIndex === questions.length - 1) {
-              nextButton.style.display = 'none';
-              submitButton.style.display = 'block';
-          } else {
-              nextButton.style.display = 'block';
-              submitButton.style.display = 'none';
-          }
-
-          if (currentQuestionIndex > 1) {
-              prevButton.style.display = 'block';
-          }
-
-        // API call to save the response for the current step
-        postSurveyData(currentQuestionIndex);
+        if (currentQuestionIndex === questions.length - 1) {
+            nextButton.style.display = 'none';
+            submitButton.style.display = 'block';
+        } else {
+            nextButton.style.display = 'block';
+            submitButton.style.display = 'none';
         }
-    }
+
+        if (currentQuestionIndex > 1) {
+            prevButton.style.display = 'block';
+        }
+
+      // API call to save the response for the current step
+      saveSurveyResponse(currentQuestionIndex);
+      }
+  }
   
 
-    // Actions when "Previous" button is clicked
-    function handlePrevious() {
-      questions[currentQuestionIndex].style.display = 'none';
-      currentQuestionIndex--;
-      questions[currentQuestionIndex].style.display = 'block';
-      hideError(questions[currentQuestionIndex]);
-      updateProgressBar();
+  // Actions when "Previous" button is clicked
+  function handlePrevious() {
+    questions[currentQuestionIndex].style.display = 'none';
+    currentQuestionIndex--;
+    questions[currentQuestionIndex].style.display = 'block';
+    hideError(questions[currentQuestionIndex]);
+    updateProgressBar();
 
-      if (currentQuestionIndex === 0) {
-          prevButton.style.display = 'none';
-          progressContainer.style.display = 'none';  // Hide progress bar on email input
-          navButtonContainer.style.justifyContent = 'right'; // Ensure "next" button is right-aligned
-      }
-
-      if (currentQuestionIndex > 0) {
-          navButtonContainer.style.justifyContent = 'space-between'; 
-      } // Ensure "next" button is always right-aligned
-
-      nextButton.style.display = 'block';
-      submitButton.style.display = 'none';
+    if (currentQuestionIndex === 0) {
+        prevButton.style.display = 'none';
+        progressContainer.style.display = 'none';  // Hide progress bar on email input
+        navButtonContainer.style.justifyContent = 'right'; // Ensure "next" button is right-aligned
     }
+
+    if (currentQuestionIndex > 0) {
+        navButtonContainer.style.justifyContent = 'space-between'; 
+    } // Ensure "next" button is always right-aligned
+
+    nextButton.style.display = 'block';
+    submitButton.style.display = 'none';
+  }
 
   // Actions when "Submit" button is clicked    
   function handleSubmit() {
@@ -217,48 +211,48 @@ async function submitJsonAsForm(jsonObject, actionUrl) {
     });
   }
 
-  // Check if the current question is answered
-  function isCurrentQuestionAnswered() {
-    const currentQuestion = questions[currentQuestionIndex];
-    const radioInputs = currentQuestion.querySelectorAll('input[type="radio"], input[type="checkbox"]');
-    const companyInput = currentQuestion.querySelector('input[id="company-name"]');
-    const titleInput = currentQuestion.querySelector('input[id="responder-title"]');
-    let isAnswered = false;
-    let isFilledIn = false;
-
-    // Skip email step validation
-    if (currentQuestionIndex === 0) {
-        return true;  // Email already validated
-    }
-
-    // If question 1 (user info), make sure text inputs have been filled in
-    if (currentQuestionIndex === 1) {
-      if (companyInput.value.trim().length >= 3 && titleInput.value.trim().length >= 3) {
-        isFilledIn = true;
+    // Check if the current question is answered
+    function isCurrentQuestionAnswered() {
+      const currentQuestion = questions[currentQuestionIndex];
+      const radioInputs = currentQuestion.querySelectorAll('input[type="radio"], input[type="checkbox"]');
+      const companyInput = currentQuestion.querySelector('input[id="company-name"]');
+      const titleInput = currentQuestion.querySelector('input[id="responder-title"]');
+      let isAnswered = false;
+      let isFilledIn = false;
+  
+      // // Skip email step validation
+      // if (currentQuestionIndex === 0) {
+      //     return true;  // Email already validated
+      // }
+  
+      // If question 1 (user info), make sure text inputs have been filled in
+      if (currentQuestionIndex === 0) {
+        if (companyInput.value.trim().length >= 3 && titleInput.value.trim().length >= 3) {
+          isFilledIn = true;
+        } else {
+          isFilledIn = false;
+        }
+      }
+  
+      // Check if one of the radio buttons or checkboxes is selected for other questions
+      radioInputs.forEach(input => {
+          if (input.checked) isAnswered = true;
+      });
+  
+      if (currentQuestionIndex === 0 && !isFilledIn) {
+          showError(currentQuestion, "Please fill in both fields to begin.");
+      } else if (!isAnswered) {
+          showError(currentQuestion, "Please select an option before proceeding.");
       } else {
-        isFilledIn = false;
+          hideError(currentQuestion);
+      }
+  
+      if (currentQuestionIndex === 0) {
+        return isFilledIn;
+      } else {
+        return isAnswered;
       }
     }
-
-    // Check if one of the radio buttons or checkboxes is selected for other questions
-    radioInputs.forEach(input => {
-        if (input.checked) isAnswered = true;
-    });
-
-    if (currentQuestionIndex === 1 && !isFilledIn) {
-        showError(currentQuestion, "Please fill in both fields to begin.");
-    } else if (!isAnswered) {
-        showError(currentQuestion, "Please select an option before proceeding.");
-    } else {
-        hideError(currentQuestion);
-    }
-
-    if (currentQuestionIndex === 1) {
-      return isFilledIn;
-    } else {
-      return isAnswered;
-    }
-  }
   
   // Function to show error messages below the question/input
   function showError(element, message) {
