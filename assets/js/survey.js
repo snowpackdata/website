@@ -78,7 +78,6 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('reached start block')
         emailError.style.display = 'none';
         document.getElementById('email-question').style.display = 'none';  // Hide email question
-        // document.getElementById('user-info-question').style.display = 'block'; // Show user info question
         startButton.style.display = 'none'; // Hide Start button
         navButtonContainer.style.display = 'flex'; // Show Next/Previous navigation buttons
         navButtonContainer.style.justifyContent = 'right'; // Align Next button to the right
@@ -86,7 +85,6 @@ document.addEventListener('DOMContentLoaded', () => {
         questions[currentQuestionIndex].style.display = 'block';
         updateProgressBar();
         progressContainer.style.display = 'block'; // Show progress bar
-        // hideError(questions[currentQuestionIndex]);
 
         // API call to create the survey
         createOrUpdateSurvey();
@@ -219,11 +217,6 @@ document.addEventListener('DOMContentLoaded', () => {
       const titleInput = currentQuestion.querySelector('input[id="responder-title"]');
       let isAnswered = false;
       let isFilledIn = false;
-  
-      // // Skip email step validation
-      // if (currentQuestionIndex === 0) {
-      //     return true;  // Email already validated
-      // }
   
       // If question 1 (user info), make sure text inputs have been filled in
       if (currentQuestionIndex === 0) {
