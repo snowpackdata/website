@@ -45,12 +45,12 @@ func (a *App) alertOnSurveyCompletion(surveyID uint) error {
 
 	// Prepare the Slack message: it should contain the survey ID and all of its relevant, non-deleted questions
 	var messageText string
-	messageText = fmt.Sprintf("A new survey has been submitted by %s (Role: %s at Company: %s). Survey ID: %d\n\n",
-		survey.UserEmail, survey.UserRole, survey.CompanyName, survey.ID)
+	messageText = fmt.Sprintf("<!channel> A new survey has been submitted: (*Survey ID: %d*)\n*Responder:* %s\n*Company:* %s\n*Role:* %s\n\n",
+		survey.ID, survey.UserEmail, survey.CompanyName, survey.UserRole)
 
 	// Append each survey response to the message
 	for _, response := range survey.SurveyResponses {
-		formattedResponse := fmt.Sprintf("Question %d: '%s'\nResponse: '%s'\nFreeform Response: '%s'\n\n",
+		formattedResponse := fmt.Sprintf("*Question %d:* %s\n- *Response*: %s\n*- Freeform Response*: %s\n\n",
 			response.Step, response.Question, response.StructuredAnswer, response.FreeformAnswer)
 		messageText += formattedResponse
 	}
@@ -137,16 +137,9 @@ func (a *App) SurveyResponse(w http.ResponseWriter, r *http.Request) {
 		a.cronosApp.DB.First(&survey, surveyId)
 		survey.Completed = true
 		a.cronosApp.DB.Save(&survey)
-		// err := a.alertOnSurveyCompletion(survey.ID)
-		// if err != nil {
-		// 	log.Printf("Failed at this step - alert on survey completion")
-		// }
-	}
-
-	if stepInt == 2 {
-		err = a.alertOnSurveyCompletion(uint(surveyId))
+		err := a.alertOnSurveyCompletion(survey.ID)
 		if err != nil {
-			log.Printf("Error on Survey Alert: %s", err)
+			log.Printf("Failed at Slack alert step on survey completion")
 		}
 	}
 
