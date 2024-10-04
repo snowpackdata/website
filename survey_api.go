@@ -1,13 +1,78 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
+	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 
 	"github.com/gorilla/mux"
 	"github.com/snowpackdata/cronos"
 )
+
+func (a *App) sendSlackNotification(survey cronos.Survey, message map[string]string) {
+	webhookURL := "https://hooks.slack.com/services/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"
+
+	jsonMessage, _ := json.Marshal(message)
+	req, err := http.NewRequest("POST", webhookURL, bytes.NewBuffer(jsonMessage))
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Printf("Error sending Slack message: %s", err)
+		return
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode == http.StatusOK {
+		log.Printf("Slack notification sent successfully.")
+	} else {
+		log.Printf("Failed to send Slack notification. Status: %d", resp.StatusCode)
+	}
+}
+
+func (a *App) alertOnSurveyCompletion(surveyID uint) error {
+	// Retrieve the survey (and included questions)
+	var survey cronos.Survey
+	result := a.cronosApp.DB.Preload("SurveyResponses").First(&survey, surveyID)
+	if result.Error != nil {
+		log.Printf("Error retrieving survey: %s", result.Error)
+		return result.Error
+	}
+	log.Printf("Survey retrieved: %+v", survey)
+	log.Printf("Survey responses: %+v", survey.SurveyResponses)
+	// Now you'll have the survey object with all the non-deleted questions loaded -- you can send this in the post it should natively turn to json
+
+	// // Prepare the Slack message
+	// message := map[string]string{
+	// 	"text": fmt.Sprintf("<!channel> A new survey has been submitted by %s (Role: %s at Company: %s). Survey ID: %d", survey.UserEmail, survey.UserRole, survey.CompanyName, survey.ID),
+	// }
+
+	// Prepare the slack message: it should contain the survey ID and all of its relevant, non-deleted questions
+	var messageText string
+	// messageText = fmt.Sprintf("<!channel> A new survey has been submitted by %s (Role: %s at Company: %s). Survey ID: %d\n\n",
+	messageText = fmt.Sprintf("A new survey has been submitted by %s (Role: %s at Company: %s). Survey ID: %d\n\n",
+		survey.UserEmail, survey.UserRole, survey.CompanyName, survey.ID)
+
+	// Append each survey response to the message
+	for _, response := range survey.SurveyResponses {
+		formattedResponse := fmt.Sprintf("Question %d: '%s'\nResponse: '%s'\nFreeform Response: '%s'\n\n",
+			response.Step, response.Question, response.StructuredAnswer, response.FreeformAnswer)
+		messageText += formattedResponse
+	}
+
+	// Send the message to Slack
+	message := map[string]string{
+		"text": messageText,
+	}
+
+	a.sendSlackNotification(survey, message)
+
+	return nil
+}
 
 // SurveyUpsert
 // Create an UPSERT API for generating a new survey from form data on the front end
@@ -77,9 +142,21 @@ func (a *App) SurveyResponse(w http.ResponseWriter, r *http.Request) {
 		a.cronosApp.DB.First(&survey, surveyId)
 		survey.Completed = true
 		a.cronosApp.DB.Save(&survey)
+		// err := a.alertOnSurveyCompletion(survey.ID)
+		// if err != nil {
+		// 	log.Printf("Failed at this step - alert on survey completion")
+		// }
 	}
+
+	if stepInt == 2 {
+		var survey cronos.Survey
+		err := a.alertOnSurveyCompletion(survey.ID)
+		if err != nil {
+			log.Printf("Failed at this step - alert on survey completion")
+		}
+	}
+
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
 	_ = json.NewEncoder(w).Encode(surveyResponse)
-	// TODO: set up Slack webhook to alert our channel of new submissions
 }

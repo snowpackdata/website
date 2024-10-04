@@ -200,8 +200,6 @@ document.addEventListener('DOMContentLoaded', () => {
       survey_id: surveyId
     };
 
-    console.log(responseData)
-
     // You will need to await for the response to get the survey ID
     // these functions are asynchronous because they are network requests so
     // if you don't include the await keyword the code will continue to run
