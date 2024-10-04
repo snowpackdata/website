@@ -3,18 +3,18 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 
 	"github.com/gorilla/mux"
 	"github.com/snowpackdata/cronos"
 )
 
-func (a *App) sendSlackNotification(survey cronos.Survey, message map[string]string) {
-	webhookURL := "https://hooks.slack.com/services/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"
-
+func (a *App) sendSlackNotification(message map[string]string, webhookURL string) {
 	jsonMessage, _ := json.Marshal(message)
 	req, err := http.NewRequest("POST", webhookURL, bytes.NewBuffer(jsonMessage))
 	req.Header.Set("Content-Type", "application/json")
@@ -42,18 +42,9 @@ func (a *App) alertOnSurveyCompletion(surveyID uint) error {
 		log.Printf("Error retrieving survey: %s", result.Error)
 		return result.Error
 	}
-	log.Printf("Survey retrieved: %+v", survey)
-	log.Printf("Survey responses: %+v", survey.SurveyResponses)
-	// Now you'll have the survey object with all the non-deleted questions loaded -- you can send this in the post it should natively turn to json
 
-	// // Prepare the Slack message
-	// message := map[string]string{
-	// 	"text": fmt.Sprintf("<!channel> A new survey has been submitted by %s (Role: %s at Company: %s). Survey ID: %d", survey.UserEmail, survey.UserRole, survey.CompanyName, survey.ID),
-	// }
-
-	// Prepare the slack message: it should contain the survey ID and all of its relevant, non-deleted questions
+	// Prepare the Slack message: it should contain the survey ID and all of its relevant, non-deleted questions
 	var messageText string
-	// messageText = fmt.Sprintf("<!channel> A new survey has been submitted by %s (Role: %s at Company: %s). Survey ID: %d\n\n",
 	messageText = fmt.Sprintf("A new survey has been submitted by %s (Role: %s at Company: %s). Survey ID: %d\n\n",
 		survey.UserEmail, survey.UserRole, survey.CompanyName, survey.ID)
 
@@ -69,7 +60,12 @@ func (a *App) alertOnSurveyCompletion(surveyID uint) error {
 		"text": messageText,
 	}
 
-	a.sendSlackNotification(survey, message)
+	webhookURL := os.Getenv("SLACK_WEBHOOK_URL")
+	if webhookURL == "" {
+		return errors.New("no Slack webhook URL provided")
+	}
+
+	a.sendSlackNotification(message, webhookURL)
 
 	return nil
 }
@@ -82,7 +78,6 @@ func (a *App) alertOnSurveyCompletion(surveyID uint) error {
 // - user_email (string)
 // - user_role (string)
 // - company_name (string)
-
 func (a *App) SurveyUpsert(w http.ResponseWriter, r *http.Request) {
 	// Parse the JSON request body
 	// Create a new survey in the database
@@ -149,10 +144,9 @@ func (a *App) SurveyResponse(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if stepInt == 2 {
-		var survey cronos.Survey
-		err := a.alertOnSurveyCompletion(survey.ID)
+		err = a.alertOnSurveyCompletion(uint(surveyId))
 		if err != nil {
-			log.Printf("Failed at this step - alert on survey completion")
+			log.Printf("Error on Survey Alert: %s", err)
 		}
 	}
 
