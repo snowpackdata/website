@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/snowpackdata/cronos"
 	"log"
 	"net/http"
 	"os"
@@ -12,6 +11,7 @@ import (
 
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
+	"github.com/snowpackdata/cronos"
 )
 
 // App holds our information for accessing various applications and methods across modules
@@ -72,7 +72,7 @@ func main() {
 	// our main routes are handled by the main router and are not protected by JWT
 	r.HandleFunc("/", indexHandler)
 	r.HandleFunc("/services", servicesHandler)
-	r.HandleFunc("/data_assessment", dataAssessmentHandler)
+	r.HandleFunc("/free-assessment", dataAssessmentHandler)
 	r.HandleFunc("/reports/examples/nba-report", exampleReportHandler)
 	r.HandleFunc("/blog", blogLandingHandler)
 	r.HandleFunc("/case-studies", caseStudyLandingHandler)

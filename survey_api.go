@@ -67,7 +67,6 @@ func (a *App) SurveyResponse(w http.ResponseWriter, r *http.Request) {
 	var existingSurveyResponse cronos.SurveyResponse
 	a.cronosApp.DB.Where("survey_id = ? AND step = ?", surveyResponse.SurveyID, surveyResponse.Step).First(&existingSurveyResponse)
 	if existingSurveyResponse.ID != 0 {
-		// existingSurveyResponse.DeletedAt = time.Now()
 		a.cronosApp.DB.Delete(&existingSurveyResponse)
 	}
 
@@ -82,5 +81,5 @@ func (a *App) SurveyResponse(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
 	_ = json.NewEncoder(w).Encode(surveyResponse)
-
+	// TODO: set up Slack webhook to alert our channel of new submissions
 }
