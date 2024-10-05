@@ -147,7 +147,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Actions when "Submit" button is clicked    
   function handleSubmit() {
     // Save the last response and mark the survey as complete
-    saveSurveyResponse(currentQuestionIndex-1, true);
+    saveSurveyResponse(currentQuestionIndex, true);
   }
 
   // Function to create or update survey

@@ -122,15 +122,37 @@ func (a *App) SurveyResponse(w http.ResponseWriter, r *http.Request) {
 	surveyResponse.FreeformAnswer = r.FormValue("unstructured_answer")
 	// TODO: Check to make sure there's no sql injection here
 
+	// Begin a transaction
+	tx := a.cronosApp.DB.Begin()
+	if tx.Error != nil {
+		log.Printf("Error starting transaction: %s", tx.Error)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
 	// Check if a response already exists for a given question (step) and survey_id
 	// If so, delete the previous record
 	var existingSurveyResponse cronos.SurveyResponse
-	a.cronosApp.DB.Where("survey_id = ? AND step = ?", surveyResponse.SurveyID, surveyResponse.Step).First(&existingSurveyResponse)
+	tx.Where("survey_id = ? AND step = ?", surveyResponse.SurveyID, surveyResponse.Step).First(&existingSurveyResponse)
 	if existingSurveyResponse.ID != 0 {
-		a.cronosApp.DB.Delete(&existingSurveyResponse)
+		tx.Delete(&existingSurveyResponse)
 	}
 
-	a.cronosApp.DB.Create(&surveyResponse)
+	// Save the survey response
+	if err := tx.Create(&surveyResponse).Error; err != nil {
+		log.Printf("Error saving survey response: %s", tx.Error)
+		tx.Rollback() // Rollback transaction if there's an error
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	// Commit the transaction
+	if err := tx.Commit().Error; err != nil {
+		log.Printf("Error committing transaction: %s", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
 	// If the survey is completed, update the survey to reflect that
 	if r.FormValue("completed") == "true" {
 		var survey cronos.Survey
