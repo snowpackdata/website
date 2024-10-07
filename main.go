@@ -3,14 +3,15 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/gorilla/handlers"
-	"github.com/gorilla/mux"
-	"github.com/snowpackdata/cronos"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"time"
+
+	"github.com/gorilla/handlers"
+	"github.com/gorilla/mux"
+	"github.com/snowpackdata/cronos"
 )
 
 // App holds our information for accessing various applications and methods across modules
@@ -50,7 +51,7 @@ func main() {
 		// which must be established via a local SQLite instance, you will need to
 		// run the migration to create the database schema
 		cronosApp.InitializeSQLite()
-		//cronosApp.Migrate()
+		cronosApp.Migrate()
 	}
 
 	// Add the cronos app to our webapp struct to access it across handlers
@@ -74,6 +75,7 @@ func main() {
 	// our main routes are handled by the main router and are not protected by JWT
 	r.HandleFunc("/", indexHandler)
 	r.HandleFunc("/services", servicesHandler)
+	r.HandleFunc("/free-assessment", dataAssessmentHandler)
 	r.HandleFunc("/reports/examples/nba-report", exampleReportHandler)
 	r.HandleFunc("/blog", blogLandingHandler)
 	r.HandleFunc("/case-studies", caseStudyLandingHandler)
@@ -88,6 +90,10 @@ func main() {
 	r.HandleFunc("/register", a.RegistrationLandingHandler).Methods("GET")
 	r.HandleFunc("/register_user", a.RegisterUser).Methods("POST")
 	r.HandleFunc("/verify_email", a.VerifyEmail).Methods("POST")
+	r.HandleFunc("/surveys/new", a.SurveyUpsert).Methods("POST")
+	r.HandleFunc("/surveys/{id:[0-9]+}/response", a.SurveyResponse).Methods("POST")
+
+	// Our API routes are protected by JWT
 	api.HandleFunc("/invoices/draft", a.DraftInvoiceListHandler).Methods("GET")
 	api.HandleFunc("/invoices/accepted", a.InvoiceListHandler).Methods("GET")
 	api.HandleFunc("/invoices/{id:[0-9]+}/{state:(?:approve)|(?:send)|(?:paid)|(?:void)}", a.InvoiceStateHandler).Methods("POST")
