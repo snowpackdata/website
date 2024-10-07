@@ -104,14 +104,20 @@ func (a *App) SurveyResponse(w http.ResponseWriter, r *http.Request) {
 	surveyIdStr := vars["id"]
 	surveyId, err := strconv.Atoi(surveyIdStr)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+		http.Error(w, "Invalid survey ID", http.StatusBadRequest)
 		return
 	}
+	// Input validation for "step"
 	stepInt, err := strconv.Atoi(r.FormValue("step"))
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+		http.Error(w, "Invalid step value", http.StatusBadRequest)
 		return
 	}
+	if stepInt < 1 || stepInt > 15 {
+		http.Error(w, "Step value out of range", http.StatusBadRequest)
+		return
+	}
+
 	var surveyResponse cronos.SurveyResponse
 
 	surveyResponse.SurveyID = uint(surveyId)
@@ -120,13 +126,12 @@ func (a *App) SurveyResponse(w http.ResponseWriter, r *http.Request) {
 	surveyResponse.StructuredAnswer = r.FormValue("structured_answer")
 	surveyResponse.AnswerType = r.FormValue("answer_type")
 	surveyResponse.FreeformAnswer = r.FormValue("unstructured_answer")
-	// TODO: Check to make sure there's no sql injection here
 
 	// Begin a transaction
 	tx := a.cronosApp.DB.Begin()
 	if tx.Error != nil {
 		log.Printf("Error starting transaction: %s", tx.Error)
-		w.WriteHeader(http.StatusInternalServerError)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
 
@@ -142,14 +147,14 @@ func (a *App) SurveyResponse(w http.ResponseWriter, r *http.Request) {
 	if err := tx.Create(&surveyResponse).Error; err != nil {
 		log.Printf("Error saving survey response: %s", tx.Error)
 		tx.Rollback() // Rollback transaction if there's an error
-		w.WriteHeader(http.StatusInternalServerError)
+		http.Error(w, "Error saving survey response", http.StatusInternalServerError)
 		return
 	}
 
 	// Commit the transaction
 	if err := tx.Commit().Error; err != nil {
 		log.Printf("Error committing transaction: %s", err)
-		w.WriteHeader(http.StatusInternalServerError)
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
 
