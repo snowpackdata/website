@@ -62,9 +62,12 @@ func main() {
 	r := mux.NewRouter()
 	// Define a subrouter to handle files at static for accessing static content
 	// static, api, and r are all subrouters that allow us to handle different types of requests
+
 	static := r.PathPrefix("/assets").Subrouter()
 	static.Handle("/{*}/{*}", http.StripPrefix("/assets/", http.FileServer(http.Dir("./assets"))))
 
+	branding := r.PathPrefix("/branding").Subrouter()
+	branding.Handle("/{*}/{*}", http.StripPrefix("/branding/", http.FileServer(http.Dir("./branding"))))
 	// All requests to the api subrouter will be verified by the JwtVerify middleware
 	api := r.PathPrefix("/api").Subrouter()
 	api.Use(JwtVerify)
