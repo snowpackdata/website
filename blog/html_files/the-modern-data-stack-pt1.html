@@ -85,7 +85,7 @@ The stack is by necessity more complex than an excel spreadsheet with a few tabs
 <p>No matter how you transform your data, the desired end result is a “clean” dataset that is ready for use.</p>
 <p>Today, we use a transformation layer supported by a data transformation tool like dbt that allows us to write code to programmatically reformat the data in whatever way is required to make it usable downstream.</p>
 <p>We use the programming language SQL, or sometimes Python, to interact with the data warehouse to reformat data, pull data as needed, and send it where it needs to go.</p>
-<p>When we talk about data transformation, we’re really talking about a series of steps (usually a mix of standard and unique steps, depending on the use case) we take to clean and reformat the data just like an analyst would do manually in Excel.</p>
+<p><strong>When we talk about data transformation, we’re really talking about a series of steps (usually a mix of standard and unique steps, depending on the use case) we take to clean and reformat the data just like an analyst would do manually in Excel.</strong></p>
 
 <h3>4. Using/Presenting the data</h3>
 <p>The last step in the process is the use/presentation of data. In Excel, this usually amounts to creating a table or chart that clearly shows trends in the data in a way that is human-readable and can be used to inform decision-making.</p>
@@ -96,8 +96,13 @@ The stack is by necessity more complex than an excel spreadsheet with a few tabs
 <p>The one big difference between our contrived Excel example and the modern data stack is that a lot of the processes that are semi-automated or done manually in Excel can be made infinitely less time-consuming with the addition of automation.</p>
 <p>A common buzzword you’ll hear in the data space is “orchestration.” Orchestration is the process of automating the loading and transformation of data and scheduling it to occur on a regular cadence.</p>
 <p>Orchestration can get complicated quickly because a large part of the process involves setting up automation in a way that is computationally and monetarily inexpensive. It’s also very important to get right because it controls the flow of data from one part of the stack to another and effectively touches all parts of the stack in one way or another.</p>
-<p>An additional complexity involves the automation of decision-making in the event a particular job fails (i.e. conditional settings like “If job_x passes, then run all jobs. If job_x fails, then run only job_y.”). Improper conditional automation can add complexity to your DAG or even cause failures and limit end-users’ timely access to the data they need to do their jobs.</p>
+<p>An additional complexity involves the automation of decision-making in the event a particular job fails (i.e. conditional settings like <em>“If job_x passes, then run all jobs. If job_x fails, then run only job_y.”</em>). Improper conditional automation can add complexity to your DAG or even cause failures and limit end-users’ timely access to the data they need to do their jobs.</p>
 <p>Improper data orchestration is often the leading cause of ballooning bills from database and data orchestration companies that provide these services, and failures in orchestration usually result in faulty data or lapses in service to end users (i.e. the dreaded “Hey @data-team, my dashboard looks weird…” Slack message). For this reason, orchestration is a key part of the data stack that is often shrouded in mystery and complexity.</p>
 <p>We’ll go into more detail on the subject in the sections below–but for now, just remember that besides orchestration tools, the other tools (transformation, visualization) that make up the modern data stack are effectively replicating the workflows that analysts would do in Excel, but at a much larger scale and level of complexity.</p>
+<br>
+<hr>
+<br>
+<p style="font-weight:400">
+<i>That’s it for the Excel analogy–hopefully you found this useful and are ready to dive deep into each individual part of the stack. Next week we’ll move on to our first in-depth topic: <strong>Cloud storage.</strong></i>
+</p>
 
-<p>That’s it for the Excel analogy–hopefully you found this useful and are ready to dive deep into each individual part of the stack. Next week we’ll move on to our first topic: Cloud storage.</p>
