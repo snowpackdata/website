@@ -164,9 +164,15 @@ func (a *App) SurveyResponse(w http.ResponseWriter, r *http.Request) {
 		a.cronosApp.DB.First(&survey, surveyId)
 		survey.Completed = true
 		a.cronosApp.DB.Save(&survey)
-		err := a.alertOnSurveyCompletion(survey.ID)
-		if err != nil {
+		// Send confirmation email
+		if err := a.cronosApp.EmailFromAdmin(cronos.EmailTypeSurveyConfirmation, survey.UserEmail); err != nil {
+			log.Printf("Error sending email confirmation. Status: %s", err)
+			return
+		}
+		// Send Slack alert
+		if err := a.alertOnSurveyCompletion(survey.ID); err != nil {
 			log.Printf("Failed at Slack alert step on survey completion")
+			return
 		}
 	}
 

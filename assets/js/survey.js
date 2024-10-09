@@ -145,9 +145,26 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Actions when "Submit" button is clicked    
-  function handleSubmit() {
+  function handleSubmit(event) {
+    // Prevent the form from reloading the page
+    event.preventDefault();
+
     // Save the last response and mark the survey as complete
-    saveSurveyResponse(currentQuestionIndex, true);
+    saveSurveyResponse(currentQuestionIndex, true)
+      .then(() => {
+        // questions[currentQuestionIndex].style.display = 'none'; // Hide the current question
+        // submitButton.style.display = 'none'; // Hide the submit button
+        // progressContainer.style.display = 'none'; // Hide the progress bar
+        const surveyContainer = document.querySelector('.survey-container');
+        surveyContainer.style.display = 'none'; // Hide the entire survey container
+
+        // Show the confirmation screen
+        const confirmationScreen = document.querySelector('.confirmation-screen-container');
+        confirmationScreen.style.display = 'block';
+    })
+    .catch(error => {
+      console.error("Error submitting final response:", error);
+    });
   }
 
   // Function to create or update survey

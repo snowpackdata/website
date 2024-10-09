@@ -57,6 +57,16 @@
         box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
     }
 
+    .confirmation-screen-container {
+        max-width: 60%;
+        margin: 0 auto;
+        padding: 20px;
+        background-color: #f9f9f9;
+        border-radius: 8px;
+        box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+        font-size: 1.25rem;
+    }
+
     .navigation-button-container {
         display: flex;
         justify-content: space-between;
@@ -147,6 +157,10 @@
     /* Media query for mobile responsiveness */
     @media (max-width: 768px) {
         .survey-container {
+            padding: 15px;
+            max-width: 100%;
+        }
+        .confirmation-screen-container {
             padding: 15px;
             max-width: 100%;
         }
@@ -503,8 +517,18 @@
     </form>
     </div>
 
+    <div class="confirmation-screen-container" style="display:none;">
+        <h2>Thank you for completing the survey!</h2>
+        <p>
+            <p>You will receive a confirmation email shortly, and a member of our team will be in touch as soon as possible with your benchmark summary and recommendations.</p>
+            <p>In the meantime, feel free to reach out if you have any additional questions and check out <a href="https://snowpack-data.com/blog" style="color: #153ab0;">our blog</a> to read the latest case studies and deep-dives from the team!</p>
+        </p>
+    </div>
+
+    <br>
+
     <!-- Footer-->
-  <footer class="footer py-4">
+    <footer class="footer py-4">
       <div class="container">
           <div class="row align-items-center">
               <div class="col-lg-4 text-lg-start">Copyright &copy; Snowpack Data LLC 2022</div>
@@ -519,7 +543,7 @@
               </div>
           </div>
       </div>
-  </footer>
+    </footer>
   
   
 </body>
