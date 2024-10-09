@@ -71,7 +71,9 @@ The stack is by necessity more complex than an excel spreadsheet with a few tabs
 
 <h3>2. Getting the data into Excel</h3>
 <p>Generally, data is dropped into Excel in the form of a <code>.csv</code> file. You have a machine-generated copy of the data that isn’t easily legible by a human–and Excel (and you!) do the work to disambiguate rows and columns and present the information in a way that is easily legible.</p>
-<p><strong>[INSERT EXAMPLE IMAGE] (CSV to Excel)</strong></p>
+
+<img src="/assets/img/excel-flow.png" width="80%">
+<center><i>Diagram of Transformation from CSV to Excel</i></center>
 <p>This is a rudimentary example of what people call ingestion. Simply put, ingestion is the process of collecting data from wherever it’s produced and stored in its raw form–in this case, in a <code>.csv</code> file–and pushing it into a data warehouse, where it can then be transformed (read: cleaned, simplified, aggregated, and analyzed or pushed back to a software application’s front-end–but we’ll talk more about those things later).</p>
 <p>In today’s world, we often have multiple sources of data that we want to store in one spot and combine rather than just one or two <code>.csvs</code> to load, and we use the process of ingestion to do that.</p>
 <p>Instead of manually clicking and dragging, or copy/pasting, we use a tool that interacts with third-party vendor APIs (i.e. CRM tools like Salesforce) or cloud storage environments (think Amazon S3 buckets or Google Cloud Storage), and pulls the data out of those tools and into our data warehouse.</p>
