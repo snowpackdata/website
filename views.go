@@ -110,7 +110,7 @@ func blogTagHandler(w http.ResponseWriter, req *http.Request) {
 
 	// if the map is empty, then redirect to the main blog page
 	if len(caseStudies) == 0 {
-		http.Redirect(w, req, "/blog", http.StatusSeeOther)
+		http.Error(w, "404 page not found", http.StatusNotFound)
 		return
 	}
 
@@ -138,6 +138,7 @@ func caseStudyLandingHandler(w http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		log.Fatal(err)
 	}
+	return
 }
 
 func blogHandler(w http.ResponseWriter, req *http.Request) {
