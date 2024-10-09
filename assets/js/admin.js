@@ -69,7 +69,7 @@ var App = new Vue({
         ],
         newAdjustment : {type : '', amount: 0, notes: ''},
         calendarWidth: 135, // Adjust as needed, represents the percentage width of the calendar
-        hourBlockHeight: 40, // Adjust as needed, represents the height of each hour block in pixels
+        hourBlockHeight: 45, // Adjust as needed, represents the height of each hour block in pixels
         days: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
         currentWeek : Date,
         currentWeekDays : [Date],
@@ -94,6 +94,12 @@ var App = new Vue({
         // Example data for entries
         entries: [],
         weeklyEntries : [],
+
+        // Data for dragging
+        isDragging: false,
+        dragDate: null,
+        dragStartHour: null,
+        dragEndHour: null,
     },
     filters: {
         truncate: function (text, length, suffix) {
@@ -337,7 +343,7 @@ var App = new Vue({
         },
 
         getEntries(day, hour) {
-            return this.weeklyEntries.filter(entry => (entry.start_day_of_week === day && entry.start_hour === hour.hour));
+            return this.weeklyEntries.filter(entry => (entry.start_day_of_week === day && entry.start_hour === hour));
         },
        // Functions used to calculate the position and size of each entry
         calculateEntryTop(entry) {
@@ -346,30 +352,64 @@ var App = new Vue({
             return top
         },
 
-        calculateEntryLeft(dayIndex) {
-            // entry left is always at 0 since we're inside the current cell
-            return 0
+        calculateEntryLeft(pageEntry, dayIndex, hourIndex) {
+                let entries = this.getEntries(dayIndex, hourIndex);
+                if (entries.length <= 1) {
+                    return 0;
+                }
+                // If it's greater than 0, sort the entries by entry_id
+                entries.sort((a, b) => (a.entry_id > b.entry_id) ? 1 : -1);
+                // find what index number this entry is in the list of entries for this hour
+                let index = entries.findIndex(entry => entry.entry_id === pageEntry.entry_id);
+                // calculate the left
+                return (index * (this.getColumnWidth()/entries.length)) + (index*2) // add 4px for each entry to account for margin;
+
         },
 
         calculateEntryHeight(entry) {
             const maxDuration = this.hours.length - this.hours.indexOf(entry.start_hour);
             const maxBlockHeight = this.hourBlockHeight * maxDuration;
             const entryHeight = Math.min(entry.duration_hours * this.hourBlockHeight, maxBlockHeight);
-            return entryHeight;
+            return entryHeight - 4 // account for margin;
         },
 
-        calculateEntryWidth(dayIndex) {
-            return this.getColumnWidth();
+        calculateEntryWidth(day, hourIndex) {
+            let entries = this.getEntries(day, hourIndex);
+            if (entries.length <= 1) {
+                return this.getColumnWidth();
+            }
+            return ((this.getColumnWidth()/entries.length) - (entries.length*2)) // subtract 4px for each entry to account for margin;
+        },
+
+        displayEntryState(state) {
+            const stateMapping = {
+                ENTRY_STATE_UNAFFILIATED: 'Unaffiliated',
+                ENTRY_STATE_DRAFT: 'Draft',
+                ENTRY_STATE_APPROVED: 'Approved',
+                ENTRY_STATE_SENT: 'Sent',
+                ENTRY_STATE_PAID: 'Paid',
+                ENTRY_STATE_VOID: 'Void'
+            };
+
+            return stateMapping[state] || state;
         },
 
         updateEventSizes() {
-            const columnWidth = this.getColumnWidth();
-            const hourBlockHeight = this.getHourBlockHeight();
+            // This function is invoked whenever the page is resized, it retrieves each of the entries on the page
+            // and recalculates their size. This is a bit involved because they are no longer bounded objects
+            // but rather divs that are positioned absolutely. So we retrieve the ID from the element to do the math.
+            // const columnWidth = this.getColumnWidth();
+            // const hourBlockHeight = this.getHourBlockHeight();
             // Update the width and height of each event based on the column width and hour block height
             const entries = document.querySelectorAll('.entry');
             entries.forEach(entry => {
-                entry.style.width = columnWidth + 'px';
-                entry.style.height = this.calculateEntryHeight(entry, hourBlockHeight) + 'px';
+                // retrieve the entry from the id
+                const entryId = entry.getAttribute('id');
+                // cast the id to an int
+                const entryIdNumber = parseInt(entryId);
+                const entryObj = this.entries.find(entry => entry.entry_id === entryIdNumber);
+                entry.style.width = this.calculateEntryWidth(entryObj.start_day_of_week, entryObj.start_hour) + 'px';
+                entry.style.left = this.calculateEntryLeft(entryObj, entryObj.start_day_of_week, entryObj.start_hour) + 'px';
             });
         },
 
@@ -422,6 +462,29 @@ var App = new Vue({
                 end_vis : moment(defaultEnd).format( 'yyyy-MM-DDTHH:mm'),
                 duration_hours: 1,
 
+            }
+            this.selectedEntry = blankEntry;
+
+            $('#entry-modal').modal('show');
+        },
+        showNewEntryModalPopulated(day, hourStart, hourEnd) {
+            this.isNew = true;
+            let defaultStart = new Date(day);
+            defaultStart.setHours(hourStart, 0, 0, 0)
+
+            defaultEnd = new Date(day);
+            defaultEnd.setHours(hourEnd + 1, 0,0,0);
+            let blankEntry = {
+                billing_code_id : null,
+                entry_id: null,
+                notes: null,
+                start: null,
+                end: null,
+                start_vis : moment(defaultStart).format( 'yyyy-MM-DDTHH:mm'),
+                end_vis : moment(defaultEnd).format( 'yyyy-MM-DDTHH:mm'),
+                duration_hours: hourEnd+1 - hourStart,
+                start_day_of_week: day,
+                start_hour: hourStart,
             }
             this.selectedEntry = blankEntry;
 
@@ -966,6 +1029,51 @@ var App = new Vue({
             });
             return weeklyEntries
         },
+
+        sumEntryHours(day = null) {
+            if (day !== null) {
+                let hoursForDay = 0;
+                this.weeklyEntries.forEach(entry => {
+                    const entryDate = new Date(entry.start);
+                    if (entryDate.getDay() === day && entry.state !== 'ENTRY_STATE_UNAFFILIATED' && entry.state !== 'ENTRY_STATE_VOID') { // Check if entry is for the specified day
+                        hoursForDay += entry.duration_hours;
+                    }
+                });
+                return hoursForDay;
+            } else {
+                let totalHours = 0;
+                this.weeklyEntries.forEach(entry => {
+                    if (entry.state !== 'ENTRY_STATE_UNAFFILIATED' && entry.state !== 'ENTRY_STATE_VOID') {
+                        totalHours += entry.duration_hours;
+                    }
+                });
+                return totalHours;
+            }
+        },
+
+        sumEntryFee(day = null) {
+            if (day !== null) {
+                let feeForDay = 0;
+                this.weeklyEntries.forEach(entry => {
+                    const entryDate = new Date(entry.start);
+                    if (entryDate.getDay() === day && entry.state !== 'ENTRY_STATE_UNAFFILIATED' && entry.state !== 'ENTRY_STATE_VOID') { 
+                        // Check if entry is for the specified day and state is not UNAFFILIATED or VOID
+                        feeForDay += entry.fee;
+                    }
+                });
+                return feeForDay;
+            } else {
+                let totalFee = 0;
+                this.weeklyEntries.forEach(entry => {
+                    if (entry.state !== 'ENTRY_STATE_UNAFFILIATED' && entry.state !== 'ENTRY_STATE_VOID') { 
+                        // Check if state is not UNAFFILIATED or VOID
+                        totalFee += entry.fee;
+                    }
+                });
+                return totalFee;
+            }
+        },
+
         backfillProjectEntries(project) {
             let postForm = new FormData();
             postForm.set("project_id", project.ID)
@@ -975,12 +1083,48 @@ var App = new Vue({
                 headers: {'Content-Type': 'application/json', 'x-access-token': window.localStorage.snowpack_token},
                 data: postForm,
             })
-            .then(response => {
-                console.log(response)
-            })
-            .catch(error => {
-                console.log(error)
-            })
+                .then(response => {
+                    console.log(response)
+                })
+                .catch(error => {
+                    console.log(error)
+                })
+        },
+
+        // Code below is all used for dragging and selecting in the calendar window
+        // StartDrag is used on an MouseDown Event in the calendar to begin a drag operation
+        startDrag(day, hour, event) {
+            this.isDragging = true;
+            this.dragDate = day
+            this.dragStart = hour;
+            this.dragEnd = hour;
+            event.target.classList.add('highlight');
+          },
+        onDragOver(day, hour, event) {
+            if (!this.isDragging) return;
+            if (this.dragDate !== day) return;
+            if (hour < this.dragStart) {
+                this.dragStart = hour;
+            }
+            if (hour > this.dragEnd) {
+                this.dragEnd = hour;
+            }
+            event.target.classList.add('highlight');
+        },
+        endDrag(day, hour, event) {
+            if (!this.isDragging) return;
+            this.isDragging = false;
+            this.showNewEntryModalPopulated(this.dragDate, this.dragStart, this.dragEnd);
+            this.dragDate = null;
+            this.dragStart = null;
+            this.dragEnd = null;
+            this.removeHighlighting();
+        },
+        removeHighlighting() {
+            const highlightedCells = document.querySelectorAll('.highlight');
+            highlightedCells.forEach(cell => {
+                cell.classList.remove('highlight');
+            });
         }
     },
     watch: {

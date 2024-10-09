@@ -7955,6 +7955,7 @@ textarea.form-control-lg {
 
 .rounded-pill {
   border-radius: 50rem !important;
+  width: 50%;
 }
 
 .rounded-top {
@@ -12223,7 +12224,9 @@ h3.blog-subtitle  {
 }
 
 #calendar th {
-  background-color: #f2f2f2;
+  color: #f2f2f2;
+  font-size: 9pt;
+  background-color: #18375a;
 }
 #calender tr {
     height: 40px;
@@ -12258,21 +12261,51 @@ h3.blog-subtitle  {
 }
 .hour-block {
   position: relative;
-  height:40px;
+  height:45px;
 }
 
 .entry {
   z-index: 999;
   box-sizing: border-box;
   background-color: #4CAF50;
-  color: white;
+  color: #fffafa;
   padding: 5px;
   border-radius: 5px;
   position: absolute;
-  opacity:50%;
+  opacity:70%;
   cursor: pointer;
   margin-left: 4px;
   margin-right: 4px;
+  margin-top:2px;
+  margin-bottom:2px;
+  overflow: hidden;
+
+  font-size: .8vw;
+
+}
+
+.entry.ENTRY_STATE_UNAFFILIATED {
+    background-color: #af774c; /* orange */
+  }
+  
+.entry.ENTRY_STATE_DRAFT {
+background-color: #FFC107; /* yellow */
+}
+
+.entry.ENTRY_STATE_APPROVED {
+background-color: #684caf; /* purple */
+}
+
+.entry.ENTRY_STATE_SENT {
+background-color: #4c9baf; /* blue */
+}
+
+.entry.ENTRY_STATE_PAID {
+background-color: #4CAF50; /* green */
+}
+
+.entry.ENTRY_STATE_VOID {
+background-color: #1a1e21; /*black*/
 }
 
 .entry:hover {
@@ -12384,4 +12417,19 @@ h3.blog-subtitle  {
   font-size: 8pt;
   border-radius: 4px;
   border:none;
+}
+
+.time-summary {
+  background-color: #f2f2f2;
+  font-style: italic;
+
+}
+
+.time-pill {
+  border-radius: 20%/50%;
+  background-color: #222222;
+  color: #f2f2f2;
+  margin-left:25%;
+  margin-right:25%;
+  width:50%;
 }

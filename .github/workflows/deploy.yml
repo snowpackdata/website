@@ -42,4 +42,5 @@ jobs:
             GCP_PROJECT=${{ secrets.GCP_PROJECT }}
             GCS_BUCKET=${{ secrets.GCS_BUCKET }}
             JWT_SECRET=${{ secrets.JWT_SECRET }}
+            SLACK_WEBHOOK_URL=${{ secrets.SLACK_WEBHOOK_URL }}
             ENVIRONMENT=production

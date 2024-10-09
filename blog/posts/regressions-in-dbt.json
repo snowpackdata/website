@@ -1,0 +1,11 @@
+{
+  "id" : 13,
+  "title" : "Running Predictive Models Natively in dbt",
+  "subtitle": "A barebones approach for simple prediction models using only SQL + Jinja",
+  "splash" : "topography.jpg",
+  "author" : "Danny Blumenthal",
+  "slug" : "regressions-in-dbt",
+  "tags" : ["dbt", "sql", "regressions", "predictive-analytics"],
+  "date" : "September 9, 2024",
+  "content" : "regressions-in-dbt.html"
+}

@@ -18,7 +18,7 @@
     <meta name="author" content="Snowpack Data LLC" />
     <title>Snowpack Data</title>
     <!-- Favicon-->
-    <link rel="shortcut icon" type="icon" href="assets/img/favicon.ico">
+    <link rel="shortcut icon" type="icon" href="branding/favicon/favicon.ico">
     <!-- Font Awesome icons (free version)-->
     <script src="https://use.fontawesome.com/releases/v6.1.0/js/all.js" crossorigin="anonymous"></script>
     <!-- Google fonts-->
@@ -57,6 +57,9 @@
         gtag('config', 'G-TRLQYPPXKE');
     </script>
     <style>
+        .highlight {
+          background-color: rgba(255, 255, 0, 0.56); /* or any other highlight color */
+        }
     </style>
     <script>
         // Parse JWT for persisted logins and check if we can route to the correct page
@@ -133,12 +136,16 @@
                                     </option>
                                 </select>
                                 <hr>
+                                <label>Entry State: {{ displayEntryState(selectedEntry.state) }}</label>
+                                <br>
                                 <label>Start Time</label>
                                 <input type="datetime-local" v-model="selectedEntry.start_vis">
                                 <label>End Time</label>
                                 <input type="datetime-local" v-model="selectedEntry.end_vis">
                                 <div>
                                     Length : {{ selectedEntry.duration_hours }} hours
+                                    <br>
+                                    Fee : ${{ selectedEntry.fee }}
                                 </div>
                                 <hr>
                                 <label>Notes</label>
@@ -154,21 +161,44 @@
                 <div id="calendar-container">
                     <table id="calendar">
                         <thead>
-                        <tr>
-                            <th style="width: 12.5%;">Day</th>
-                            <th v-for="(day, index) in days" style="width: 12.5%;">{{ day }} <br>
-                            {{ currentWeekDaysFormatted[index] }}</th>
-                        </tr>
+                            <tr>
+                                <th style="width: 12.5%;">
+                                    <div>Weekly Hours: {{ sumEntryHours() }}</div>
+                                    <div>Weekly Fee: ${{ sumEntryFee() }}</div>
+                                </th>
+                                <!-- New row for sum of hours -->
+                                <th v-for="(day, index) in days" style="width: 12.5%;">
+                                    <div>{{ day }} <br>
+                                    {{ currentWeekDaysFormatted[index] }}
+                                    </div>
+                                </th>
+                            </tr>
                         </thead>
                         <tbody>
+                <tr class="time-summary">
+                    <td style="width: 12.5%;">
+                        Summary
+                    </td>
+                    <td v-for="(day, dayIndex) in days" :key="dayIndex">
+                        <div>{{ sumEntryHours(dayIndex) }} Hours </div>
+                    </td>
+                </tr>
                         <tr v-for="(hour, hourIndex) in hours" :key="hourIndex">
-                            <td>{{ hour.display }}</td>
-                            <td v-for="(day, dayIndex) in days" :key="dayIndex" class="hour-block">
+                            <td style="user-select: none">{{ hour.display }}</td>
+                            <td v-for="(day, dayIndex) in days" :key="dayIndex" :class="['hour-block']" @mousedown="startDrag(currentWeekDaysFormatted[dayIndex], hour.hour, $event)" @mouseover="onDragOver(currentWeekDaysFormatted[dayIndex], hour.hour, $event)" @mouseup="endDrag(currentWeekDaysFormatted[dayIndex], hour.hour, $event)" :data-day="currentWeekDays[dayIndex]" :data-hour="hour.hour" >
                                 <!-- You can use Vue.js data and methods to dynamically generate entries here -->
-                                <div v-for="entry in getEntries(day, hour)" :key="entry.id"
+                                <div v-for="entry in getEntries(day, hour.hour)" :key="entry.entry_id" :id="entry.entry_id"
                                      @click="showEntryModal(entry)"
-                                     :style="{ height: calculateEntryHeight(entry) + 'px', top: calculateEntryTop(entry) + 'px', left: calculateEntryLeft(dayIndex) + 'px', width: calculateEntryWidth(dayIndex) + 'px'}"
-                                     class="entry">{{ entry.billing_code }}
+                                     :style="{ 
+                                        height: calculateEntryHeight(entry) + 'px', 
+                                        top: calculateEntryTop(entry) + 'px', 
+                                        left: calculateEntryLeft(entry, day, hour.hour) + 'px',
+                                        width: calculateEntryWidth(day, hour.hour) + 'px'
+                                        }"
+                                     :class="['entry', entry.state]">
+                                        <div><u><strong>{{ displayEntryState(entry.state) }}</strong></u></div>
+                                        <div>{{ entry.billing_code_name }}</div>
+                                        <div>{{ entry.duration_hours }} hours</div>
                                 </div>
                             </td>
                         </tr>
@@ -370,7 +400,8 @@
                            <div class="col-6">
                                <div class=""><h3>{{ project.name }}</h3></div>
                                <div class="client-widget" :class="{ 'client-internal' : project.internal}">{{ project.account.name}}
-                                   <button @click="backfillProjectEntries(project)" class="button-icon"><i class="fa-solid fa-tags"></i>  Invoice</button> </div>
+<!--                                   <button @click="backfillProjectEntries(project)" class="button-icon"><i class="fa-solid fa-tags"></i>  Invoice</button>-->
+                               </div>
                            </div>
                            <div class="col-6">
                                <div class="">{{ parseDate(project.active_start, 'll') }} to {{ parseDate(project.active_end, 'll') }}</div>

@@ -2,12 +2,13 @@ package main
 
 import (
 	"encoding/json"
-	"github.com/gorilla/mux"
 	"html/template"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"sort"
+
+	"github.com/gorilla/mux"
 )
 
 func loadBlogs() map[string]Post {
@@ -59,9 +60,14 @@ func servicesHandler(w http.ResponseWriter, req *http.Request) {
 	http.ServeFile(w, req, "./templates/services.html")
 }
 
-// Services page for all /services url requests
+// Example report page for all /example_report url requests
 func exampleReportHandler(w http.ResponseWriter, req *http.Request) {
 	http.ServeFile(w, req, "./templates/example_report.html")
+}
+
+// Data Assessment page for all /free-assessment url requests
+func dataAssessmentHandler(w http.ResponseWriter, req *http.Request) {
+	http.ServeFile(w, req, "./templates/data_assessment.html")
 }
 
 func blogLandingHandler(w http.ResponseWriter, req *http.Request) {
