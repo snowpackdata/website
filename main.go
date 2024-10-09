@@ -79,6 +79,7 @@ func main() {
 	r.HandleFunc("/reports/examples/nba-report", exampleReportHandler)
 	r.HandleFunc("/blog", blogLandingHandler)
 	r.HandleFunc("/case-studies", caseStudyLandingHandler)
+	r.HandleFunc("/articles/{tag}", blogTagHandler)
 	r.HandleFunc("/blog/{slug}", blogHandler)
 
 	// Cronos Application pages, internal and external

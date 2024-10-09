@@ -4,7 +4,9 @@ module github.com/snowpackdata/website
 
 //replace github.com/snowpackdata/cronos => ../cronos
 
-go 1.21.3
+go 1.21
+
+toolchain go1.23.0
 
 require (
 	github.com/golang-jwt/jwt/v5 v5.1.0

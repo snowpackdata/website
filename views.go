@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"sort"
+	"strings"
 
 	"github.com/gorilla/mux"
 )
@@ -94,12 +95,39 @@ func blogLandingHandler(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func caseStudyLandingHandler(w http.ResponseWriter, req *http.Request) {
+func blogTagHandler(w http.ResponseWriter, req *http.Request) {
+	vars := mux.Vars(req)
+	tag := vars["tag"]
 	blogs := loadBlogs()
 	caseStudies := make(map[string]Post)
 	for key, value := range blogs {
-		for _, tag := range value.Tags {
-			if tag == "case-study" {
+		for _, itag := range value.Tags {
+			if strings.ToLower(itag) == strings.ToLower(tag) {
+				caseStudies[key] = value
+			}
+		}
+	}
+
+	// if the map is empty, then redirect to the main blog page
+	if len(caseStudies) == 0 {
+		http.Redirect(w, req, "/blog", http.StatusSeeOther)
+		return
+	}
+
+	landingTemplate, _ := template.ParseFiles("./templates/blog_landing.gohtml")
+	err := landingTemplate.Execute(w, caseStudies)
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+func caseStudyLandingHandler(w http.ResponseWriter, req *http.Request) {
+	tag := "case-study"
+	blogs := loadBlogs()
+	caseStudies := make(map[string]Post)
+	for key, value := range blogs {
+		for _, itag := range value.Tags {
+			if strings.ToLower(itag) == strings.ToLower(tag) {
 				caseStudies[key] = value
 			}
 		}

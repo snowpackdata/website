@@ -12021,10 +12021,14 @@ h3.blog-subtitle  {
 
 .blog-body h2 {
   font-size: 18pt;
+  padding-top: 2%;
+  padding-bottom: 2%;
 }
 .blog-body p {
   font-size:12pt;
+  word-wrap: break-word;
 }
+
 
 .blog-header {
   font-size: 24pt;
