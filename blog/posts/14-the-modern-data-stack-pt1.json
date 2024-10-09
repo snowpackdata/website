@@ -1,0 +1,11 @@
+{
+  "id" : 14,
+  "title" : "The Decision-Makers Guide To Building a Data Stack",
+  "subtitle": "Part 1: Introduction to problems and solutions that modern data teams face",
+  "splash" : "chartsplash.jpg",
+  "author" : "Kevin Koenitzer",
+  "slug" : "the-modern-data-stack-introduction",
+  "tags" : ["modern-data-stack", "mds", "guide", "guides"],
+  "date" : "October 9, 2024",
+  "content" : "the-modern-data-stack-pt1.html"
+}
