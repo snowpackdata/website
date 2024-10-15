@@ -70,6 +70,69 @@ func (a *App) alertOnSurveyCompletion(surveyID uint) error {
 	return nil
 }
 
+// ContactRequest represents the data HubSpot needs for a new contact
+type ContactRequest struct {
+	Properties []Property `json:"properties"`
+}
+
+type Property struct {
+	Property string `json:"property"`
+	Value    string `json:"value"`
+}
+
+// createHubSpotContact sends the user's email and other data to HubSpot as a new contact
+func (a *App) createHubSpotContact(email, companyName, userRole string) error {
+	// Define the HubSpot API URL
+	HubSpotAPIURL := "https://api.hubapi.com/contacts/v1/contact"
+
+	// Get the HubSpot API token from the environment
+	HubSpotAPIToken := os.Getenv("HUBSPOT_API_KEY")
+	if HubSpotAPIToken == "" {
+		log.Println("HubSpot API token not set")
+		return fmt.Errorf("HubSpot API token not set")
+	}
+
+	// Create the contact data
+	contactData := map[string]interface{}{
+		"properties": []map[string]string{
+			{"property": "email", "value": email},
+			{"property": "company", "value": companyName},
+			{"property": "jobtitle", "value": userRole},
+		},
+	}
+
+	// Convert the contact data to JSON
+	contactJSON, err := json.Marshal(contactData)
+	if err != nil {
+		return fmt.Errorf("failed to marshal contact data: %w", err)
+	}
+
+	// Create a new HTTP request with the Bearer token in the header
+	req, err := http.NewRequest("POST", HubSpotAPIURL, bytes.NewBuffer(contactJSON))
+	if err != nil {
+		return fmt.Errorf("failed to create HTTP request: %w", err)
+	}
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", HubSpotAPIToken))
+
+	// Execute the request
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return fmt.Errorf("failed to send request to HubSpot: %w", err)
+	}
+	defer resp.Body.Close()
+
+	// Check for a successful response
+	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusCreated {
+		log.Printf("Failed to create HubSpot contact: Status %d", resp.StatusCode)
+		return fmt.Errorf("failed to create contact in HubSpot")
+	}
+
+	log.Println("HubSpot contact created successfully")
+	return nil
+}
+
 // SurveyUpsert
 // Create an UPSERT API for generating a new survey from form data on the front end
 // The API should be a POST request to /api/survey
@@ -159,19 +222,28 @@ func (a *App) SurveyResponse(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// If the survey is completed, update the survey to reflect that
+	// Send confirmation email, Slack alert, and create HubSpot contact
 	if r.FormValue("completed") == "true" {
 		var survey cronos.Survey
 		a.cronosApp.DB.First(&survey, surveyId)
 		survey.Completed = true
 		a.cronosApp.DB.Save(&survey)
+
 		// Send confirmation email
 		if err := a.cronosApp.EmailFromAdmin(cronos.EmailTypeSurveyConfirmation, survey.UserEmail); err != nil {
 			log.Printf("Error sending email confirmation. Status: %s", err)
 			return
 		}
+
 		// Send Slack alert
 		if err := a.alertOnSurveyCompletion(survey.ID); err != nil {
 			log.Printf("Failed at Slack alert step on survey completion")
+			return
+		}
+
+		// Call HubSpot API to create a contact
+		if err := a.createHubSpotContact(survey.UserEmail, survey.CompanyName, survey.UserRole); err != nil {
+			log.Printf("Failed to create HubSpot contact: %s", err)
 			return
 		}
 	}
