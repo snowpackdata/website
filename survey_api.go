@@ -89,7 +89,7 @@ func (a *App) hubSpotAPIRequest(method, url string, payload interface{}) (*http.
 	HubSpotAPIToken := os.Getenv("HUBSPOT_API_KEY")
 	if HubSpotAPIToken == "" {
 		log.Println("HubSpot API token not set")
-		return nil, fmt.Errorf("HubSpot API token not set")
+		return nil, errors.New("HubSpot API token not set")
 	}
 
 	// Convert the payload to JSON
@@ -138,7 +138,7 @@ func (a *App) createHubSpotContact(email, userRole string) (int, error) {
 	// Check for successful response
 	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusCreated {
 		log.Printf("Failed to create HubSpot contact: Status %d", resp.StatusCode)
-		return 0, fmt.Errorf("failed to create contact in HubSpot")
+		return 0, errors.New("failed to create contact in HubSpot")
 	}
 
 	// Parse the response to get the Contact ID (VID)
@@ -194,7 +194,7 @@ func (a *App) createHubSpotNote(contactID int, messageText string) error {
 	// Check for successful response
 	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusCreated {
 		log.Printf("Failed to create HubSpot note: Status %d", resp.StatusCode)
-		return fmt.Errorf("failed to create note in HubSpot")
+		return errors.New("failed to create note in HubSpot")
 	}
 
 	log.Printf("Note successfully created for HubSpot contact ID: %d", contactID)
