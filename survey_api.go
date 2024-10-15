@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -72,6 +73,16 @@ func (a *App) alertOnSurveyCompletion(surveyID uint) (string, error) {
 }
 
 // HubSpot-related functions:
+
+// Function to convert markdown-like text to HTML
+func markdownToHTML(markdown string) string {
+	html := markdown
+	// Remove bold (asterisk) notation
+	html = strings.ReplaceAll(html, "*", "")
+	// Convert newlines to <br> for HTML
+	html = strings.ReplaceAll(html, "\n", "<br>")
+	return html
+}
 
 // Utility function to make HubSpot API requests
 func (a *App) hubSpotAPIRequest(method, url string, payload interface{}) (*http.Response, error) {
@@ -146,11 +157,17 @@ func (a *App) createHubSpotContact(email, userRole string) (int, error) {
 func (a *App) createHubSpotNote(contactID int, messageText string) error {
 	HubSpotAPIURL := "https://api.hubapi.com/crm/v3/objects/notes"
 
+	// Convert markdown-like messageText to HTML
+	htmlMessageText := markdownToHTML(messageText)
+
+	// Get the current time as a Unix timestamp in milliseconds
+	timestampMS := time.Now().UnixNano() / int64(time.Millisecond)
+
 	// Note data to be sent
 	noteRequest := map[string]interface{}{
 		"properties": map[string]string{
-			"hs_timestamp": time.Now().UTC().String(),
-			"hs_note_body": messageText,
+			"hs_timestamp": strconv.FormatInt(timestampMS, 10), // Use Unix timestamp in milliseconds
+			"hs_note_body": htmlMessageText,                    // Use the HTML version of messageText
 		},
 		"associations": []map[string]interface{}{
 			{
