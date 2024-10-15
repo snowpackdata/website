@@ -9,6 +9,8 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
+	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/snowpackdata/cronos"
@@ -34,13 +36,13 @@ func (a *App) sendSlackNotification(message map[string]string, webhookURL string
 	}
 }
 
-func (a *App) alertOnSurveyCompletion(surveyID uint) error {
+func (a *App) alertOnSurveyCompletion(surveyID uint) (string, error) {
 	// Retrieve the survey (and included questions)
 	var survey cronos.Survey
 	result := a.cronosApp.DB.Preload("SurveyResponses").First(&survey, surveyID)
 	if result.Error != nil {
 		log.Printf("Error retrieving survey: %s", result.Error)
-		return result.Error
+		return "", result.Error
 	}
 
 	// Prepare the Slack message: it should contain the survey ID and all of its relevant, non-deleted questions
@@ -50,7 +52,7 @@ func (a *App) alertOnSurveyCompletion(surveyID uint) error {
 
 	// Append each survey response to the message
 	for _, response := range survey.SurveyResponses {
-		formattedResponse := fmt.Sprintf("*Question %d:* %s\n- *Response*: %s\n*- Freeform Response*: %s\n\n",
+		formattedResponse := fmt.Sprintf("*Question %d:* %s\n- *Response*: %s\n- *Freeform Response*: %s\n\n",
 			response.Step, response.Question, response.StructuredAnswer, response.FreeformAnswer)
 		messageText += formattedResponse
 	}
@@ -62,11 +64,140 @@ func (a *App) alertOnSurveyCompletion(surveyID uint) error {
 
 	webhookURL := os.Getenv("SLACK_WEBHOOK_URL")
 	if webhookURL == "" {
-		return errors.New("no Slack webhook URL provided")
+		return "", errors.New("no Slack webhook URL provided")
 	}
 
 	a.sendSlackNotification(message, webhookURL)
 
+	return messageText, nil
+}
+
+// HubSpot-related functions:
+
+// Function to convert markdown-like text to HTML
+func markdownToHTML(markdown string) string {
+	html := markdown
+	// Remove bold (asterisk) notation
+	html = strings.ReplaceAll(html, "*", "")
+	// Convert newlines to <br> for HTML
+	html = strings.ReplaceAll(html, "\n", "<br>")
+	return html
+}
+
+// Utility function to make HubSpot API requests
+func (a *App) hubSpotAPIRequest(method, url string, payload interface{}) (*http.Response, error) {
+	HubSpotAPIToken := os.Getenv("HUBSPOT_API_KEY")
+	if HubSpotAPIToken == "" {
+		log.Println("HubSpot API token not set")
+		return nil, errors.New("HubSpot API token not set")
+	}
+
+	// Convert the payload to JSON
+	payloadJSON, err := json.Marshal(payload)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal payload: %w", err)
+	}
+
+	// Create a new HTTP request with the Bearer token in the header
+	req, err := http.NewRequest(method, url, bytes.NewBuffer(payloadJSON))
+	if err != nil {
+		return nil, fmt.Errorf("failed to create HTTP request: %w", err)
+	}
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", HubSpotAPIToken))
+
+	// Execute the request
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to send request to HubSpot: %w", err)
+	}
+
+	return resp, nil
+}
+
+// Function to create a HubSpot contact and return the Contact ID (VID)
+func (a *App) createHubSpotContact(email, userRole string) (int, error) {
+	HubSpotAPIURL := "https://api.hubapi.com/contacts/v1/contact"
+
+	// Contact data to be sent
+	contactData := map[string]interface{}{
+		"properties": []map[string]string{
+			{"property": "email", "value": email},
+			{"property": "jobtitle", "value": userRole},
+		},
+	}
+
+	// Make API request using the utility function
+	resp, err := a.hubSpotAPIRequest("POST", HubSpotAPIURL, contactData)
+	if err != nil {
+		return 0, fmt.Errorf("failed to create contact in HubSpot: %w", err)
+	}
+	defer resp.Body.Close()
+
+	// Check for successful response
+	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusCreated {
+		log.Printf("Failed to create HubSpot contact: Status %d", resp.StatusCode)
+		return 0, errors.New("failed to create contact in HubSpot")
+	}
+
+	// Parse the response to get the Contact ID (VID)
+	var contactResponse struct {
+		VID int `json:"vid"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&contactResponse); err != nil {
+		return 0, fmt.Errorf("failed to parse contact response: %w", err)
+	}
+
+	log.Printf("HubSpot contact created successfully, VID: %d", contactResponse.VID)
+	return contactResponse.VID, nil
+}
+
+// Function to create a note for a HubSpot contact
+func (a *App) createHubSpotNote(contactID int, messageText string) error {
+	HubSpotAPIURL := "https://api.hubapi.com/crm/v3/objects/notes"
+
+	// Convert markdown-like messageText to HTML
+	htmlMessageText := markdownToHTML(messageText)
+
+	// Get the current time as a Unix timestamp in milliseconds
+	timestampMS := time.Now().UnixNano() / int64(time.Millisecond)
+
+	// Note data to be sent
+	noteRequest := map[string]interface{}{
+		"properties": map[string]string{
+			"hs_timestamp": strconv.FormatInt(timestampMS, 10), // Use Unix timestamp in milliseconds
+			"hs_note_body": htmlMessageText,                    // Use the HTML version of messageText
+		},
+		"associations": []map[string]interface{}{
+			{
+				"to": map[string]interface{}{
+					"id": contactID,
+				},
+				"types": []map[string]interface{}{
+					{
+						"associationCategory": "HUBSPOT_DEFINED",
+						"associationTypeId":   202,
+					},
+				},
+			},
+		},
+	}
+
+	// Make API request using the utility function
+	resp, err := a.hubSpotAPIRequest("POST", HubSpotAPIURL, noteRequest)
+	if err != nil {
+		return fmt.Errorf("failed to create note in HubSpot: %w", err)
+	}
+	defer resp.Body.Close()
+
+	// Check for successful response
+	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusCreated {
+		log.Printf("Failed to create HubSpot note: Status %d", resp.StatusCode)
+		return errors.New("failed to create note in HubSpot")
+	}
+
+	log.Printf("Note successfully created for HubSpot contact ID: %d", contactID)
 	return nil
 }
 
@@ -159,19 +290,36 @@ func (a *App) SurveyResponse(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// If the survey is completed, update the survey to reflect that
+	// Send confirmation email, Slack alert, and create HubSpot contact
 	if r.FormValue("completed") == "true" {
 		var survey cronos.Survey
 		a.cronosApp.DB.First(&survey, surveyId)
 		survey.Completed = true
 		a.cronosApp.DB.Save(&survey)
+
 		// Send confirmation email
 		if err := a.cronosApp.EmailFromAdmin(cronos.EmailTypeSurveyConfirmation, survey.UserEmail); err != nil {
 			log.Printf("Error sending email confirmation. Status: %s", err)
 			return
 		}
-		// Send Slack alert
-		if err := a.alertOnSurveyCompletion(survey.ID); err != nil {
+
+		// Send Slack alert and get the message text for the note
+		messageText, err := a.alertOnSurveyCompletion(survey.ID)
+		if err != nil {
 			log.Printf("Failed at Slack alert step on survey completion")
+			return
+		}
+
+		// Call HubSpot API to create a contact
+		contactID, err := a.createHubSpotContact(survey.UserEmail, survey.UserRole)
+		if err != nil {
+			log.Printf("Failed to create HubSpot contact: %s", err)
+			return
+		}
+
+		// Call HubSpot API to create a note for the created contact
+		if err := a.createHubSpotNote(contactID, messageText); err != nil {
+			log.Printf("Failed to create HubSpot note: %s", err)
 			return
 		}
 	}
