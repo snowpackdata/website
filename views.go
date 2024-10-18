@@ -95,27 +95,47 @@ func blogLandingHandler(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
+// Function to filter blogs by tag
+func filterBlogsByTag(blogs map[string]Post, tag string) []Post {
+	filteredBlogs := []Post{}
+	for _, value := range blogs {
+		for _, itag := range value.Tags {
+			if strings.ToLower(itag) == strings.ToLower(tag) {
+				filteredBlogs = append(filteredBlogs, value)
+			}
+		}
+	}
+	return filteredBlogs
+}
+
+// Function to sort blogs by ID in descending order
+func sortBlogsByID(blogs []Post) []Post {
+	sort.Slice(blogs, func(i, j int) bool {
+		return blogs[i].ID > blogs[j].ID // Sort by ID in descending order
+	})
+	return blogs
+}
+
 func blogTagHandler(w http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	tag := vars["tag"]
 	blogs := loadBlogs()
-	caseStudies := make(map[string]Post)
-	for key, value := range blogs {
-		for _, itag := range value.Tags {
-			if strings.ToLower(itag) == strings.ToLower(tag) {
-				caseStudies[key] = value
-			}
-		}
-	}
 
-	// if the map is empty, then redirect to the main blog page
-	if len(caseStudies) == 0 {
+	// Use the utility function to filter and sort by tag
+	filteredBlogs := filterBlogsByTag(blogs, tag)
+
+	// Sort blogs by id in descending order
+	sortedBlogs := sortBlogsByID(filteredBlogs)
+
+	// If no posts match the tag, return a 404 error
+	if len(sortedBlogs) == 0 {
 		http.Error(w, "404 page not found", http.StatusNotFound)
 		return
 	}
 
+	// Render the template with filtered blogs
 	landingTemplate, _ := template.ParseFiles("./templates/blog_landing.gohtml")
-	err := landingTemplate.Execute(w, caseStudies)
+	err := landingTemplate.Execute(w, sortedBlogs)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -124,21 +144,25 @@ func blogTagHandler(w http.ResponseWriter, req *http.Request) {
 func caseStudyLandingHandler(w http.ResponseWriter, req *http.Request) {
 	tag := "case-study"
 	blogs := loadBlogs()
-	caseStudies := make(map[string]Post)
-	for key, value := range blogs {
-		for _, itag := range value.Tags {
-			if strings.ToLower(itag) == strings.ToLower(tag) {
-				caseStudies[key] = value
-			}
-		}
+
+	// Use the utility function to filter and sort by the "case-study" tag
+	caseStudies := filterBlogsByTag(blogs, tag)
+
+	// Sort blogs by id in descending order
+	sortedBlogs := sortBlogsByID(caseStudies)
+
+	// If no case studies match, return a 404 error
+	if len(sortedBlogs) == 0 {
+		http.Error(w, "404 page not found", http.StatusNotFound)
+		return
 	}
 
+	// Render the template with filtered case studies
 	landingTemplate, _ := template.ParseFiles("./templates/blog_landing.gohtml")
-	err := landingTemplate.Execute(w, caseStudies)
+	err := landingTemplate.Execute(w, sortedBlogs)
 	if err != nil {
 		log.Fatal(err)
 	}
-	return
 }
 
 func blogHandler(w http.ResponseWriter, req *http.Request) {
