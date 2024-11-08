@@ -17,6 +17,7 @@ var App = new Vue({
         staff : null,
         rates : null,
         billing_codes : null,
+        active_billing_codes: null,
         accounts : null,
         projects : null,
         draftInvoices : null,
@@ -639,6 +640,20 @@ var App = new Vue({
             .catch(error => {
                 console.log(error)
             })
+        },
+        fetchActiveBillingCodes(){
+            axios({
+                method: 'get',
+                url: '/api/active_billing_codes',
+                headers: {'Content-Type': 'application/json', 'x-access-token': window.localStorage.snowpack_token},
+            })
+                .then(response => {
+                    this.active_billing_codes = response.data
+                    console.log("retrieved active billing codes")
+                })
+                .catch(error => {
+                    console.log(error)
+                })
         },
         fetchAccounts(){
             axios({

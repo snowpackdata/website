@@ -59,6 +59,16 @@ func (a *App) BillingCodesListHandler(w http.ResponseWriter, r *http.Request) {
 	_ = json.NewEncoder(w).Encode(&billingCodes)
 }
 
+// ActiveBillingCodesListHandler provides a list of BillingCodes that are available and active for the
+// entry to be generated
+func (a *App) ActiveBillingCodesListHandler(w http.ResponseWriter, r *http.Request) {
+	var billingCodes []cronos.BillingCode
+	a.cronosApp.DB.Preload("Rate").Preload("InternalRate").Where("active_start <= ? and active_end >= ?", time.Now(), time.Now()).Find(&billingCodes)
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	w.WriteHeader(http.StatusOK)
+	_ = json.NewEncoder(w).Encode(&billingCodes)
+}
+
 // EntriesListHandler provides a list of Entries that are available
 func (a *App) EntriesListHandler(w http.ResponseWriter, r *http.Request) {
 	var entries []cronos.Entry
