@@ -131,7 +131,7 @@
                             <div class="modal-body" style="">
                                 <label>Select Billing Code</label>
                                 <select v-model="selectedEntry.billing_code_id">
-                                    <option v-for="billing_code in billing_codes" :value="billing_code.ID">
+                                    <option v-for="billing_code in active_billing_codes" :value="billing_code.ID">
                                        {{billing_code.code}} : {{billing_code.name}}
                                     </option>
                                 </select>
@@ -726,6 +726,7 @@
     App.fetchStaff();
     App.fetchProjects();
     App.fetchBillingCodes();
+    App.fetchActiveBillingCodes();
     App.fetchEntries();
     App.updateEventSizes();
 </script>

@@ -112,6 +112,7 @@ func main() {
 	api.HandleFunc("/rates/{id:[0-9]+}", a.RateHandler).Methods("GET", "PUT", "POST", "DELETE")
 	api.HandleFunc("/billing_codes", a.BillingCodesListHandler).Methods("GET")
 	api.HandleFunc("/billing_codes/{id:[0-9]+}", a.BillingCodeHandler).Methods("GET", "PUT", "POST", "DELETE")
+	api.HandleFunc("/active_billing_codes", a.ActiveBillingCodesListHandler).Methods("GET")
 	api.HandleFunc("/adjustments/{id:[0-9]+}", a.AdjustmentHandler).Methods("GET", "PUT", "POST", "DELETE")
 	api.HandleFunc("/adjustments/state/{id:[0-9]+}/{state:(?:void)|(?:draft)|(?:approve)}", a.AdjustmentStateHandler).Methods("POST")
 	api.HandleFunc("/user/invoices", a.ClientInvoiceHandler).Methods("GET")
