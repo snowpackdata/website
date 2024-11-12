@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cloud Storage Overview</title>
+</head>
+<body>
+
+<h1>Part 1: Cloud Storage</h1>
+<p>Cloud storage is a key part of every modern web application–any web application that stores and recalls data generally writes data to and reads data from a set of folders in a cloud storage environment like GCP or Amazon S3.</p>
+
+<p>Keep in mind that cloud storage for you as a business leader isn’t only relevant in cases where your company’s proprietary software is generating data–3rd party applications like Salesforce CRM store their own data in their own cloud storage instances, and make it accessible via API (which we’ll talk about more later).</p>
+
+<p>If your company’s proprietary software requires cloud storage in order to function, and if you collect user data or activity data from your users, that data needs to be stored before it can be loaded into your database along with all of your other 3rd-party data.</p>
+
+<p>The cloud storage solution you choose for your analytics stack is dependent on the hosting solution you use for your existing technology stack. For example, if a company hosts the data for their web product using Google Cloud Platform, it makes sense to build on the existing storage provider’s platform rather than moving everything from one cloud storage environment into another and adding unnecessary complexity.</p>
+
+<h2>Costs of Cloud Storage</h2>
+<p>There are two main categories of cost when it comes to assessing all the tools that move/transform/load data from one environment to another or from one state into another. These are known as “storage” and “compute”. In the case of cloud storage–the hint is in the name–the primary costs we worry about are storage costs.</p>
+
+<p>In general, the cost of storage usage is typically lower than the cost of CPU usage and bandwidth/traffic usage. This is because storage is a passive resource that does not require as much processing power or data transfer as CPU and bandwidth usage.</p>
+
+<p>This means that unless your application is generating literal petabytes of data over a short timeframe (imagine Meta’s usage data generated per day), your storage costs are unlikely to be as significant to your budget as your compute costs.</p>
+
+<p>Keep in mind though that it’s not just your analytics database using cloud storage, it’s generally your entire proprietary software application. As such, there are likely compute costs associated with data processing and network usage that are also generated and need to be tracked over time. As these costs are already necessary in order to run your application and collect data from your users, these are effectively baked into your existing cloud storage costs and are unlikely to change substantially.</p>
+
+<h2>Questions to Ask When Assessing Your Cloud Storage Solution of Choice</h2>
+<p>When assessing the potential costs and risks associated with the cloud storage tooling you’re considering implementing, the important question to ask is: “Am I paying for storage, compute, or both?”</p>
+
+<p>When looking to cut down on costs for an existing data stack for a client, the main element we focus on is twofold:</p>
+<ol>
+    <li>“What are the costs associated with storage and/or compute for this provider–is there another provider that would be cheaper while maintaining the same level of service?</li>
+    <li>“How can we reduce compute, and thereby reduce cost associated with compute?”</li>
+</ol>
+
+<p>Assuming switching costs are high in terms of time and $$$ and the client is already committed to a particular product, we’re mainly looking to optimize within the existing platform, which often involves reducing the complexity of automation jobs requiring large amounts of CPU usage or bandwidth.</p>
+
+<p>If you want to dive deep on this subject, we released an in-depth case study in collaboration with one of our clients that shows how we cut costs by changing the manner in which their user data was loaded into GCP (Google Cloud Platform).</p>
+
+<h2>Who Works with Your Cloud Storage Platform?</h2>
+<p>Often, data loads to your storage platform are implemented by your back-end or full-stack software engineer/team. It’s not always necessary for an early stage (i.e. Seed or series A stage) organization to hire a data engineer to work on your cloud storage efficiency provided that your software engineers are knowledgeable and capable of setting up load jobs in a way that minimizes costs as you scale.</p>
+
+<p>Once your company has a substantial quantity of data being passed to and stored in the cloud such that costs become impactful to your organization's bottom line, it may make sense to hire a data engineer whose job (in part) it is to ensure costs stay low as the quantity of data you collect and store increases over time along with your
+
+<p>A dedicated data engineer will also be responsible for ETL tooling and database setup and maintenance, and will effectively work to make sure you get usable data into your analytics warehouse at low cost.</p>
+
+<p>For these reasons, the first data hire you make should always be a data engineer, <strong>NOT</strong> an analyst.</p>
+
+<h2>Key Takeaways on Cloud Storage</h2>
+<p>There are three main takeaways to consider when thinking about cloud storage requirements for your organization:</p>
+
+<ol>
+  <li>If you have a proprietary software application, you’re already using a cloud storage solution to run it–unless you’re changing the cloud storage platform for the entire organization, it makes sense to stick with the cloud storage solution you’re already using to minimize complexity.</li>
+  <li>Cloud storage concerns really only apply to proprietary data (i.e., Product usage data) that are generated by your organization’s software application. 3rd party data like CRM data from Salesforce can and should be loaded directly into your database using an ETL tool that connects to the 3rd party vendor’s API and loads data directly from their servers. (We’ll describe this in more detail in the ETL tools section.)</li>
+  <li>Unless you have hundreds of thousands, or even millions of users, your main cost center with regard to your cloud storage platform will be the compute required to load data. Cost reduction in this area should be focused on reducing compute, rather than limiting the cost of storage.</li>
+</ol>
+
+<p><strong>Staffing:</strong> Your existing software engineers and/or a dedicated data engineer are responsible for managing this part of your stack. A data engineer should be the first data hire you make at your company.</p>
+
+<p>That’s it for cloud storage, next week we’ll take a look at databases.</p>
