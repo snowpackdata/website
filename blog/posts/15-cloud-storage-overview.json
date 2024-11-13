@@ -1,0 +1,11 @@
+{
+  "id" : 15,
+  "title" : "The Decision-Makers Guide To Building a Data Stack",
+  "subtitle": "Part 2: Cloud Storage - What it is, and why we need it",
+  "splash" : "cloud-databases.jpg",
+  "author" : "Kevin Koenitzer",
+  "slug" : "cloud-storage-overview",
+  "tags" : ["modern-data-stack", "mds", "guide", "guides"],
+  "date" : "November 12, 2024",
+  "content" : "cloud-storage-overview.html"
+}
