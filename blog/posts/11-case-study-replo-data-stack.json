@@ -5,7 +5,7 @@
   "splash" : "fuji-cityscape.jpeg",
   "author" : "Danny Blumenthal",
   "slug" : "case-study-replo",
-  "tags" : ["case-study", "data-stack", "etl", "consulting", "dbt", "snowflake", "airbyte", "dagster"],
+  "tags" : ["case-study", "data-stack", "etl", "consulting", "dbt", "snowflake", "airbyte", "dagster", "data"],
   "date" : "June 10, 2024",
   "content" : "case-study-replo.html"
 }

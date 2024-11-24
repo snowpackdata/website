@@ -5,7 +5,7 @@
   "splash" : "topography.jpg",
   "author" : "Danny Blumenthal",
   "slug" : "regressions-in-dbt",
-  "tags" : ["dbt", "sql", "regressions", "predictive-analytics"],
+  "tags" : ["dbt", "sql", "regressions", "predictive-analytics", "data"],
   "date" : "September 9, 2024",
   "content" : "regressions-in-dbt.html"
 }

@@ -33,6 +33,20 @@ func loadBlogs() map[string]Post {
 		if err != nil {
 			log.Fatal(err)
 		}
+		switch post.Author {
+		case "Nate Robinson":
+			post.AuthorImage = "nate-profile.jpeg"
+		case "Danny Blumenthal":
+			post.AuthorImage = "danny-profile.jpeg"
+		case "Kevin Koenitzer":
+			post.AuthorImage = "kevin-profile.jpeg"
+		case "David Olodort":
+			post.AuthorImage = "anon-profile.jpeg"
+		case "David Shore":
+			post.AuthorImage = "shore-profile.jpeg"
+		default:
+			post.AuthorImage = "anon-profile.jpeg"
+		}
 
 		// add posts to our hashmap with the ID as the key
 		postsMap[post.Slug] = post
@@ -53,7 +67,19 @@ func loadBlogs() map[string]Post {
 
 // Index Page as Follows are all URL Pathways
 func indexHandler(w http.ResponseWriter, req *http.Request) {
-	http.ServeFile(w, req, "./templates/index.html")
+	// Load the most recent three blogs
+	blogPosts := loadBlogs()
+
+	// Get only "front-page" tagged posts
+	frontPagePosts := filterBlogsByTag(blogPosts, "data")
+	sortedBlogs := sortBlogsByID(frontPagePosts)
+
+	lastThreeBlogs := sortedBlogs[0:3]
+	indexTemplate, _ := template.ParseFiles("./templates/index.html")
+	err := indexTemplate.Execute(w, lastThreeBlogs)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 // Services page for all /services url requests

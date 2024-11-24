@@ -5,7 +5,7 @@
   "splash" : "cloud-databases.jpg",
   "author" : "Kevin Koenitzer",
   "slug" : "cloud-storage-overview",
-  "tags" : ["modern-data-stack", "mds", "guide", "guides"],
+  "tags" : ["modern-data-stack", "mds", "guide", "guides", "data"],
   "date" : "November 12, 2024",
   "content" : "cloud-storage-overview.html"
 }

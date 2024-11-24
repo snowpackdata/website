@@ -5,7 +5,7 @@
   "splash" : "chartsplash.jpg",
   "author" : "Nate Robinson",
   "slug" : "bi-tool-roundup",
-  "tags" : ["bi tooling", "data visualization", "looker", "tableau", "power-bi"],
+  "tags" : ["bi tooling", "data visualization", "looker", "tableau", "power-bi", "data"],
   "date" : "December 20, 2023",
   "content" : "bi-tool-roundup.html"
 }
