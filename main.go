@@ -74,7 +74,9 @@ func main() {
 
 	// our main routes are handled by the main router and are not protected by JWT
 	r.HandleFunc("/", indexHandler)
+	r.NotFoundHandler = http.HandlerFunc(notFoundHandler)
 	r.HandleFunc("/services", servicesHandler)
+	r.HandleFunc("/about", aboutHandler)
 	r.HandleFunc("/free-assessment", dataAssessmentHandler)
 	r.HandleFunc("/reports/examples/nba-report", exampleReportHandler)
 	r.HandleFunc("/blog", blogLandingHandler)

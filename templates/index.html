@@ -14,6 +14,9 @@
 <!-- Tailwind CSS -->
 <link href="/assets/css/outputs.css" rel="stylesheet" />
 
+<!--  Montserrat font from Google Fonts-->
+<link href="https://fonts.googleapis.com/css?family=Montserrat:400,700" rel="stylesheet" type="text/css" />
+
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-TRLQYPPXKE"></script>
 
@@ -77,13 +80,13 @@
         <div class="mt-6 flow-root">
           <div class="-my-6 divide-y divide-gray-500/25">
             <div class="space-y-2 py-6">
-              <a href="#" class="-mx-3 block rounded-lg px-3 py-2 text-base/7 font-semibold text-white hover:bg-gray-800">About Us</a>
-              <a href="#" class="-mx-3 block rounded-lg px-3 py-2 text-base/7 font-semibold text-white hover:bg-gray-800">Services</a>
-              <a href="#" class="-mx-3 block rounded-lg px-3 py-2 text-base/7 font-semibold text-white hover:bg-gray-800">Case Studies</a>
-              <a href="#" class="-mx-3 block rounded-lg px-3 py-2 text-base/7 font-semibold text-white hover:bg-gray-800">Free Consultation</a>
+              <a href="/about" class="-mx-3 block rounded-lg px-3 py-2 text-base/7 font-semibold text-white hover:bg-gray-800">About Us</a>
+              <a href="/services" class="-mx-3 block rounded-lg px-3 py-2 text-base/7 font-semibold text-white hover:bg-gray-800">Services</a>
+              <a href="/articles/case-study" class="-mx-3 block rounded-lg px-3 py-2 text-base/7 font-semibold text-white hover:bg-gray-800">Case Studies</a>
+              <a href="/free-assessment" class="-mx-3 block rounded-lg px-3 py-2 text-base/7 font-semibold text-white hover:bg-gray-800">Free Consultation</a>
             </div>
             <div class="py-6">
-              <a href="#" class="-mx-3 block rounded-lg px-3 py-2.5 text-base/7 font-semibold text-white hover:bg-gray-800">Log in</a>
+              <a href="/login" class="-mx-3 block rounded-lg px-3 py-2.5 text-base/7 font-semibold text-white hover:bg-gray-800">Log in</a>
             </div>
           </div>
         </div>
@@ -100,8 +103,8 @@
           <h1 class="text-balance text-5xl font-semibold tracking-tight text-white sm:text-7xl">Snowpack Data</h1>
           <p class="mt-8 text-pretty text-lg font-medium text-white sm:text-xl/8">Snowpack Data provides analytics and engineering consulting so that our clients can implement scalable infrastructure, tooling, and processes to manage a cutting-edge analytics organization at scale</p>
           <div class="mt-4 flex items-center justify-center gap-x-6">
-            <a href="#" class="rounded-md bg-indigo-500 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-400">Get started</a>
-            <a href="#" class="text-sm/6 font-semibold text-white">Learn more <span aria-hidden="true">→</span></a>
+            <a href="/about" class="rounded-md bg-indigo-500 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-400">About us</a>
+            <a href="#offerings" class="text-sm/6 font-semibold text-white">Learn more <span aria-hidden="true">→</span></a>
           </div>
         </div>
       </div>
@@ -116,7 +119,7 @@
 <div class="bg-white py-24 sm:py-32">
   <div class="mx-auto max-w-7xl px-6 lg:px-8">
     <div class="mx-auto max-w-2xl lg:text-center">
-      <p class="mt-2 text-pretty text-4xl font-semibold tracking-tight text-gray-900 sm:text-5xl lg:text-balance">What we offer</p>
+      <p id="offerings" class="mt-2 text-pretty text-4xl font-semibold tracking-tight text-gray-900 sm:text-5xl lg:text-balance">What we offer</p>
       <p class="mt-6 text-lg/8 text-gray-600">Snowpack specializes in building a strong foundation for a cutting edge analytics org. Our specialities in data science, data engineer, and product analytics offer solutions to a wide range of analytical problems.</p>
     </div>
     <div class="mx-auto mt-16 max-w-2xl sm:mt-20 lg:mt-24 lg:max-w-none">

@@ -82,6 +82,10 @@ func indexHandler(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
+func aboutHandler(w http.ResponseWriter, req *http.Request) {
+	http.ServeFile(w, req, "./templates/about.html")
+}
+
 // Services page for all /services url requests
 func servicesHandler(w http.ResponseWriter, req *http.Request) {
 	http.ServeFile(w, req, "./templates/services.html")
@@ -201,4 +205,8 @@ func blogHandler(w http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		log.Fatal(err)
 	}
+}
+
+func notFoundHandler(writer http.ResponseWriter, request *http.Request) {
+	http.ServeFile(writer, request, "./templates/404.html")
 }
