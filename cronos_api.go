@@ -807,3 +807,19 @@ func (a *App) ClientInvoiceHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	return
 }
+
+func (a *App) ContactPageEmail(w http.ResponseWriter, r *http.Request) {
+	// Retrieve email details from the post form
+	customerEmail := r.FormValue("email")
+	customerFirstName := r.FormValue("first_name")
+	customerLastName := r.FormValue("last_name")
+	customerMessage := r.FormValue("message")
+
+	// Send the email
+	//err := a.cronosApp.EmailFromAdmin(cronos.EmailTypeContact, "info@snowpack-data.com")
+
+	a.logger.Printf("Email sent to %s %s at %s with message: %s", customerFirstName, customerLastName, customerEmail, customerMessage)
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	w.WriteHeader(http.StatusOK)
+	return
+}

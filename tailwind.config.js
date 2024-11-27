@@ -18,6 +18,14 @@ module.exports = {
       'yellow' : '#f7d070',
       'red': '#9f0d0d',
       'black': '#000000',
+      'green-success': '#47d67c',
+      'green-success-light': '#e5f3ec',
+      'green-success-dark': '#186335',
+      'red-error': '#f44336',
+      'red-error-light': '#ffebee',
+        'red-error-dark': '#b71c1c',
+
+
 
     },
     fontFamily: {
