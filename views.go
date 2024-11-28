@@ -101,6 +101,10 @@ func dataAssessmentHandler(w http.ResponseWriter, req *http.Request) {
 	http.ServeFile(w, req, "./templates/data_assessment.html")
 }
 
+func contactHandler(w http.ResponseWriter, req *http.Request) {
+	http.ServeFile(w, req, "./templates/contact.html")
+}
+
 func blogLandingHandler(w http.ResponseWriter, req *http.Request) {
 	blogPosts := loadBlogs()
 	// Sort the posts by ID

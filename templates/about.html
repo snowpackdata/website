@@ -9,7 +9,7 @@
   <meta name="author" content="Snowpack Data LLC" />
   <title>Snowpack Data</title>
   <!-- Favicon-->
-  <link rel="shortcut icon" type="icon" href="branding/favicon/favicon.ico">
+  <link rel="shortcut icon" type="icon" href="/branding/favicon/favicon.ico">
 
   <!-- Tailwind CSS -->
   <link href="/assets/css/outputs.css" rel="stylesheet" />
@@ -29,64 +29,156 @@
   </script>
 </head>
 <body>
-<nav class="bg-white">
-  <div class="mx-auto max-w-7xl px-2 sm:px-6 lg:px-8">
-    <div class="relative flex h-16 items-center justify-between">
-      <div class="absolute inset-y-0 left-0 flex items-center sm:hidden">
-        <!-- Mobile menu button-->
-        <button id="menuToggle" type="button" class="relative inline-flex items-center justify-center rounded-md p-2 text-gray-dark focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white" aria-controls="mobile-menu" aria-expanded="false">
-          <span class="absolute -inset-0.5"></span>
+<!--TOP NAVBAR AND HAMBURGER MENU-->
+
+<header class="absolute inset-x-0 top-0 z-50">
+    <nav class="flex items-center justify-between p-6 lg:px-8 bg-white shadow" aria-label="Global">
+      <div class="flex lg:flex-1">
+        <a href="/" class="-m-1.5 p-1.5">
+          <span class="sr-only">Snowpack Data</span>
+          <img class="h-8 w-auto" src="/branding/logo/logo-text-header-med-lightbg.png" alt="Snowpack Data">
+        </a>
+      </div>
+      <div class="flex lg:hidden">
+        <button id="openMenu" type="button" class="-m-2.5 inline-flex items-center justify-center rounded-md p-2.5 text-gray-dark">
           <span class="sr-only">Open main menu</span>
-          <!--
-            Icon when menu is closed.
-
-            Menu open: "hidden", Menu closed: "block"
-          -->
-          <svg id="hamburgerIcon" class="sm:hidden block size-6 text-gray-dark" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" data-slot="icon">
+          <svg class="size-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" data-slot="icon">
             <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
-          </svg>
-          <!--
-            Icon when menu is open.
-
-            Menu open: "block", Menu closed: "hidden"
-          -->
-          <svg id="closeIcon" class="hidden size-6 text-gray-dark" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" data-slot="icon">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
           </svg>
         </button>
       </div>
-      <div class="flex flex-1 items-center justify-center sm:items-stretch sm:justify-start">
-        <div class="flex shrink-0 items-center">
-          <a href="/">
-            <img class="h-8 w-auto" src=/branding/logo/logo-large-light.png alt="Snowpack Data">
+      <div class="hidden lg:flex lg:gap-x-12">
+        <a href="/services" class="text-sm/6 font-semibold text-gray-dark hover:text-yellow">Services</a>
+        <a href="/blog" class="text-sm/6 font-semibold text-gray-dark hover:text-yellow">Blog</a>
+        <a href="/articles/case-study" class="text-sm/6 font-semibold text-gray-dark hover:text-yellow">Case Studies</a>
+        <a href="/free-assessment" class="text-sm/6 font-semibold text-gray-dark hover:text-yellow">Free Consultation</a>
+        <a href="/contact" class="text-sm/6 font-semibold text-gray-dark hover:text-yellow">Contact</a>
+      </div>
+      <div class="hidden lg:flex lg:flex-1 lg:justify-end">
+        <a id="login" href="#" class="text-sm/6 font-semibold text-gray-dark hover:text-yellow">Log In <span aria-hidden="true">&rarr;</span></a>
+      </div>
+    </nav>
+    <!-- Mobile menu, show/hide based on menu open state. -->
+    <div id="menu" class="hidden" role="dialog" aria-modal="true">
+      <!-- Background backdrop, show/hide based on slide-over state. -->
+      <div class="fixed inset-0 z-50"></div>
+      <div class="fixed inset-y-0 right-0 z-50 w-full overflow-y-auto bg-white px-6 py-6 sm:max-w-sm sm:ring-1 sm:ring-white/10">
+        <div class="flex items-center justify-between">
+          <a href="#" class="-m-1.5 p-1.5">
+            <span class="sr-only">Snowpack Data</span>
+            <img class="h-8 w-auto" src="/branding/logo/logo-large-light.svg" alt="">
           </a>
+          <span class="text-gray-dark font-bold">Snowpack Data</span>
+          <button id="closeMenu" type="button" class="-m-2.5 rounded-md p-2.5 text-gray-dark">
+            <span class="sr-only">Close menu</span>
+            <svg class="size-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" data-slot="icon">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+            </svg>
+          </button>
         </div>
-        <div class="hidden sm:ml-6 sm:block">
-          <div class="flex space-x-4">
-            <a href="/services" class="rounded-md bg-gray-900 px-3 py-2 text-sm font-medium text-gray-dark" aria-current="page">Services</a>
-            <a href="/blog" class="rounded-md px-3 py-2 text-sm font-medium text-gray-dark">Blog</a>
-            <a href="/articles/case-study" class="rounded-md px-3 py-2 text-sm font-medium text-gray-dark">Case Studies</a>
-            <a href="/free-assessment" class="rounded-md px-3 py-2 text-sm font-medium text-gray-dark">Free Consultation</a>
+        <div class="mt-6 flow-root">
+          <div class="-my-6 divide-y divide-gray-500/25">
+            <div class="space-y-2 py-6">
+              <a href="/services" class="-mx-3 block rounded-lg px-3 py-2 text-base/7 font-semibold text-gray-dark hover:bg-gray-800">Services</a>
+              <a href="/blog" class="-mx-3 block rounded-lg px-3 py-2 text-base/7 font-semibold text-gray-dark hover:bg-gray-800">Blog</a>
+              <a href="/articles/case-study" class="-mx-3 block rounded-lg px-3 py-2 text-base/7 font-semibold text-gray-dark hover:bg-gray-800">Case Studies</a>
+              <a href="/free-assessment" class="-mx-3 block rounded-lg px-3 py-2 text-base/7 font-semibold text-gray-dark hover:bg-gray-800">Free Consultation</a>
+              <a href="/contact" class="-mx-3 block rounded-lg px-3 py-2 text-base/7 font-semibold text-gray-dark hover:bg-gray-800">Contact</a>
+            </div>
+            <div class="py-6">
+              <a href="/login" class="-mx-3 block rounded-lg px-3 py-2.5 text-base/7 font-semibold text-gray-dark hover:bg-gray-800">Log in</a>
+            </div>
           </div>
         </div>
       </div>
     </div>
-  </div>
-
-  <!-- Mobile menu, show/hide based on menu state. -->
-  <div class="hidden" id="mobile-menu">
-    <div class="space-y-1 px-2 pb-3 pt-2">
-      <a href="/services" class="block rounded-md bg-gray-900 px-3 py-2 text-base font-medium text-gray-dark" aria-current="page">Services</a>
-      <a href="/blog" class="block rounded-md px-3 py-2 text-base font-medium text-gray-dark">Blog</a>
-      <a href="/articles/case-study" class="block rounded-md px-3 py-2 text-base font-medium text-gray-dark">Case Studies</a>
-      <a href="/free-assessment" class="block rounded-md px-3 py-2 text-base font-medium text-gray-dark">Free Consultation</a>
+</header>
+<div class="bg-white py-24 sm:py-32">
+  <div class="mx-auto max-w-7xl px-6 lg:px-8">
+    <div class="mx-auto max-w-2xl lg:mx-0">
+      <p class="text-base/7 font-semibold text-dark-blue">Who are we?</p>
+      <h2 class="mt-2 text-5xl font-semibold tracking-tight text-gray-900 sm:text-7xl">Data Professionals</h2>
+      <p class="mt-8 text-pretty text-lg font-medium text-gray-500 sm:text-xl/8">With experience spanning the data stack including data engineering, data modeling and predictive analytics we offer solutions to a wide range of analytical problems. Our mission is to provide customized high-quality work for our clients that accelerates data maturity and empowers decision-making.</p>
     </div>
   </div>
-</nav>
+</div>
+
+<div class="bg-dark-blue py-24 sm:py-32">
+  <div class="mx-auto max-w-7xl px-6 lg:px-8 lg:flex lg:justify-between">
+    <div class="mx-8 max-w-2xl lg:mx-0">
+      <p class="text-base/7 font-semibold text-gray-light">Why Snowpack?</p>
+      <h2 class="mt-2 text-2xl font-semibold tracking-tight text-gray-light sm:text-7xl">Data in Layers</h2>
+      <p class="mt-8 text-pretty font-normal text-gray-light sm:text-xl/6">We believe the strongest data stacks are supported by well-defined layers of data ingestion, processing, and reporting that establish trust throughout the organization. Our name <em>Snowpack Data</em> was derived from the process of avalanche forecasters in assessing the stability of snow. We bring this process to our customers, ensuring that each layer supports the next, and that weak layers don't bring the whole stack down.</p>
+
+      <p class="mt-8 text-pretty text-lg/6 font-medium text-white sm:text-xl/8">
+        We offer an efficient option for companies looking to jump-start their analytics organization or provide key support to existing teams. We are able to quickly and independently deliver on key projects and provide a roadmap for future work that your team can build on.</p>
+    </div>
+    <div class="mt-10 w-full max-w-xs">
+      <img src="/assets/img/layers.png" alt="Product screenshot" class="" >
+    </div>
+  </div>
+</div>
+
+<div class="relative isolate overflow-hidden bg-gray-900 py-24 sm:py-32">
+  <img src="/assets/img/snowpack-splash.jpg" alt="" class="absolute inset-0 -z-10 size-full object-cover object-right md:object-center brightness-50">
+  <div class="hidden sm:absolute sm:-top-10 sm:right-1/2 sm:-z-10 sm:mr-10 sm:block sm:transform-gpu sm:blur-3xl">
+    <div class="aspect-[1097/845] w-[68.5625rem] bg-gradient-to-tr from-[#ff4694] to-[#776fff] opacity-20" style="clip-path: polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)"></div>
+  </div>
+  <div class="absolute -top-52 left-1/2 -z-10 -translate-x-1/2 transform-gpu blur-3xl sm:top-[-28rem] sm:ml-16 sm:translate-x-0 sm:transform-gpu">
+    <div class="aspect-[1097/845] w-[68.5625rem] bg-gradient-to-tr from-[#ff4694] to-[#776fff] opacity-20" style="clip-path: polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)"></div>
+  </div>
+  <div class="mx-auto max-w-7xl px-6 lg:px-8">
+    <div class="mx-auto max-w-2xl lg:mx-0">
+      <h2 class="text-5xl font-semibold tracking-tight text-gray-light sm:text-7xl">Our Expertises</h2>
+      <p class="mt-8 text-pretty font-medium text-gray-light text-xl/8">We specialize in helping growing businesses scale and deliver analytics</p>
+    </div>
+    <div class="mx-auto mt-16 grid max-w-2xl grid-cols-1 gap-6 sm:mt-20 lg:mx-0 lg:max-w-none lg:grid-cols-3 lg:gap-8">
+      <div class="flex gap-x-4 rounded-xl p-6 ring-1 ring-inset ring-white/10 bg-dark-blue bg-opacity-80">
+        <!--        COMMENTING OUT HEROICONS UNTIL WE HAVE BETTER OPTIONS-->
+<!--        <svg class="h-7 w-5 flex-none text-light-blue" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" data-slot="icon">-->
+<!--          <path fill-rule="evenodd" d="M2 3.5A1.5 1.5 0 0 1 3.5 2h1.148a1.5 1.5 0 0 1 1.465 1.175l.716 3.223a1.5 1.5 0 0 1-1.052 1.767l-.933.267c-.41.117-.643.555-.48.95a11.542 11.542 0 0 0 6.254 6.254c.395.163.833-.07.95-.48l.267-.933a1.5 1.5 0 0 1 1.767-1.052l3.223.716A1.5 1.5 0 0 1 18 15.352V16.5a1.5 1.5 0 0 1-1.5 1.5H15c-1.149 0-2.263-.15-3.326-.43A13.022 13.022 0 0 1 2.43 8.326 13.019 13.019 0 0 1 2 5V3.5Z" clip-rule="evenodd" />-->
+<!--        </svg>-->
+        <div class="text-base/7">
+          <h3 class="font-semibold text-gray-light">Custom Projects</h3>
+          <p class="mt-2 text-gray-light">Cloud Data Cost Reduction</p>
+          <p class="mt-2 text-gray-light">Predictive Models, ML, and AI</p>
+          <p class="mt-2 text-gray-light">Technology Implementations</p>
+        </div>
+      </div>
+      <div class="flex gap-x-4 rounded-xl p-6 ring-1 ring-inset ring-white/10 bg-dark-blue bg-opacity-80">
+        <!--        COMMENTING OUT HEROICONS UNTIL WE HAVE BETTER OPTIONS-->
+<!--        <svg class="h-7 w-5 flex-none text-light-blue" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" data-slot="icon">-->
+<!--          <path fill-rule="evenodd" d="m7.171 4.146 1.947 2.466a3.514 3.514 0 0 1 1.764 0l1.947-2.466a6.52 6.52 0 0 0-5.658 0Zm8.683 3.025-2.466 1.947c.15.578.15 1.186 0 1.764l2.466 1.947a6.52 6.52 0 0 0 0-5.658Zm-3.025 8.683-1.947-2.466c-.578.15-1.186.15-1.764 0l-1.947 2.466a6.52 6.52 0 0 0 5.658 0ZM4.146 12.83l2.466-1.947a3.514 3.514 0 0 1 0-1.764L4.146 7.171a6.52 6.52 0 0 0 0 5.658ZM5.63 3.297a8.01 8.01 0 0 1 8.738 0 8.031 8.031 0 0 1 2.334 2.334 8.01 8.01 0 0 1 0 8.738 8.033 8.033 0 0 1-2.334 2.334 8.01 8.01 0 0 1-8.738 0 8.032 8.032 0 0 1-2.334-2.334 8.01 8.01 0 0 1 0-8.738A8.03 8.03 0 0 1 5.63 3.297Zm5.198 4.882a2.008 2.008 0 0 0-2.243.407 1.994 1.994 0 0 0-.407 2.243 1.993 1.993 0 0 0 .992.992 2.008 2.008 0 0 0 2.243-.407c.176-.175.31-.374.407-.585a2.008 2.008 0 0 0-.407-2.243 1.993 1.993 0 0 0-.585-.407Z" clip-rule="evenodd" />-->
+<!--        </svg>-->
+        <div class="text-base/7">
+          <h3 class="font-semibold text-white">Workforce Enhancement</h3>
+          <p class="mt-2 text-white">Professional staff to support key roles</p>
+          <p class="mt-2 text-white">Flexible staffing to support surges and ebbs in analytical support</p>
+        </div>
+      </div>
+      <div class="flex gap-x-4 rounded-xl p-6 ring-1 ring-inset ring-white/10  bg-dark-blue bg-opacity-80">
+<!--        COMMENTING OUT HEROICONS UNTIL WE HAVE BETTER OPTIONS-->
+<!--        <svg class="h-7 w-5 flex-none text-light-blue" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" data-slot="icon">-->
+<!--          <path fill-rule="evenodd" d="M2 3.5A1.5 1.5 0 0 1 3.5 2h9A1.5 1.5 0 0 1 14 3.5v11.75A2.75 2.75 0 0 0 16.75 18h-12A2.75 2.75 0 0 1 2 15.25V3.5Zm3.75 7a.75.75 0 0 0 0 1.5h4.5a.75.75 0 0 0 0-1.5h-4.5Zm0 3a.75.75 0 0 0 0 1.5h4.5a.75.75 0 0 0 0-1.5h-4.5ZM5 5.75A.75.75 0 0 1 5.75 5h4.5a.75.75 0 0 1 .75.75v2.5a.75.75 0 0 1-.75.75h-4.5A.75.75 0 0 1 5 8.25v-2.5Z" clip-rule="evenodd" />-->
+<!--          <path d="M16.5 6.5h-1v8.75a1.25 1.25 0 1 0 2.5 0V8a1.5 1.5 0 0 0-1.5-1.5Z" />-->
+<!--        </svg>-->
+        <div class="text-base/7">
+          <h3 class="font-semibold text-gray-light">Planning and Advisory</h3>
+          <p class="mt-2 text-gray-light">Analytics road map planning</p>
+          <p class="mt-2 text-gray-light">Technology recommendations</p>
+          <p class="mt-2 text-gray-light">Staffing and hiring recommendations</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
 <div class="bg-white py-24 md:py-32">
   <div class="mx-auto grid max-w-7xl grid-cols-1 gap-20 px-6 lg:px-8 xl:grid-cols-5">
     <div class="max-w-2xl xl:col-span-2">
-      <h2 class="text-pretty text-4xl font-semibold tracking-tight text-gray-900 sm:text-5xl">About our team</h2>
+      <h2 class="text-pretty text-4xl font-semibold tracking-tight text-gray-900 sm:text-5xl">Meet our team</h2>
       <p class="mt-6 text-lg/8 text-gray-600">Our team's range of analytical experience allow us to offer targeted expertise for challenging projects and a breadth of knowledge that can be tapped into for any analytical recommendations our clients need.</p>
     </div>
     <ul role="list" class="-mt-12 space-y-12 divide-y divide-gray-200 xl:col-span-3">
@@ -94,7 +186,10 @@
         <img class="aspect-[4/5] w-52 flex-none rounded-2xl object-cover" src="/assets/img/nate-profile.jpeg" alt="Nate">
         <div class="max-w-xl flex-auto">
           <h3 class="text-lg/8 font-semibold tracking-tight text-gray-900">Nate Robinson</h3>
-          <p class="text-base/7 text-gray-600">Managing Partner</p>
+          <p class="text-base/7 text-gray-600 italic">Managing Partner</p>
+          <span class="inline-flex items-center rounded-full bg-blue px-2 py-1 text-xs font-medium text-gray-light">Data Engineering</span>
+          <span class="inline-flex items-center rounded-full bg-green px-2 py-1 text-xs font-medium text-gray-light">Data Science</span>
+          <span class="inline-flex items-center rounded-full bg-yellow px-2 py-1 text-xs font-medium text-gray-dark">Machine Learning</span>
           <p class="mt-6 text-base/7 text-gray-600">Nate is one of the founders of Snowpack Data. He focuses on technical challenges on
              Data Science/Predictive Analytics end of the data spectrum.</p>
           <ul role="list" class="mt-6 flex gap-x-6">
@@ -121,7 +216,10 @@
         <img class="aspect-[4/5] w-52 flex-none rounded-2xl object-cover" src="/assets/img/kevin-profile.jpeg" alt="Kevin Koenitzer">
         <div class="max-w-xl flex-auto">
           <h3 class="text-lg/8 font-semibold tracking-tight text-gray-900">Kevin Koenitzer</h3>
-          <p class="text-base/7 text-gray-600">Managing Partner</p>
+          <p class="text-base/7 text-gray-600 italic">Managing Partner</p>
+          <span class="inline-flex items-center rounded-full bg-light-green px-2 py-1 text-xs font-medium text-gray-dark">Product Analytics</span>
+          <span class="inline-flex items-center rounded-full bg-teal px-2 py-1 text-xs font-medium text-gray-light">Business Intelligence</span>
+          <span class="inline-flex items-center rounded-full bg-pink px-2 py-1 text-xs font-medium text-gray-light">Leadership</span>
           <p class="mt-6 text-base/7 text-gray-600">Kevin is one of the founders of Snowpack Data. Kevin has built ML applications, databases, and led analytics teams across industries. Kevin excels in providing clarity and direction to customers defining their data strategy. </p>
           <ul role="list" class="mt-6 flex gap-x-6">
             <li>
@@ -147,7 +245,10 @@
         <img class="aspect-[4/5] w-52 flex-none rounded-2xl object-cover" src="/assets/img/danny-profile.jpeg" alt="Danny Blumenthal">
         <div class="max-w-xl flex-auto">
           <h3 class="text-lg/8 font-semibold tracking-tight text-gray-900">Danny Blumenthal</h3>
-          <p class="text-base/7 text-gray-600">Partner</p>
+          <p class="text-base/7 text-gray-600 italic">Partner</p>
+          <span class="inline-flex items-center rounded-full bg-blue px-2 py-1 text-xs font-medium text-gray-light">Data Engineering</span>
+          <span class="inline-flex items-center rounded-full bg-gray-dark px-2 py-1 text-xs font-medium text-gray-light">Analytics Engineering</span>
+          <span class="inline-flex items-center rounded-full bg-teal px-2 py-1 text-xs font-medium text-gray-light">Business Intelligence</span>
           <p class="mt-6 text-base/7 text-gray-600">Danny joined Snowpack as a partner in early 2024. He is a true data engineer with a wealth of experience building ETLs, foundational data models, and orchestration platforms.</p>
           <ul role="list" class="mt-6 flex gap-x-6">
             <li>
@@ -170,11 +271,14 @@
         </div>
       </li>
       <li class="flex flex-col gap-10 pt-12 sm:flex-row">
-        <img class="aspect-[4/5] w-52 flex-none rounded-2xl object-cover" src="/assets/img/anon-profile.jpeg" alt="David Olodort">
+        <img class="aspect-[4/5] w-52 flex-none rounded-2xl object-cover" src="/assets/img/olodort-profile.jpg" alt="David Olodort">
         <div class="max-w-xl flex-auto">
           <h3 class="text-lg/8 font-semibold tracking-tight text-gray-900">David Olodort</h3>
-          <p class="text-base/7 text-gray-600">Partner</p>
-          <p class="mt-6 text-base/7 text-gray-600">David joined Snowpack in late 2024 to run Snowpack's European operation. David has years of experience running global analytics and data engineering organizations.</p>
+          <p class="text-base/7 text-gray-600 italic">Partner</p>
+          <span class="inline-flex items-center rounded-full bg-gray-dark px-2 py-1 text-xs font-medium text-gray-light">Analytics Engineering</span>
+          <span class="inline-flex items-center rounded-full bg-teal px-2 py-1 text-xs font-medium text-gray-light">Business Intelligence</span>
+          <span class="inline-flex items-center rounded-full bg-pink px-2 py-1 text-xs font-medium text-gray-light">Leadership</span>
+          <p class="mt-6 text-base/7 text-gray-600">David joined Snowpack in late 2024 to run Snowpack's European operations. David has years of experience running global analytics and data engineering organizations.</p>
           <ul role="list" class="mt-6 flex gap-x-6">
             <li>
               <a href="https://github.com/dolodort" class="text-gray-400 hover:text-gray-500">
@@ -199,8 +303,11 @@
         <img class="aspect-[4/5] w-52 flex-none rounded-2xl object-cover" src="/assets/img/shore-profile.jpeg" alt="David Shore">
         <div class="max-w-xl flex-auto">
           <h3 class="text-lg/8 font-semibold tracking-tight text-gray-900">David Shore</h3>
-          <p class="text-base/7 text-gray-600">Part-Time</p>
-          <p class="mt-6 text-base/7 text-gray-600">My Description</p>
+          <p class="text-base/7 text-gray-600 italic">Data Engineer</p>
+          <span class="inline-flex items-center rounded-full bg-blue px-2 py-1 text-xs font-medium text-gray-light">Data Engineering</span>
+          <span class="inline-flex items-center rounded-full bg-green px-2 py-1 text-xs font-medium text-gray-light">Data Science</span>
+          <span class="inline-flex items-center rounded-full bg-teal px-2 py-1 text-xs font-medium text-gray-light">Business Intelligence</span>
+          <p class="mt-6 text-base/7 text-gray-600">David works with Snowpack on key projects. His expertise lies in financial analytics where he excels in consolidating disparate financial systems into simple and accurate reports.</p>
           <ul role="list" class="mt-6 flex gap-x-6">
             <li>
               <a href="https://github.com/drshore" class="text-gray-400 hover:text-gray-500">
@@ -227,14 +334,16 @@
 </div>
 </body>
 <!--FOOTER WITH LINKS-->
-<footer class="bg-blue">
+<footer class="bg-dark-blue">
   <div class="mx-auto max-w-7xl overflow-hidden px-6 py-20 sm:py-24 lg:px-8">
     <nav class="-mb-6 flex flex-wrap justify-center gap-x-12 gap-y-3 text-sm/6" aria-label="Footer">
-      <a href="/about" class="text-white hover:text-white">About</a>
+      <a href="/about" class="text-white hover:text-white">About Us</a>
       <a href="/about" class="text-white hover:text-white">Services</a>
       <a href="/blog" class="text-white hover:text-white">Blog</a>
       <a href="/articles/case-studies" class="text-white hover:text-white">Case Studies</a>
       <a href="/free-assessment" class="text-white hover:text-white">Free Consultation</a>
+      <a href="/contact" class="text-white hover:text-white">Contact</a>
+
     </nav>
     <div class="mt-16 flex justify-center gap-x-10">
       <a href="https://www.linkedin.com/company/snowpack-data/" class="text-white hover:text-gray-300">
@@ -253,4 +362,4 @@
 </footer>
 
 </html>
-<script src="/assets/js/about.js"></script>
+<script src="/assets/js/index.js"></script>

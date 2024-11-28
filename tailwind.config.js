@@ -31,7 +31,7 @@ module.exports = {
       'red': {
         DEFAULT: '#9f0d0d',
         600: "#dc2626",
-        700: "#b91c1c"
+        700: "#b91c1c",
       },
       'sky': {
         600: "#0284c7",
@@ -40,6 +40,15 @@ module.exports = {
         900: "#0c4a6e",
         950: "#082f49"
       }
+      'white': '#ffffff',
+      'yellow' : '#f7d070',
+      'black': '#000000',
+      'green-success': '#47d67c',
+      'green-success-light': '#e5f3ec',
+      'green-success-dark': '#186335',
+      'red-error': '#f44336',
+      'red-error-light': '#ffebee',
+      'red-error-dark': '#b71c1c',
     },
     fontFamily: {
       sans: ['Montserrat', 'sans-serif'],

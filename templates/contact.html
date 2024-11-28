@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Snowpack Data</title>
+    <!-- Bootstrap Files from CDN -->
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Snowpack Data is an analytics consulting company based in California" />
+    <meta name="author" content="Snowpack Data LLC" />
+    <title>Snowpack Data</title>
+    <!-- Favicon-->
+    <link rel="shortcut icon" type="icon" href="/branding/favicon/favicon.ico">
+
+    <!-- Tailwind CSS -->
+    <link href="/assets/css/outputs.css" rel="stylesheet" />
+
+    <!--  Montserrat font from Google Fonts-->
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700" rel="stylesheet" type="text/css" />
+
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-TRLQYPPXKE"></script>
+
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+
+        gtag('config', 'G-TRLQYPPXKE');
+    </script>
+</head>
+<body>
+<!--TOP NAVBAR AND HAMBURGER MENU-->
+
+<header class="absolute inset-x-0 top-0 z-50">
+    <nav class="flex items-center justify-between p-6 lg:px-8 bg-white shadow" aria-label="Global">
+        <div class="flex lg:flex-1">
+            <a href="/" class="-m-1.5 p-1.5">
+                <span class="sr-only">Snowpack Data</span>
+                <img class="h-8 w-auto" src="/branding/logo/logo-text-header-med-lightbg.png" alt="Snowpack Data">
+            </a>
+        </div>
+        <div class="flex lg:hidden">
+            <button id="openMenu" type="button" class="-m-2.5 inline-flex items-center justify-center rounded-md p-2.5 text-gray-dark">
+                <span class="sr-only">Open main menu</span>
+                <svg class="size-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" data-slot="icon">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+                </svg>
+            </button>
+        </div>
+        <div class="hidden lg:flex lg:gap-x-12">
+            <a href="/about" class="text-sm/6 font-semibold text-gray-dark hover:text-yellow">About Us</a>
+            <a href="/services" class="text-sm/6 font-semibold text-gray-dark hover:text-yellow">Services</a>
+            <a href="/blog" class="text-sm/6 font-semibold text-gray-dark hover:text-yellow">Blog</a>
+            <a href="/articles/case-study" class="text-sm/6 font-semibold text-gray-dark hover:text-yellow">Case Studies</a>
+            <a href="/free-assessment" class="text-sm/6 font-semibold text-gray-dark hover:text-yellow">Free Consultation</a>
+        </div>
+        <div class="hidden lg:flex lg:flex-1 lg:justify-end">
+            <a id="login" href="#" class="text-sm/6 font-semibold text-gray-dark hover:text-yellow">Log In <span aria-hidden="true">&rarr;</span></a>
+        </div>
+    </nav>
+    <!-- Mobile menu, show/hide based on menu open state. -->
+    <div id="menu" class="hidden" role="dialog" aria-modal="true">
+        <!-- Background backdrop, show/hide based on slide-over state. -->
+        <div class="fixed inset-0 z-50"></div>
+        <div class="fixed inset-y-0 right-0 z-50 w-full overflow-y-auto bg-white px-6 py-6 sm:max-w-sm sm:ring-1 sm:ring-white/10">
+            <div class="flex items-center justify-between">
+                <a href="#" class="-m-1.5 p-1.5">
+                    <span class="sr-only">Snowpack Data</span>
+                    <img class="h-8 w-auto" src="/branding/logo/logo-large-light.svg" alt="">
+                </a>
+                <span class="text-gray-dark font-bold">Snowpack Data</span>
+                <button id="closeMenu" type="button" class="-m-2.5 rounded-md p-2.5 text-gray-dark">
+                    <span class="sr-only">Close menu</span>
+                    <svg class="size-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" data-slot="icon">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <div class="mt-6 flow-root">
+                <div class="-my-6 divide-y divide-gray-500/25">
+                    <div class="space-y-2 py-6">
+                        <a href="/about" class="-mx-3 block rounded-lg px-3 py-2 text-base/7 font-semibold text-gray-dark hover:bg-gray-800">About Us</a>
+                        <a href="/services" class="-mx-3 block rounded-lg px-3 py-2 text-base/7 font-semibold text-gray-dark hover:bg-gray-800">Services</a>
+                        <a href="/blog" class="-mx-3 block rounded-lg px-3 py-2 text-base/7 font-semibold text-gray-dark hover:bg-gray-800">Blog</a>
+                        <a href="/articles/case-study" class="-mx-3 block rounded-lg px-3 py-2 text-base/7 font-semibold text-gray-dark hover:bg-gray-800">Case Studies</a>
+                        <a href="/free-assessment" class="-mx-3 block rounded-lg px-3 py-2 text-base/7 font-semibold text-gray-dark hover:bg-gray-800">Free Consultation</a>
+                    </div>
+                    <div class="py-6">
+                        <a href="/login" class="-mx-3 block rounded-lg px-3 py-2.5 text-base/7 font-semibold text-gray-dark hover:bg-gray-800">Log in</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+<div class="relative isolate bg-white mt-10">
+  <div class="mx-auto grid max-w-7xl grid-cols-1 lg:grid-cols-2">
+    <div class="relative px-6 pb-20 pt-24 sm:pt-32 lg:static lg:px-8 lg:py-48">
+      <div class="mx-auto max-w-xl lg:mx-0 lg:max-w-lg">
+        <div class="absolute inset-y-0 left-0 -z-10 w-full overflow-hidden bg-yellow ring-1 ring-gray-dark lg:w-1/2">
+          <svg class="absolute inset-0 size-full stroke-gray-light [mask-image:radial-gradient(100%_100%_at_top_right,white,transparent)]" aria-hidden="true">
+            <defs>
+              <pattern id="83fd4e5a-9d52-42fc-97b6-718e5d7ee527" width="200" height="200" x="100%" y="-1" patternUnits="userSpaceOnUse">
+                <path d="M130 200V.5M.5 .5H200" fill="none" />
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" stroke-width="0" fill="white" />
+            <rect width="100%" height="100%" stroke-width="0" fill="url(#83fd4e5a-9d52-42fc-97b6-718e5d7ee527)" />
+          </svg>
+        </div>
+        <h2 class="text-pretty text-4xl font-semibold tracking-tight text-gray-dark sm:text-5xl">Get in touch</h2>
+        <p class="mt-6 text-lg/8 text-gray-dark">Get in touch with our team via the included form or send our business an email, we'll get back to you as soon as possible!</p>
+        <dl class="mt-10 space-y-4 text-base/7 text-gray-dark">
+          <div class="flex gap-x-4">
+            <dt class="flex-none">
+              <span class="sr-only">Email</span>
+              <svg class="h-7 w-6 text-gray-dark" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" data-slot="icon">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
+              </svg>
+            </dt>
+            <dd><a class="hover:text-gray-dark" href="mailto:info@snowpack-data.io">info@snowpack-data.io</a></dd>
+          </div>
+        </dl>
+      </div>
+    </div>
+    <form type="submit" class="px-6 pb-24 pt-20 sm:pb-32 lg:px-8 lg:py-48">
+      <div class="mx-auto max-w-xl lg:mr-0 lg:max-w-lg">
+        <div class="grid grid-cols-1 gap-x-8 gap-y-6 sm:grid-cols-2">
+        <div class="sm:col-span-2">
+            <label for="company" class="block text-sm/6 font-semibold text-gray-900">Company</label>
+            <div class="mt-2.5">
+                <input type="text" name="company" id="company" class="block w-full rounded-md border-0 px-3.5 py-2 text-gray-dark shadow-sm ring-1 ring-inset ring-gray-dark placeholder:text-gray-dark focus:ring-2 focus:ring-inset focus:ring-gray-dark sm:text-sm/6">
+            </div>
+        </div>
+          <div>
+            <label for="first-name" class="block text-sm/6 font-semibold text-gray-dark">First name</label>
+            <div class="mt-2.5">
+              <input type="text" name="first-name" id="first-name" autocomplete="given-name" class="block w-full rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-dark placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-gray-dark sm:text-sm/6">
+            </div>
+          </div>
+          <div>
+            <label for="last-name" class="block text-sm/6 font-semibold text-gray-900">Last name</label>
+            <div class="mt-2.5">
+              <input type="text" name="last-name" id="last-name" autocomplete="family-name" class="block w-full rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-dark placeholder:text-gray-dark focus:ring-2 focus:ring-inset focus:ring-gray-dark sm:text-sm/6">
+            </div>
+          </div>
+          <div class="sm:col-span-2">
+            <label for="email" class="block text-sm/6 font-semibold text-gray-900">Email</label>
+            <div class="mt-2.5">
+              <input type="email" name="email" id="email" autocomplete="email" class="block w-full rounded-md border-0 px-3.5 py-2 text-gray-dark shadow-sm ring-1 ring-inset ring-gray-dark placeholder:text-gray-dark focus:ring-2 focus:ring-inset focus:ring-gray-dark sm:text-sm/6">
+            </div>
+          </div>
+          <div class="sm:col-span-2">
+            <label for="message" class="block text-sm/6 font-semibold text-gray-dark">Message</label>
+            <div class="mt-2.5">
+              <textarea name="message" id="message" rows="4" class="block w-full rounded-md border-0 px-3.5 py-2 text-gray-dark shadow-sm ring-1 ring-inset ring-gray-dark placeholder:text-gray-dark focus:ring-2 focus:ring-inset focus:ring-gray-dark sm:text-sm/6"></textarea>
+            </div>
+          </div>
+        </div>
+        <div class="mt-8 flex justify-end">
+          <button id="send-email" type="button" class="rounded-md bg-blue px-3.5 py-2.5 text-center text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue">Send message</button>
+        </div>
+      </div>
+      <div id="emailSuccess" class="mt-2 rounded-md bg-green-success-light p-4 hidden">
+        <div class="flex justify-center">
+            <div class="shrink-0">
+            <svg class="size-5 text-green-success" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" data-slot="icon">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm3.857-9.809a.75.75 0 0 0-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 1 0-1.06 1.061l2.5 2.5a.75.75 0 0 0 1.137-.089l4-5.5Z" clip-rule="evenodd" />
+            </svg>
+        </div>
+        <div class="ml-3">
+            <p class="text-sm font-medium text-green">Message Sent</p>
+        </div>
+        </div>
+      </div>
+      <div id="emailError" class="mt-2 rounded-md bg-red-error-light p-4 hidden">
+        <div class="flex justify-center">
+            <div class="shrink-0">
+                <svg class="size-5 text-red-error-dark" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" data-slot="icon">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 1 0 0-16 8 8 0 0 0 0 16Zm3.857-9.809a.75.75 0 0 0-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 1 0-1.06 1.061l2.5 2.5a.75.75 0 0 0 1.137-.089l4-5.5Z" clip-rule="evenodd" />
+                </svg>
+            </div>
+            <div class="ml-3">
+                <p class="text-sm font-medium text-red-error-dark">Error, please try again</p>
+            </div>
+        </div>
+      </div>
+    </form>
+      <!-- Show a success box on successful submission -->
+
+  </div>
+</div>
+<!--FOOTER WITH LINKS-->
+<footer class="bg-dark-blue">
+    <div class="mx-auto max-w-7xl overflow-hidden px-6 py-20 sm:py-24 lg:px-8">
+        <nav class="-mb-6 flex flex-wrap justify-center gap-x-12 gap-y-3 text-sm/6" aria-label="Footer">
+            <a href="/about" class="text-white hover:text-white">About Us</a>
+            <a href="/about" class="text-white hover:text-white">Services</a>
+            <a href="/blog" class="text-white hover:text-white">Blog</a>
+            <a href="/articles/case-studies" class="text-white hover:text-white">Case Studies</a>
+            <a href="/free-assessment" class="text-white hover:text-white">Free Consultation</a>
+            <a href="/contact" class="text-white hover:text-white">Contact</a>
+        </nav>
+        <div class="mt-16 flex justify-center gap-x-10">
+            <a href="https://www.linkedin.com/company/snowpack-data/" class="text-white hover:text-gray-300">
+                <span class="sr-only">LinkedIn</span>
+                <svg class="size-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--!Font Awesome Free 6.7.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.--><path fill="#ffffff" d="M416 32H31.9C14.3 32 0 46.5 0 64.3v383.4C0 465.5 14.3 480 31.9 480H416c17.6 0 32-14.5 32-32.3V64.3c0-17.8-14.4-32.3-32-32.3zM135.4 416H69V202.2h66.5V416zm-33.2-243c-21.3 0-38.5-17.3-38.5-38.5S80.9 96 102.2 96c21.2 0 38.5 17.3 38.5 38.5 0 21.3-17.2 38.5-38.5 38.5zm282.1 243h-66.4V312c0-24.8-.5-56.7-34.5-56.7-34.6 0-39.9 27-39.9 54.9V416h-66.4V202.2h63.7v29.2h.9c8.9-16.8 30.6-34.5 62.9-34.5 67.2 0 79.7 44.3 79.7 101.9V416z"/></svg>
+            </a>
+            <a href="https://github.com/snowpackdata" class="text-white hover:text-gray-300">
+                <span class="sr-only">GitHub</span>
+                <svg class="size-6" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path fill-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clip-rule="evenodd" />
+                </svg>
+            </a>
+        </div>
+        <p class="mt-10 text-center text-sm/6 text-white">&copy; 2024 Snowpack Data LLC. All rights reserved.</p>
+    </div>
+</footer>
+</body>
+</html>
+<script src="/assets/js/index.js"></script>
+<script src="/assets/js/contact.js"></script>
