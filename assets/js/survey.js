@@ -11,6 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const progressContainer = document.querySelector('.progress-container');
   const navButtonContainer = document.querySelector('.navigation-button-container')
   const emailError = document.getElementById('email-error');
+  const emailErrorIcon = document.getElementById('error-icon');
   let currentQuestionIndex = 0;
   let surveyId = 0;
 
@@ -58,23 +59,28 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!emailValue) {
         emailError.textContent = "Please enter your email.";
         emailError.style.display = 'block';
+        emailErrorIcon.style.display = 'flex';
         return false;
     } else if (!emailRegex.test(emailValue)) {
         emailError.textContent = "Please enter a valid email address.";
         emailError.style.display = 'block';
+        emailErrorIcon.style.display = 'flex';
         return false;
     } else {
         emailError.style.display = 'none';  // Hide error if email is valid
+        emailErrorIcon.style.display = 'none';
         return true;
     }
   }
 
   function handleStart() {
     if (!isEmailValid()) {
-        emailError.style.display = 'block';          
+        emailError.style.display = 'block';      
+        emailErrorIcon.style.display = 'flex';    
     } 
     if(isEmailValid() && isCurrentQuestionAnswered()) {
         emailError.style.display = 'none';
+        emailErrorIcon.style.display = 'none';
         document.getElementById('email-question').style.display = 'none';  // Hide email question
         startButton.style.display = 'none'; // Hide Start button
         navButtonContainer.style.display = 'flex'; // Show Next/Previous navigation buttons
@@ -149,22 +155,22 @@ document.addEventListener('DOMContentLoaded', () => {
     // Prevent the form from reloading the page
     event.preventDefault();
 
-    // Save the last response and mark the survey as complete
-    saveSurveyResponse(currentQuestionIndex, true)
-      .then(() => {
-        // questions[currentQuestionIndex].style.display = 'none'; // Hide the current question
-        // submitButton.style.display = 'none'; // Hide the submit button
-        // progressContainer.style.display = 'none'; // Hide the progress bar
-        const surveyContainer = document.querySelector('.survey-container');
-        surveyContainer.style.display = 'none'; // Hide the entire survey container
+    const surveyContainer = document.querySelector('.page-container');
+    const confirmationScreen = document.querySelector('.confirmation-screen-container');
 
-        // Show the confirmation screen
-        const confirmationScreen = document.querySelector('.confirmation-screen-container');
-        confirmationScreen.style.display = 'block';
-    })
-    .catch(error => {
-      console.error("Error submitting final response:", error);
-    });
+    if (isCurrentQuestionAnswered()) {
+      // Save the last response and mark the survey as complete
+      saveSurveyResponse(currentQuestionIndex, true)
+        .then(() => {
+          surveyContainer.style.display = 'none'; // Hide the entire survey container
+
+          // Show the confirmation screen
+          confirmationScreen.style.display = 'block';
+      })
+      .catch(error => {
+        console.error("Error submitting final response:", error);
+      });
+    }
   }
 
   // Function to create or update survey
