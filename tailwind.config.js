@@ -39,16 +39,14 @@ module.exports = {
         800: "#075985",
         900: "#0c4a6e",
         950: "#082f49"
-      }
-      'white': '#ffffff',
-      'yellow' : '#f7d070',
-      'black': '#000000',
+      },
       'green-success': '#47d67c',
       'green-success-light': '#e5f3ec',
       'green-success-dark': '#186335',
       'red-error': '#f44336',
       'red-error-light': '#ffebee',
       'red-error-dark': '#b71c1c',
+      'whitesmoke': '#f5f5f5',
     },
     fontFamily: {
       sans: ['Montserrat', 'sans-serif'],
