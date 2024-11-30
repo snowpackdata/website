@@ -33,22 +33,16 @@
   gtag('config', 'G-TRLQYPPXKE');
 </script>
 <!-- Inline Code Style -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/default.min.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
-<!-- add additional languages -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/go.min.js"></script>
-{{/*<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/es/languages/sql.min.js"></script>*/}}
-<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/jinja.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&lang=sql&lang=go"></script>
 <!-- add MathJax library for displaying formulas -->
 {{/*<script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>*/}}
 <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 <!-- provide syntax highlighting automatically on page load-->
 
 </head>
-<body>
-<header class="absolute inset-x-0 top-0 z-50">
-    <nav class="flex items-center justify-between p-6 lg:px-8 bg-dark-blue shadow" aria-label="Global">
+<body class="bg-whitesmoke">
+<header class="inset-x-0 top-0 z-50">
+    <nav class="flex items-center justify-between p-6 lg:px-8 bg-blue-dark-blue shadow" aria-label="Global">
         <div class="flex lg:flex-1">
             <a href="/" class="-m-1.5 p-1.5">
                 <span class="sr-only">Snowpack Data</span>
@@ -56,7 +50,7 @@
             </a>
         </div>
         <div class="flex lg:hidden">
-            <button id="openMenu" type="button" class="-m-2.5 inline-flex items-center justify-center rounded-md p-2.5 text-gray-light">
+            <button id="openMenu" type="button" class="-m-2.5 inline-flex items-center justify-center rounded-md p-2.5 text-gray-gray-light">
                 <span class="sr-only">Open main menu</span>
                 <svg class="size-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true" data-slot="icon">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
@@ -64,14 +58,14 @@
             </button>
         </div>
         <div class="hidden lg:flex lg:gap-x-12">
-            <a href="/services" class="text-sm/6 font-semibold text-gray-light hover:text-yellow">Services</a>
-            <a href="/blog" class="text-sm/6 font-semibold text-gray-light hover:text-yellow">Blog</a>
-            <a href="/articles/case-study" class="text-sm/6 font-semibold text-gray-light hover:text-yellow">Case Studies</a>
-            <a href="/free-assessment" class="text-sm/6 font-semibold text-gray-light hover:text-yellow">Free Consultation</a>
-            <a href="/contact" class="text-sm/6 font-semibold text-gray-light hover:text-yellow">Contact</a>
+            <a href="/services" class="text-sm/6 font-semibold text-gray-gray-light hover:text-yellow">Services</a>
+            <a href="/blog" class="text-sm/6 font-semibold text-gray-gray-light hover:text-yellow">Blog</a>
+            <a href="/articles/case-study" class="text-sm/6 font-semibold text-gray-gray-light hover:text-yellow">Case Studies</a>
+            <a href="/free-assessment" class="text-sm/6 font-semibold text-gray-gray-light hover:text-yellow">Free Consultation</a>
+            <a href="/contact" class="text-sm/6 font-semibold text-gray-gray-light hover:text-yellow">Contact</a>
         </div>
         <div class="hidden lg:flex lg:flex-1 lg:justify-end">
-            <a id="login" href="#" class="text-sm/6 font-semibold text-gray-light hover:text-yellow">Log In <span aria-hidden="true">&rarr;</span></a>
+            <a id="login" href="#" class="text-sm/6 font-semibold text-gray-gray-light hover:text-yellow">Log In <span aria-hidden="true">&rarr;</span></a>
         </div>
     </nav>
     <!-- Mobile menu, show/hide based on menu open state. -->
@@ -95,31 +89,31 @@
             <div class="mt-6 flow-root">
                 <div class="-my-6 divide-y divide-gray-500/25">
                     <div class="space-y-2 py-6">
-                        <a href="/services" class="-mx-3 block rounded-lg px-3 py-2 text-base/7 font-semibold text-gray-dark hover:bg-gray-800">Services</a>
-                        <a href="/blog" class="-mx-3 block rounded-lg px-3 py-2 text-base/7 font-semibold text-gray-dark hover:bg-gray-800">Blog</a>
-                        <a href="/articles/case-study" class="-mx-3 block rounded-lg px-3 py-2 text-base/7 font-semibold text-gray-dark hover:bg-gray-800">Case Studies</a>
-                        <a href="/free-assessment" class="-mx-3 block rounded-lg px-3 py-2 text-base/7 font-semibold text-gray-dark hover:bg-gray-800">Free Consultation</a>
-                        <a href="/contact" class="-mx-3 block rounded-lg px-3 py-2 text-base/7 font-semibold text-gray-dark hover:bg-gray-800">Contact</a>
+                        <a href="/services" class="-mx-3 block rounded-lg px-3 py-2 text-base/7 font-semibold text-gray-gray-dark hover:bg-gray-800">Services</a>
+                        <a href="/blog" class="-mx-3 block rounded-lg px-3 py-2 text-base/7 font-semibold text-gray-gray-dark hover:bg-gray-800">Blog</a>
+                        <a href="/articles/case-study" class="-mx-3 block rounded-lg px-3 py-2 text-base/7 font-semibold text-gray-gray-dark hover:bg-gray-800">Case Studies</a>
+                        <a href="/free-assessment" class="-mx-3 block rounded-lg px-3 py-2 text-base/7 font-semibold text-gray-gray-dark hover:bg-gray-800">Free Consultation</a>
+                        <a href="/contact" class="-mx-3 block rounded-lg px-3 py-2 text-base/7 font-semibold text-gray-gray-dark hover:bg-gray-800">Contact</a>
                     </div>
                     <div class="py-6">
-                        <a href="/login" class="-mx-3 block rounded-lg px-3 py-2.5 text-base/7 font-semibold text-gray-dark hover:bg-gray-800">Log in</a>
+                        <a href="/login" class="-mx-3 block rounded-lg px-3 py-2.5 text-base/7 font-semibold text-gray-gray-dark hover:bg-gray-800">Log in</a>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 </header>
-<main class="isolate mt-16 top-32 mb-16">
+<main class="isolate bg-whitesmoke">
     <div class="container mx-auto sm:px-6 lg:px-8">
-      <section class="page-section" id="services">
-        <h2 class="blog-title">{{.Title}}</h2>
-          <div class="container">
+      <section class="page-section blog-page">
+        <h1 class="blog-title">{{.Title}}</h1>
+          <div class="container mx-auto sm:px-6 lg:px-8">
               <div class="text-center">
-                  <h3 class="blog-subtitle text-muted" style="margin-bottom: 1rem;">{{ .Subtitle }}</h3>
-                  <span class="">{{.Author}} | {{.Date}}</span>
+                  <h2 class="blog-subtitle text-muted" style="margin-bottom: 1rem;">{{ .Subtitle }}</h2>
+                  <span class="text-gray-gray-dark blog-details">{{.Author}} | {{.Date}}</span>
               </div>
-              <hr class="solid" style="margin:5vh;">
-              <div class="row blog-body">
+              <hr class="solid" style="margin-top:2vh;margin-bottom:4vh">
+              <div class="blog-body">
                 {{ .RenderContent }}
               </div>
           </div>
@@ -127,7 +121,7 @@
     </div>
 </main>
     <!-- Footer-->
-<footer class="bg-dark-blue mt-16">
+<footer class="bg-blue-dark-blue mt-16">
     <div class="mx-auto max-w-7xl overflow-hidden px-6 py-20 sm:py-24 lg:px-8">
         <nav class="-mb-6 flex flex-wrap justify-center gap-x-12 gap-y-3 text-sm/6" aria-label="Footer">
             <a href="/about" class="text-white hover:text-white">About Us</a>
@@ -157,3 +151,4 @@
 </html>
 
 <script src="/assets/js/index.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&lang=sql&lang=go"></script>
