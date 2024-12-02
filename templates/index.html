@@ -127,15 +127,15 @@
   <div class="mx-auto max-w-7xl px-6 lg:px-8">
     <div class="mx-auto max-w-2xl lg:mx-0">
       <h2 class="text-5xl font-semibold tracking-tight text-gray-dark sm:text-7xl">What we offer</h2>
-      <p class="mt-8 text-pretty font-medium text-gray-dark text-xl/8">Businesses are awash in valuable data, but converting potential into value is not often clear. At Snowpack we deliver tangible business outcomes, not just more data, more code, more noise.</p>
+      <p class="mt-8 text-pretty font-medium text-gray-dark text-xl/8">Businesses are awash in valuable data, but converting potential into value is not often clear. At Snowpack we deliver tangible business outcomes; not just more data, more code, more noise.</p>
     </div>
     <div class="mx-auto mt-16 grid max-w-2xl grid-cols-1 gap-6 sm:mt-20 lg:mx-0 lg:max-w-none lg:grid-cols-3 lg:gap-8">
       <div class="flex gap-x-4 rounded-xl p-6 ring-1 ring-inset ring-green bg-green hover:bg-sky-700 hover:text-gray-500 ">
         <div class="text-base/7">
           <h3 class="font-semibold text-gray-gray-light underline">Custom Projects</h3>
-          <p class="mt-2 text-gray-gray-light">Data Ingestion, warehousing, modeling</p>
-          <p class="mt-2 text-gray-gray-light">Predictive Models, ML, and AI</p>
-          <p class="mt-2 text-gray-gray-light">Technology Implementations</p>
+          <p class="mt-2 text-gray-gray-light">Data ingestion, warehousing, modeling</p>
+          <p class="mt-2 text-gray-gray-light">Predictive models, ML, and AI</p>
+          <p class="mt-2 text-gray-gray-light">Technology implementations</p>
         </div>
       </div>
       <div class="flex gap-x-4 rounded-xl p-6 ring-1 ring-inset ring-white/10 bg-green hover:bg-sky-700 hover:text-gray-500">
@@ -148,7 +148,7 @@
       <div class="flex gap-x-4 rounded-xl p-6 ring-1 ring-inset ring-white/10  bg-green hover:bg-sky-700 hover:text-gray-500 ">
         <div class="text-base/7">
           <h3 class="font-semibold text-gray-gray-light underline">Planning and Advisory</h3>
-          <p class="mt-2 text-gray-gray-light">Analytics road map planning</p>
+          <p class="mt-2 text-gray-gray-light">Analytics roadmap planning</p>
           <p class="mt-2 text-gray-gray-light">Technology recommendations</p>
           <p class="mt-2 text-gray-gray-light">Staffing and hiring recommendations</p>
         </div>
@@ -174,39 +174,50 @@
 <div class="bg-white py-24 sm:py-32">
   <div class="mx-auto max-w-7xl px-6 lg:px-8">
     <div class="mx-auto max-w-2xl text-center">
-      <h2 class="text-balance text-4xl font-semibold tracking-tight text-gray-900 sm:text-5xl">Featured Research</h2>
-      <p class="mt-2 text-lg/8 text-gray-600">Get up to speed on the industry's best practices reading our case studies, research, and analytical deep dives</p>
+      <h2 class="text-balance text-4xl font-semibold tracking-tight text-gray-900 sm:text-5xl">
+        Featured Research
+      </h2>
+      <p class="mt-2 text-lg text-gray-600">
+        Get up to speed on the industry's best practices reading our case studies, research, and analytical deep dives.
+      </p>
     </div>
     <div class="mx-auto mt-10 grid max-w-2xl grid-cols-1 gap-x-8 gap-y-20 lg:mx-0 lg:max-w-none lg:grid-cols-3">
-      {{ range .}}
-      <article class="flex flex-col items-start justify-between">
+      {{ range . }}
+      <article class="flex h-full flex-col items-start justify-between">
+        <!-- Image Section -->
         <div class="relative w-full">
+          <a href="/blog/{{ .Slug }}">
           <img src="/assets/img/{{ .Splash }}" alt="" class="aspect-video w-full rounded-2xl bg-gray-100 object-cover sm:aspect-[2/1] lg:aspect-[3/2]">
-          <div class="absolute inset-0 rounded-2xl"></div>
+          </a>
         </div>
-        <div class="max-w-xl">
-          <div class="mt-8 flex items-center gap-x-4 text-xs">
-            <time datetime="2020-03-16" class="text-gray-500">{{ .Date }}</time>
+
+        <!-- Content Section -->
+        <div class="flex flex-1 flex-col justify-between">
+          <!-- Date -->
+          <div class="mt-4 text-xs text-gray-500">
+            <time datetime="{{ .Date }}">{{ .Date }}</time>
           </div>
-          <div class="group relative">
-            <h3 class="mt-3 text-lg/6 font-semibold text-gray-900 group-hover:text-gray-600">
-              <a href="/blog/{{ .Slug }}">
-                <span class="absolute inset-0"></span>
+
+          <!-- Title and Subtitle -->
+          <div class="mt-2 mb-2">
+            <h3 class="text-lg font-semibold text-gray-900 line-clamp-2">
+              <a href="/blog/{{ .Slug }}" class="hover:text-gray-600">
                 {{ .Title }}
               </a>
             </h3>
-            <p class="mt-5 line-clamp-3 text-sm/6 text-gray-600">{{ .Subtitle }}</p>
+            <p class="mt-2 text-sm text-gray-600 line-clamp-3">
+              {{ .Subtitle }}
+            </p>
           </div>
-          <div class="relative mt-8 flex items-center gap-x-4 outline-gray-dark outline-2">
-            <img src="/assets/img/{{ .AuthorImage }}" alt="" class="size-10 rounded-full bg-gray-100" style="outline:1px #1a1e21 solid">
-            <div class="text-sm/6">
-              <p class="font-semibold text-gray-900">
-                <a href="#">
-                  <span class="absolute inset-0"></span>
-                 {{ .Author }}
-                </a>
-              </p>
-            </div>
+
+          <!-- Author Section -->
+          <div class="mt-auto flex items-center gap-x-4 pt-4">
+            <img src="/assets/img/{{ .AuthorImage }}" alt="" class="h-10 w-10 rounded-full bg-gray-100" style="outline:1px solid #1a1e21;">
+            <p class="text-sm font-semibold text-gray-900">
+              <a href="#" class="hover:underline">
+                {{ .Author }}
+              </a>
+            </p>
           </div>
         </div>
       </article>
@@ -214,6 +225,8 @@
     </div>
   </div>
 </div>
+
+
 
 <!--FOOTER WITH LINKS-->
 <footer class="bg-blue-dark-blue">
