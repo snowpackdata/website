@@ -129,7 +129,7 @@ an exhibit of the dedication we have to quality work.</p>
     follow these rules, and that the system can handle the rounding correctly. Small code snippets like this are fun to write,
     and they are the kind of thing that makes a bespoke system like this so powerful.
 </p>
-<pre><code class="language-golang">
+<pre class="prettyprint">
 // GetFee finds the fee for an entry in USD after accounting for round-off specific to the billing code
 func (a *App) GetFee(e *Entry) float64 {
 	// Retrieve the BillingCode and its associated Rate
@@ -147,7 +147,7 @@ func (a *App) GetFee(e *Entry) float64 {
 	fee := roundedHours * billingCode.Rate.Amount
 	return fee
 }
-</code></pre>
+</pre>
 <h2>Security</h2>
 <p>
     But what about security! Well, given the nature of the data we are storing I ended up spending the largest chunk of time on security.

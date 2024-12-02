@@ -1,100 +1,3 @@
-<style>
-    a {
-        color: #007bff;
-        text-decoration: none;
-        background-color: transparent;
-    }
-
-    i {
-        font-size: 12pt;
-    }
-
-    .center {
-        display: block;
-        margin-left: auto;
-        margin-right: auto;
-        width: 50%;
-    }
-
-    .caption {
-        font-size: .95em;
-        font-style: italic;
-        text-align: center;
-        display: block;
-        margin-left: auto;
-        margin-right: auto;
-        margin-bottom: 2%;
-        width: 51%;
-    }
-
-    a.footnote {
-        text-decoration: none;
-        background-color: rgba(187, 238, 254, 0.99);
-        color: rgba(5, 42, 58, 0.99);
-        padding-left: 2px;
-        padding-right: 2px;
-        margin-right: 2px;
-        -webkit-transition: all 2s ease;
-        -moz-transition: all 2s ease;
-        -o-transition: all 2s ease;
-        transition: all 2s ease;
-    }
-
-    a.footnote span {
-        z-index: -1;
-        opacity: 0;
-        position: fixed;
-        left: 15px;
-        bottom: 40px;
-        margin-left: 0px;
-        margin-right: 18px;
-        padding: 14px 20px;
-        border-radius: 4px;
-        box-shadow: 5px 5px 8px #CCC;
-        border: 1px solid #aab6dd;
-        background-color: rgba(187, 238, 254, 0.99);
-        -webkit-transition: all 2s ease;
-        -moz-transition: all 2s ease;
-        -o-transition: all 2s ease;
-        transition: all 2s ease;
-    }
-
-    a.footnote:hover span {
-        z-index: 9;
-        opacity: 1;
-        -webkit-transition: all 2s ease;
-        -moz-transition: all 2s ease;
-        -o-transition: all 2s ease;
-        transition: all 2s ease;
-    }
-
-    ol {
-        font-size: initial;
-        margin-left: 2%;
-    }
-
-    #unorderedlist {
-        font-size: initial;
-        margin-left: 2%;
-    }
-
-    pre {
-        background-color: #f8f9fa;
-        padding: 10px;
-        border-radius: 0px;
-        font-size: 10pt;
-        overflow-x: auto;
-        white-space: pre;
-        margin: 0;
-    }
-
-    code {
-        color: #d63384;
-    }
-    
-</style>
-
-
 <h2>Introduction</h2>
 <p>Working in Analytics, you’re bound to come across a problem at some point that requires building and implementing a predictive model. Despite what many think, not every problem requires an advanced enterprise-grade ML solution: sometimes you just want to make an existing process a little bit smarter and add some more rigor to how your company evaluates a potential outcome. In many cases like this, the good old tried-and-true supervised learning models that you learned about in your college stats class (e.g. linear and logistic regressions) are more than enough to help you accomplish your goal. </p>
 <p></p>
@@ -133,7 +36,7 @@
 <br>    
 Once you have trained your model in Python or R, you will need to save and export the regression coefficients so that we can store them in your dbt project as a CSV seed. Regardless of whatever statistical package you use, you should be able to access the coefficient and intercept values of your model, and I’ve included the code below that I used to export these from my scikit-learn model in Python as an example:</p>
 
-<pre><code class="language-python"># Save list of feature names & list of coefficient values
+<pre class="prettyprint"># Save list of feature names & list of coefficient values
 feature_list = ['intercept'] + list(X.columns)
 coefficient_array = np.concatenate([log_reg.intercept_, log_reg.coef_[0]])
 
@@ -143,7 +46,7 @@ df_coefficients.insert(len(df_coefficients.columns), "Coef", coefficient_array.t
 
 # Save to CSV
 df_coefficients.to_csv('df_coefficients.csv')
-</code></pre>
+</pre>
 
 <p></p>
 <p>From here, we can add our CSV of saved coefficient values to our dbt project, which we’ll use to calculate predictions for new data.</p>
@@ -167,19 +70,19 @@ When we reach this stage we’ll likely need 3 separate dbt models:</p>
 <p>I’m going to focus on #3 for the rest of this section, to show how you might set up your model to execute your logistic regression. I will heavily rely on Jinja in this dbt model in an attempt to make it flexible, reusable, and efficient.</p>
 <p>First, we’ll bring in the feature names from our saved coefficient seed, and store them in a named list which we’ll reference throughout the model:</p>
 
-<pre><code class="language-python">{# List out the names of saved features #}
+<pre class="prettyprint">{# List out the names of saved features #}
 {%- set feature_list = dbt_utils.get_column_values(
     table=ref('saved_coefficients_seed'),
     column='feature_name'
     )
 -%}    
-</code></pre>
+</pre>
 
 <p></p>
 <p>Next, we’ll pivot out the coefficients into a wide format, so that we only have to join it once to our prep data. The end output of this step should be one row, with each feature separated out into its own column.</p>
 <p>Note: I had considered using the <a href="https://github.com/dbt-labs/dbt-utils?tab=readme-ov-file#pivot-source"><u>pivot function</u></a> from dbt_utils here, but it defaults to including an “else” condition of 0 which can result in unexpected outputs if you’re not careful. Rather than risking it, I decided to just write my own code here to make sure it worked exactly as I intended:</p>
 
-<pre><code class="language-python">{# Transform feature list into a wide table with one row, and each coefficient in its own column #}
+<pre class="prettyprint">{# Transform feature list into a wide table with one row, and each coefficient in its own column #}
 WITH pivoted_model_coefficients as (
   SELECT
     {%- for feature in feature_list %}
@@ -189,7 +92,7 @@ WITH pivoted_model_coefficients as (
     {% endfor %}
   FROM {{ ref('saved_coefficients_seed') }}
 ),
-</code></pre>
+</pre>
 
 <p><br></p>
 <p><strong>Apply Regression Formula</strong>
@@ -199,7 +102,7 @@ In the next step, we’ll prepare our data for prediction by joining in the wide
 <p>&beta;<sub>0&nbsp;</sub> + &beta;<sub>1&nbsp;</sub>x<sub>1</sub> + ... + &beta;<sub>k&nbsp;</sub>x<sub>k</sub></p>
 <p>Where “x” represents a particular feature, “&beta;” represents the respective coefficient for the feature, and &beta;<sub>0&nbsp;</sub>​ is the intercept:</p>
 
-<pre><code class="language-python">{# Create the linear combination of ((feature_value_1 * coefficient_value_1) + (feature_value_2 * coefficient_value_2) + ...etc.) for all saved features and their coefficients #}
+<pre class="prettyprint">{# Create the linear combination of ((feature_value_1 * coefficient_value_1) + (feature_value_2 * coefficient_value_2) + ...etc.) for all saved features and their coefficients #}
 
 sigmoid_prep as (
   SELECT 
@@ -218,7 +121,7 @@ sigmoid_prep as (
     JOIN pivoted_model_coefficients as c
       ON 1=1
 )
-</code></pre>
+</pre>
 
 <p></p>
 <p>From here, we’re ready to apply the sigmoid function. As I mentioned before, the code above would effectively work as-is if you were working on a linear regression. The main differentiation between the two models is that linear regression predicts a continuous outcome, while logistic regression predicts a probability of the outcome belonging to a particular class, and outputs probability scores that are bound between 0 and 1.</p>
@@ -228,11 +131,11 @@ sigmoid_prep as (
 
 <p>Where “x” represents the linear combination of features and coefficients outlined above.</p>
 <p>At this point, all we need to do is pass through the value we calculated in the previous step to the sigmoid function and we’ll arrive at our final probability outputs between 0 and 1:</p>
-<pre><code class="language-sql">SELECT 
+<pre class="prettyprint">SELECT
   *,
   1 / (1 + EXP(-linear_combination)) as predicted_success_probability
 FROM sigmoid_prep
-</code></pre>
+</pre>
 
 <p></p>
 <p>And voila, if you put together all of the code blocks above, you will now have a functioning logistic regression in SQL that will return the same results as your Python model if you use the same inputs!</p>
@@ -245,16 +148,16 @@ FROM sigmoid_prep
 
 <p>To accomplish this, you can add the following additional code to your dbt model:</p>
 
-<pre><code class="language-python">{# List out the names of each column in the input data #}
+<pre class="prettyprint">{# List out the names of each column in the input data #}
 {%- set input_data_columns = dbt_utils.get_filtered_columns_in_relation(
     from=ref('prep_new_data_for_prediction'))
 -%}
-</code></pre>
+</pre>
 
 <p></p>
 <p>From there, you can update the “sigmoid_prep” CTE to construct your additional json column. The syntax will vary depending on your data warehouse, but the following examples should work for either BigQuery or Snowflake:</p>
 
-<pre><code>
+<pre class="prettyprint">
 {# BigQuery version #}
 --Store metadata for the input data in json value
 TO_JSON(
@@ -275,11 +178,11 @@ OBJECT_CONSTRUCT(
   {%- if not loop.last %},{% endif -%}
   {% endfor %}
 ) as input_data_json
-</code></pre>
+</pre>
 
 <p></p>
 <p>If you want to extend this further, you can also store your features and coefficients in a json column for additional metadata in your historical table. The pattern would be almost identical, and would leverage the “feature_list” variable we set at the beginning:</p>
-<pre><code>
+<pre class="prettyprint">
 {# BigQuery version #}
 --Store model features and coefficients for this run in json value
 TO_JSON(
@@ -300,7 +203,7 @@ OBJECT_CONSTRUCT(
   {%- if not loop.last %},{% endif -%}
   {% endfor %}
 ) as model_coefficient_json
-</code></pre>
+</pre>
 
 <p></p>
 <p>From there, we can build a lightweight and flexible table for snapshotting that only includes our “model_coefficient_json”, “input_data_json”, "predicted_success_probability” and a timestamp of the model run. This provides ample metadata for analysis purposes, while still being resilient to future updates to our model.</p>

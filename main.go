@@ -17,6 +17,7 @@ import (
 // App holds our information for accessing various applications and methods across modules
 type App struct {
 	cronosApp *cronos.App
+	logger    *log.Logger
 }
 
 func main() {
@@ -55,7 +56,7 @@ func main() {
 	}
 
 	// Add the cronos app to our webapp struct to access it across handlers
-	a := &App{cronosApp: &cronosApp}
+	a := &App{cronosApp: &cronosApp, logger: log.New(os.Stdout, "http: ", log.LstdFlags)}
 
 	// Mux is a subrouter generator that allows us to handle requests and route them to the appropriate handler
 	// the router allows us to handle a couple high level subrouters and then specific routes.
@@ -74,13 +75,17 @@ func main() {
 
 	// our main routes are handled by the main router and are not protected by JWT
 	r.HandleFunc("/", indexHandler)
+	r.NotFoundHandler = http.HandlerFunc(notFoundHandler)
 	r.HandleFunc("/services", servicesHandler)
+	r.HandleFunc("/about", aboutHandler)
+	r.HandleFunc("/contact", contactHandler)
 	r.HandleFunc("/free-assessment", dataAssessmentHandler)
 	r.HandleFunc("/reports/examples/nba-report", exampleReportHandler)
 	r.HandleFunc("/blog", blogLandingHandler)
 	r.HandleFunc("/case-studies", caseStudyLandingHandler)
 	r.HandleFunc("/articles/{tag}", blogTagHandler)
 	r.HandleFunc("/blog/{slug}", blogHandler)
+	r.HandleFunc("/contact-us-submit", a.ContactPageEmail).Methods("POST")
 
 	// Cronos Application pages, internal and external
 	r.HandleFunc("/admin", a.AdminLandingHandler).Methods("GET")
