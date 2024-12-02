@@ -199,3 +199,12 @@ h2.blog-subtitle  {
         border-radius: 10px;
     }
 }
+
+/*SERVICES PAGE*/
+.active {
+    padding: 10px;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    background-color: #5A8781;
+    color: white;
+}

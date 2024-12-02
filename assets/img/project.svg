@@ -1,0 +1,14 @@
+<svg width="800" height="600" xmlns="http://www.w3.org/2000/svg">
+ <title>project</title>
+
+ <g>
+  <title>Layer 1</title>
+  <path id="svg_8" d="m955.82687,400.64562l0.745,-1.30375l0.745,1.30375l-1.49,0z" stroke="#000" fill="#fff"/>
+  <ellipse fill="#e5e5e5" stroke="#e5e5e5" cx="400" cy="150" id="svg_3" rx="50" ry="50"/>
+  <ellipse fill="#e5e5e5" stroke="#e5e5e5" cx="325" cy="275" id="svg_5" rx="50" ry="50"/>
+  <ellipse fill="#58837e" stroke="#e5e5e5" cx="475" cy="275" id="svg_6" rx="50" ry="50"/>
+  <ellipse fill="#58837e" stroke="#e5e5e5" cx="400" cy="400" id="svg_7" rx="50" ry="50"/>
+  <ellipse fill="#e5e5e5" stroke="#e5e5e5" cx="250" cy="400" id="svg_9" rx="50" ry="50"/>
+  <ellipse fill="#58837e" stroke="#e5e5e5" cx="550" cy="400" id="svg_10" rx="50" ry="50"/>
+ </g>
+</svg>
