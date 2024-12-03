@@ -98,32 +98,39 @@
         </div>
         <div class="mx-auto mt-16 grid max-w-2xl grid-cols-1 gap-x-8 gap-y-20 lg:mx-0 lg:max-w-none lg:grid-cols-3">
         {{ range . }}
-          <article class="flex flex-col items-start justify-between border-b-gray-light">
+          <article class="flex flex-col items-start justify-between h-full border-b-gray-light">
+            <!-- Image Section -->
             <div class="relative w-full">
+              <a href="/blog/{{ .Slug }}">
               <img src="/assets/img/{{ .Splash }}" alt="{{ .Splash }}" class="aspect-video w-full rounded-2xl bg-gray-light object-cover sm:aspect-[2/1] lg:aspect-[3/2]">
               <div class="absolute inset-0 rounded-2xl ring-1 ring-inset ring-gray-dark"></div>
+              </a>
             </div>
-            <div class="max-w-xl align-baseline">
-              <div class="mt-8 flex items-center gap-x-4 text-xs">
-                <time class="text-gray-dark">{{ .Date }}</time>
+            <!-- Content Section -->
+            <div class="mt-2 flex flex-1 flex-col justify-between">
+              <!-- Date -->
+              <div class="mt-4 text-xs text-gray-500">
+                <time datetime="{{ .Date }}">{{ .Date }}</time>
               </div>
-              <div class="group relative">
-                <h3 class="mt-3 text-lg/6 font-semibold text-gray-dark hover:text-yellow">
-                  <a href="/blog/{{ .Slug }}">
-                    <span class="absolute inset-0"></span>
+              <!-- Title and Subtitle -->
+              <div class="mt-2 mb-2">
+                <h3 class="text-lg font-semibold text-gray-900 line-clamp-2">
+                  <a href="/blog/{{ .Slug }}" class="hover:text-gray-600">
                     {{ .Title }}
                   </a>
                 </h3>
-                <p class="mt-5 line-clamp-3 text-sm/6 text-gray-600">{{ .Subtitle }}</p>
+                <p class="mt-4 text-sm text-gray-600 line-clamp-3">
+                  {{ .Subtitle }}
+                </p>
               </div>
-              <div class="relative mt-8 flex items-center gap-x-4">
-                <img src="/assets/img/{{ .AuthorImage }}" alt="{{ .AuthorImage }}" class="size-10 rounded-full bg-gray-100">
-                <div class="text-sm/6">
-                  <p class="font-semibold text-gray-dark">
-                      <span class="absolute inset-0"></span>
+              <!-- Author Section -->
+              <div class="mt-auto flex items-center gap-x-4 pt-4">
+                <img src="/assets/img/{{ .AuthorImage }}" alt="" class="h-10 w-10 rounded-full bg-gray-100" style="outline:1px solid #1a1e21;">
+                <p class="text-sm font-semibold text-gray-900">
+                  <a href="#" class="hover:underline">
                     {{ .Author }}
-                  </p>
-                </div>
+                  </a>
+                </p>
               </div>
             </div>
           </article>
