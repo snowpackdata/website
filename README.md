@@ -62,3 +62,6 @@ To add a new Blog Post to the site, please follow these steps:
 3. Test your changes to ensure they work as expected.
 4. Create a PR to put it up for review, and make sure the checks pass.
 6. Once you merge, go to github actions and run the action: Deploy to Google App Engine
+
+## Best Practices & Tips
+- favicons: for free options, peruse https://heroicons.com/ and https://fontawesome.com/
