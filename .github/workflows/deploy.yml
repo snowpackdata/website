@@ -24,6 +24,10 @@ jobs:
         run: go get .
       - name: Build
         run: go build -v ./...
+      # Generate the Git commit hash
+      - name: Generate Commit Hash
+        id: commit-hash
+        run: echo "VERSION=$(git rev-parse --short HEAD)" >> $GIT_HASH
       - name: 'Authenticate to Google Cloud'
         uses: 'google-github-actions/auth@v1'
         with:
@@ -33,6 +37,7 @@ jobs:
         with:
           build_env_vars: |-
               GOPRIVATE=github.com/snowpackdata/cronos
+              GIT_HASH=${{ env.GIT_HASH }}
           env_vars: |-
             SENDGRID_API_KEY=${{ secrets.SENDGRID_API_KEY }}
             CLOUD_SQL_CONNECTION_NAME=${{ secrets.CLOUD_SQL_CONNECTION_NAME }}
