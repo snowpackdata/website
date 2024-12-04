@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"sort"
 	"strings"
 
@@ -88,7 +89,12 @@ func aboutHandler(w http.ResponseWriter, req *http.Request) {
 
 // Services page for all /services url requests
 func servicesHandler(w http.ResponseWriter, req *http.Request) {
-	http.ServeFile(w, req, "./templates/services.html")
+	var githash = os.Getenv("gitHash")
+	servicesTemplate, _ := template.ParseFiles("./templates/services.html")
+	err := servicesTemplate.Execute(w, githash)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 // Example report page for all /example_report url requests
