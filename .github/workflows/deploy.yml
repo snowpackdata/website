@@ -23,14 +23,25 @@ jobs:
       - name: Go Get
         run: go get .
       # Recompile output.css for UI changes
-      - name: Generate Tailwind CSS
-        uses: ZoeyVid/tailwindcss-update@v1.4.0                  
+      - name: tailwindcss - update output.css
+        uses: ZoeyVid/tailwindcss-update@main
+        with:
+          input: src/assets/css/input.css
+          output: src/assets/css/output.css
+          params: "--minify"
+      - name: tailwindcss - push changes
+        run: |
+          git add --force src/assets/css/output.css
+          git config user.name "GitHub"
+          git config user.email "noreply@github.com"
+          git diff-index --quiet HEAD || git commit -sm "tailwindcss-update"
+          git push
       - name: Build
         run: go build -v ./...
       # Create environment variable of current Git hash
       - name: Generate Commit Hash
         id: commit-hash
-        run: echo "VERSION=$(git rev-parse --short HEAD)" >> $GIT_HASH
+        run: echo "GIT_HASH=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
       - name: 'Authenticate to Google Cloud'
         uses: 'google-github-actions/auth@v1'
         with:
