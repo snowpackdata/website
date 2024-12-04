@@ -7,9 +7,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
 <meta name="description" content="Snowpack Data is an analytics consulting company based in California" />
 <meta name="author" content="Snowpack Data LLC" />
-<meta property="og:title" content="{{.Title}}">
-<meta property="og:description" content="{{.Subtitle}}">
-<meta property="og:image" content="https://snowpack-data.com/assets/img/{{.Splash}}">
+<meta property="og:title" content="{{ .Post.Title}}">
+<meta property="og:description" content="{{ .Post.Subtitle}}">
+<meta property="og:image" content="https://snowpack-data.com/assets/img/{{ .Post.Splash}}">
 <title>Snowpack Data</title>
 <!-- Favicon-->
 <!--Need a non relative link here due to the gohtml template being rendered in different locations-->
@@ -22,7 +22,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@200;300;400;800;900&display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@200;300;400;800;900&family=Raleway:wght@200;300;400;700;800;900&display=swap" rel="stylesheet">
 
-<link type="text/css" rel="stylesheet" href="../assets/css/outputs.css">
+<link type="text/css" rel="stylesheet" href="/assets/css/outputs.css?v="{{ .GitHash }}>
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-TRLQYPPXKE"></script>
 <script>
@@ -108,15 +108,15 @@
 <main class="isolate bg-whitesmoke">
     <div class="container mx-auto sm:px-6 lg:px-8">
       <section class="page-section blog-page">
-        <h1 class="blog-title">{{.Title}}</h1>
+        <h1 class="blog-title">{{ .Post.Title}}</h1>
           <div class="container mx-auto sm:px-6 lg:px-8">
               <div class="text-center">
-                  <h2 class="blog-subtitle text-muted" style="margin-bottom: 1rem;">{{ .Subtitle }}</h2>
-                  <span class="text-gray-gray-dark blog-details">{{.Author}} | {{.Date}}</span>
+                  <h2 class="blog-subtitle text-muted" style="margin-bottom: 1rem;">{{ .Post.Subtitle }}</h2>
+                  <span class="text-gray-gray-dark blog-details">{{ .Post.Author}} | {{ .Post.Date}}</span>
               </div>
               <hr class="solid" style="margin-top:2vh;margin-bottom:4vh">
               <div class="blog-body">
-                {{ .RenderContent }}
+                {{ .Post.RenderContent }}
               </div>
           </div>
       </section>
@@ -152,5 +152,5 @@
 </body>
 </html>
 
-<script src="/assets/js/index.js"></script>
+<script src="/assets/js/index.js?v={{ .GitHash }}"></script>
 <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js?lang=css&lang=sql&lang=go"></script>

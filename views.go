@@ -6,7 +6,6 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-	"os"
 	"sort"
 	"strings"
 
@@ -67,7 +66,7 @@ func loadBlogs() map[string]Post {
 }
 
 // Index Page as Follows are all URL Pathways
-func indexHandler(w http.ResponseWriter, req *http.Request) {
+func (a *App) indexHandler(w http.ResponseWriter, req *http.Request) {
 	// Load the most recent three blogs
 	blogPosts := loadBlogs()
 
@@ -76,24 +75,35 @@ func indexHandler(w http.ResponseWriter, req *http.Request) {
 	sortedBlogs := sortBlogsByID(frontPagePosts)
 
 	lastThreeBlogs := sortedBlogs[0:3]
+	type PageData struct {
+		Posts   []Post
+		GitHash string
+	}
+	pageData := PageData{
+		Posts:   lastThreeBlogs,
+		GitHash: a.GitHash,
+	}
 	indexTemplate, _ := template.ParseFiles("./templates/index.html")
-	err := indexTemplate.Execute(w, lastThreeBlogs)
+	err := indexTemplate.Execute(w, pageData)
 	if err != nil {
-		log.Fatal(err)
+		http.Error(w, "500 Internal Server Error", http.StatusInternalServerError)
 	}
 }
 
-func aboutHandler(w http.ResponseWriter, req *http.Request) {
-	http.ServeFile(w, req, "./templates/about.html")
+func (a *App) aboutHandler(w http.ResponseWriter, req *http.Request) {
+	aboutTemplate, _ := template.ParseFiles("./templates/about.html")
+	err := aboutTemplate.Execute(w, a.GitHash)
+	if err != nil {
+		http.Error(w, "500 Internal Server Error", http.StatusInternalServerError)
+	}
 }
 
 // Services page for all /services url requests
-func servicesHandler(w http.ResponseWriter, req *http.Request) {
-	var githash = os.Getenv("gitHash")
+func (a *App) servicesHandler(w http.ResponseWriter, req *http.Request) {
 	servicesTemplate, _ := template.ParseFiles("./templates/services.html")
-	err := servicesTemplate.Execute(w, githash)
+	err := servicesTemplate.Execute(w, a.GitHash)
 	if err != nil {
-		log.Fatal(err)
+		http.Error(w, "500 Internal Server Error", http.StatusInternalServerError)
 	}
 }
 
@@ -103,15 +113,23 @@ func exampleReportHandler(w http.ResponseWriter, req *http.Request) {
 }
 
 // Data Assessment page for all /free-assessment url requests
-func dataAssessmentHandler(w http.ResponseWriter, req *http.Request) {
-	http.ServeFile(w, req, "./templates/data_assessment.html")
+func (a *App) dataAssessmentHandler(w http.ResponseWriter, req *http.Request) {
+	assessmentTemplate, _ := template.ParseFiles("./templates/data_assessment.html")
+	err := assessmentTemplate.Execute(w, a.GitHash)
+	if err != nil {
+		http.Error(w, "500 Internal Server Error", http.StatusInternalServerError)
+	}
 }
 
-func contactHandler(w http.ResponseWriter, req *http.Request) {
-	http.ServeFile(w, req, "./templates/contact.html")
+func (a *App) contactHandler(w http.ResponseWriter, req *http.Request) {
+	contactTemplate, _ := template.ParseFiles("./templates/contact.html")
+	err := contactTemplate.Execute(w, a.GitHash)
+	if err != nil {
+		http.Error(w, "500 Internal Server Error", http.StatusInternalServerError)
+	}
 }
 
-func blogLandingHandler(w http.ResponseWriter, req *http.Request) {
+func (a *App) blogLandingHandler(w http.ResponseWriter, req *http.Request) {
 	blogPosts := loadBlogs()
 	// Sort the posts by ID
 	keys := make([]string, 0, len(blogPosts))
@@ -127,11 +145,18 @@ func blogLandingHandler(w http.ResponseWriter, req *http.Request) {
 	for _, key := range keys {
 		sortedPosts = append(sortedPosts, blogPosts[key])
 	}
-
+	type PageData struct {
+		Posts   []Post
+		GitHash string
+	}
+	pageData := PageData{
+		Posts:   sortedPosts,
+		GitHash: a.GitHash,
+	}
 	landingTemplate, _ := template.ParseFiles("./templates/blog_landing.gohtml")
-	err := landingTemplate.Execute(w, sortedPosts)
+	err := landingTemplate.Execute(w, pageData)
 	if err != nil {
-		log.Fatal(err)
+		http.Error(w, "500 Internal Server Error", http.StatusInternalServerError)
 	}
 }
 
@@ -156,7 +181,7 @@ func sortBlogsByID(blogs []Post) []Post {
 	return blogs
 }
 
-func blogTagHandler(w http.ResponseWriter, req *http.Request) {
+func (a *App) blogTagHandler(w http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	tag := vars["tag"]
 	blogs := loadBlogs()
@@ -172,16 +197,26 @@ func blogTagHandler(w http.ResponseWriter, req *http.Request) {
 		http.Error(w, "404 page not found", http.StatusNotFound)
 		return
 	}
+	type PageData struct {
+		Posts   []Post
+		GitHash string
+		Subject string
+	}
+	pageData := PageData{
+		Posts:   sortedBlogs,
+		GitHash: a.GitHash,
+		Subject: tag,
+	}
 
 	// Render the template with filtered blogs
 	landingTemplate, _ := template.ParseFiles("./templates/blog_landing.gohtml")
-	err := landingTemplate.Execute(w, sortedBlogs)
+	err := landingTemplate.Execute(w, pageData)
 	if err != nil {
-		log.Fatal(err)
+		http.Error(w, "500 Internal Server Error", http.StatusInternalServerError)
 	}
 }
 
-func caseStudyLandingHandler(w http.ResponseWriter, req *http.Request) {
+func (a *App) caseStudyLandingHandler(w http.ResponseWriter, req *http.Request) {
 	tag := "case-study"
 	blogs := loadBlogs()
 
@@ -196,24 +231,44 @@ func caseStudyLandingHandler(w http.ResponseWriter, req *http.Request) {
 		http.Error(w, "404 page not found", http.StatusNotFound)
 		return
 	}
+	type PageData struct {
+		Posts   []Post
+		GitHash string
+	}
+	pageData := PageData{
+		Posts:   sortedBlogs,
+		GitHash: a.GitHash,
+	}
 
 	// Render the template with filtered case studies
 	landingTemplate, _ := template.ParseFiles("./templates/blog_landing.gohtml")
-	err := landingTemplate.Execute(w, sortedBlogs)
+	err := landingTemplate.Execute(w, pageData)
 	if err != nil {
-		log.Fatal(err)
+		http.Error(w, "500 Internal Server Error", http.StatusInternalServerError)
 	}
 }
 
-func blogHandler(w http.ResponseWriter, req *http.Request) {
+func (a *App) blogHandler(w http.ResponseWriter, req *http.Request) {
 	vars := mux.Vars(req)
 	var slugText = vars["slug"]
 	blogPosts := loadBlogs()
 	displayPost := blogPosts[slugText]
+
+	type PageData struct {
+		Post    Post
+		GitHash string
+	}
+	pageData := PageData{
+		Post:    displayPost,
+		GitHash: a.GitHash,
+	}
+
+	// If the post is not found, return a 404 error
 	blogTemplate, _ := template.ParseFiles("./templates/blog_template.gohtml")
-	err := blogTemplate.Execute(w, displayPost)
+	err := blogTemplate.Execute(w, pageData)
 	if err != nil {
-		log.Fatal(err)
+		http.Error(w, "500 Internal Server Error", http.StatusInternalServerError)
+
 	}
 }
 

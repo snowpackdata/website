@@ -18,7 +18,7 @@ import (
 type App struct {
 	cronosApp *cronos.App
 	logger    *log.Logger
-	gitHash   string
+	GitHash   string
 }
 
 func main() {
@@ -66,7 +66,7 @@ func main() {
 	a := &App{
 		cronosApp: &cronosApp,
 		logger:    log.New(os.Stdout, "http: ", log.LstdFlags),
-		gitHash:   gitHash,
+		GitHash:   gitHash,
 	}
 
 	// Mux is a subrouter generator that allows us to handle requests and route them to the appropriate handler
@@ -85,17 +85,17 @@ func main() {
 	api.Use(JwtVerify)
 
 	// our main routes are handled by the main router and are not protected by JWT
-	r.HandleFunc("/", indexHandler)
+	r.HandleFunc("/", a.indexHandler)
 	r.NotFoundHandler = http.HandlerFunc(notFoundHandler)
-	r.HandleFunc("/services", servicesHandler)
-	r.HandleFunc("/about", aboutHandler)
-	r.HandleFunc("/contact", contactHandler)
-	r.HandleFunc("/free-assessment", dataAssessmentHandler)
+	r.HandleFunc("/services", a.servicesHandler)
+	r.HandleFunc("/about", a.aboutHandler)
+	r.HandleFunc("/contact", a.contactHandler)
+	r.HandleFunc("/free-assessment", a.dataAssessmentHandler)
 	r.HandleFunc("/reports/examples/nba-report", exampleReportHandler)
-	r.HandleFunc("/blog", blogLandingHandler)
-	r.HandleFunc("/case-studies", caseStudyLandingHandler)
-	r.HandleFunc("/articles/{tag}", blogTagHandler)
-	r.HandleFunc("/blog/{slug}", blogHandler)
+	r.HandleFunc("/blog", a.blogLandingHandler)
+	r.HandleFunc("/case-studies", a.caseStudyLandingHandler)
+	r.HandleFunc("/articles/{tag}", a.blogTagHandler)
+	r.HandleFunc("/blog/{slug}", a.blogHandler)
 	r.HandleFunc("/contact-us-submit", a.ContactPageEmail).Methods("POST")
 
 	// Cronos Application pages, internal and external
