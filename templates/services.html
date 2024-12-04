@@ -18,7 +18,7 @@
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-TRLQYPPXKE"></script>
     <!-- Tailwind CSS -->
-    <link href="/assets/css/outputs.css" rel="stylesheet" />
+    <link href="/assets/css/outputs.css?v={{ . }}" rel="stylesheet" />
     <script>
         window.dataLayer = window.dataLayer || [];
         function gtag(){dataLayer.push(arguments);}
@@ -244,5 +244,5 @@
 </body>
 </html>
 
-<script src="/assets/js/index.js"></script>
-<script src="/assets/js/services.js"></script>
+<script src="/assets/js/index.js?v={{ . }}"></script>
+<script src="/assets/js/services.js?v={{ . }}"></script>

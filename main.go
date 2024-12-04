@@ -18,6 +18,7 @@ import (
 type App struct {
 	cronosApp *cronos.App
 	logger    *log.Logger
+	GitHash   string
 }
 
 func main() {
@@ -30,6 +31,12 @@ func main() {
 	password := os.Getenv("CLOUD_SQL_PASSWORD")
 	dbHost := os.Getenv("CLOUD_SQL_CONNECTION_NAME")
 	databaseName := os.Getenv("CLOUD_SQL_DATABASE_NAME")
+	// Get the GIT_HASH value (default to "dev" if not set)
+	gitHash := os.Getenv("GIT_HASH")
+	if gitHash == "" {
+		gitHash = "dev"
+	}
+
 	socketPath := "/cloudsql/" + dbHost
 	cronosApp := cronos.App{}
 	dbURI := fmt.Sprintf("user=%s password=%s database=%s host=%s", user, password, databaseName, socketPath)
@@ -56,7 +63,11 @@ func main() {
 	}
 
 	// Add the cronos app to our webapp struct to access it across handlers
-	a := &App{cronosApp: &cronosApp, logger: log.New(os.Stdout, "http: ", log.LstdFlags)}
+	a := &App{
+		cronosApp: &cronosApp,
+		logger:    log.New(os.Stdout, "http: ", log.LstdFlags),
+		GitHash:   gitHash,
+	}
 
 	// Mux is a subrouter generator that allows us to handle requests and route them to the appropriate handler
 	// the router allows us to handle a couple high level subrouters and then specific routes.
@@ -74,17 +85,17 @@ func main() {
 	api.Use(JwtVerify)
 
 	// our main routes are handled by the main router and are not protected by JWT
-	r.HandleFunc("/", indexHandler)
+	r.HandleFunc("/", a.indexHandler)
 	r.NotFoundHandler = http.HandlerFunc(notFoundHandler)
-	r.HandleFunc("/services", servicesHandler)
-	r.HandleFunc("/about", aboutHandler)
-	r.HandleFunc("/contact", contactHandler)
-	r.HandleFunc("/free-assessment", dataAssessmentHandler)
+	r.HandleFunc("/services", a.servicesHandler)
+	r.HandleFunc("/about", a.aboutHandler)
+	r.HandleFunc("/contact", a.contactHandler)
+	r.HandleFunc("/free-assessment", a.dataAssessmentHandler)
 	r.HandleFunc("/reports/examples/nba-report", exampleReportHandler)
-	r.HandleFunc("/blog", blogLandingHandler)
-	r.HandleFunc("/case-studies", caseStudyLandingHandler)
-	r.HandleFunc("/articles/{tag}", blogTagHandler)
-	r.HandleFunc("/blog/{slug}", blogHandler)
+	r.HandleFunc("/blog", a.blogLandingHandler)
+	r.HandleFunc("/case-studies", a.caseStudyLandingHandler)
+	r.HandleFunc("/articles/{tag}", a.blogTagHandler)
+	r.HandleFunc("/blog/{slug}", a.blogHandler)
 	r.HandleFunc("/contact-us-submit", a.ContactPageEmail).Methods("POST")
 
 	// Cronos Application pages, internal and external

@@ -18,7 +18,7 @@
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-TRLQYPPXKE"></script>
 <!-- Tailwind CSS -->
-<link href="/assets/css/outputs.css" rel="stylesheet" />
+<link href="/assets/css/outputs.css?v={{ .GitHash }}" rel="stylesheet" />
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
@@ -99,7 +99,7 @@
           <p class="mt-2 text-lg/8 text-gray-dark">Check out our case-studies, product deep dives, and write-ups on our existing work</p>
         </div>
         <div class="mx-auto mt-16 grid max-w-2xl grid-cols-1 gap-x-8 gap-y-20 lg:mx-0 lg:max-w-none lg:grid-cols-3">
-        {{ range . }}
+        {{ range .Posts }}
           <article class="flex flex-col items-start justify-between h-full border-b-gray-light">
             <!-- Image Section -->
             <div class="relative w-full">
@@ -169,4 +169,4 @@
 </body>
 </html>
 
-<script src="/assets/js/index.js"></script>
+<script src="/assets/js/index.js?v={{ .GitHash }}"></script>
