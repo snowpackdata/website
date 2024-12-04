@@ -26,7 +26,7 @@ jobs:
       - name: tailwindcss - update output.css
         uses: ZoeyVid/tailwindcss-update@main
         with:
-          input: src/assets/css/input.css
+          input: src/assets/css/main.css
           output: src/assets/css/output.css
           params: "--minify"
       - name: tailwindcss - push changes
