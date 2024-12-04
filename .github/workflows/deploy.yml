@@ -22,9 +22,12 @@ jobs:
       - run: git config --global url."https://${{ secrets.GH_ACCESS_TOKEN }}:x-oauth-basic@github.com/snowpackdata".insteadOf "https://github.com/snowpackdata"
       - name: Go Get
         run: go get .
+      # Recompile output.css for UI changes
+      - name: Generate Tailwind CSS
+        uses: ZoeyVid/tailwindcss-update@v1.4.0                  
       - name: Build
         run: go build -v ./...
-      # Generate the Git commit hash
+      # Create environment variable of current Git hash
       - name: Generate Commit Hash
         id: commit-hash
         run: echo "VERSION=$(git rev-parse --short HEAD)" >> $GIT_HASH
