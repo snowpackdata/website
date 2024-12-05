@@ -23,3 +23,6 @@ gcs-service-account.json
 .env
 .envrc
 sendgrid.env
+
+#Tailwind CSS configs
+assets/css/outputs.css
