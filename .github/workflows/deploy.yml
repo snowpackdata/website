@@ -20,8 +20,6 @@ jobs:
         with:
           go-version: 1.21
       - run: git config --global url."https://${{ secrets.GH_ACCESS_TOKEN }}:x-oauth-basic@github.com/snowpackdata".insteadOf "https://github.com/snowpackdata"
-      - name: Go Get
-        run: go get .
       # Recompile output.css for UI changes
       - name: tailwindcss - update output.css
         uses: ZoeyVid/tailwindcss-update@main
@@ -29,13 +27,9 @@ jobs:
           input: assets/css/main.css
           output: assets/css/outputs.css
           params: "--minify"
-      - name: tailwindcss - push changes
-        run: |
-          git add --force assets/css/outputs.css
-          git config user.name "GitHub"
-          git config user.email "noreply@github.com"
-          git diff-index --quiet HEAD || git commit -sm "tailwindcss-update"
-          git push
+      # Build the Go application
+      - name: Go Get
+        run: go get .
       - name: Build
         run: go build -v ./...
       # Create environment variable of current Git hash
