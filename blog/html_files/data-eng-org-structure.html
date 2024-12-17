@@ -1,0 +1,127 @@
+<h2>Introduction</h2>
+<p>Data Engineering is a nebulous term for a role that varies wildly from org to org. As you think about growing your data team you will inevitably come across this term and think about hiring a <em>data engineering team</em>. In this article we want to provide a framework for understanding the responsibilities of a data engineer, as well as define a standard org model for a data engineering team. We'll aim to answer 4 key questions:</p>
+<ol>
+    <li>What are the key functions of a data engineering team and the roles of the staff?</li>
+    <li>What are their boundaries with other teams?</li>
+    <li>Who should they report to and what are the consequences of that decision?</li>
+    <li>How do you develop a roadmap for a data org?</li>
+</ol>
+
+<h2>Key Functions of Org and roles of Staff</h2>
+<p>The data engineering team is primarily responsible for 5 tasks.</p>
+<h3>1. Data Ingestion</h3>
+<p>
+    Ingestion is the process of moving data from various sources into a cloud data warehouse. It usually involves managing a platform service or a series of scripts that connect to various API endpoints and pipe data into your company’s data lake at regular intervals. The data engineering team is responsible for both building and maintaining this pipeline, a task that will continue to increase in scope as the complexity of the organization increases.
+</p>
+
+<h3>2. Data Processing and Cleaning</h3>
+<p>
+    Like any raw material, once data is piped into the data lake, it needs to be cleaned of any errors, formatted, and tested for quality. Data engineers are responsible for writing scripts that test and format fresh data being piped into the database into a series of base models in the database that can then be used to build consumer models–data tables that contain business logic that are usable for analysis or are pre-formatted for further production use like AI/ML modeling.
+</p>
+
+<h3>3. Consumer Modeling</h3>
+<p>
+    Consumer modeling is the process of adding business logic to the base models and formatting them to be used for consumption.This is the final step in the “processing” phase of the data lifecycle before data gets shipped out of the database and piped into reports, dashboards, or AI/ML models.
+</p>
+<p>
+    This process is often shared between data eng and analysts, with engineers building net new data assets, and analysts altering and maintaining those assets as needed as business requirements change over time.
+</p>
+
+<h3>4. Data Systems Design</h3>
+<p>
+In cases where a company is generating its own proprietary data–for example, by tracking user behavior on their app–data engineers will partner with software developers to ensure that data is passed cleanly to the database and that it contains the information needed to make it usable by other systems.
+</p>
+<p>
+    Data engineers will also help with data design in cases where a company wishes to connect data across multiple products or make its proprietary data available to clients via an API.
+</p>
+
+<h3>5. Data Governance and Security</h3>
+<p>
+    Data engineers are responsible for implementing data governance and security policies for the organization. They manage access permissions to data sets, as well as the company’s suite of data tooling, actively manage load on database systems, and track costs in real time with observability software.
+</p>
+<p>
+    They also are responsible for and/or partner with infosec to facilitate security processes like PII masking, tracking data assets and user behaviors across nodes in the company’s data network.
+</p>
+
+<h3>Data Engineering's "Hats"</h3>
+<p>Collectively these responsibilities can be split into two tactical functions or "hats" that the team wears</p>
+<h4>Data Infrastructure and Pipeline</h4>
+<p>This function focuses on building and maintaining data infrastructure within the organization. It is typically earlier in the lifecycle of data in the company and might interface more closely with engineering than it does other teams. It usually involves:</p>
+<ul>
+    <li>Data ingestion</li>
+    <li>Data processing and cleaning</li>
+    <li>Consumer data modeling</li>
+    <li>Data systems design (api development, event tagging, data processing)</li>
+</ul>
+<h4>Database and Systems management</h4>
+<p>
+    This function involves managing the process by which people and machines gain access to send data to and receive data from your company’s proprietary data systems, keeping your company’s data services running in real time, and tracking the costs associated with your data tools and properties. This involves managing tools and processes such as:
+</p>
+<ul>
+    <li>User access permissions</li>
+    <li>Data sharing</li>
+    <li>Observability</li>
+    <li>Cost tracking</li>
+    <li>Security and regulatory compliance</li>
+</ul>
+
+<h4>Specializations</h4>
+<p>
+Many data engineers have worked across both of the above functions. In a smaller organization with 1-2 data engineers, it’s common for both these roles to be filled by the same person or group, but in larger organizations where it’s common for many people to require access to the data at the same time from different places, there will generally be engineers that specialize in one area vs. the other. </p>
+<p>
+An alternative for larger (but still lean) data eng teams is to have the data engineering manager role be responsible for database and systems management (particularly where cost tracking and metrics are of concern), and the data engineers are responsible for infrastructure development.</p>
+<p>
+The above is a preferred structure because it optimizes the centralization and distribution of engineering resources–In this model, your security and cost-center concerns are the responsibility of one person. As an executive, you have only one point of accountability for data engineering, the same point of contact for security concerns and the same source of truth for data service performance.
+</p>
+<p>
+At the same time, it leaves your engineers free of dealing with tickets for new access permissions and other clerical issues, and allows them to be flexibly distributed across the projects or teams that require them most at a given moment.
+</p>
+<hr>
+<h2>Boundaries with other teams</h2>
+<p>
+    Data engineering is fundamentally a service function both in the data org and in the larger organization. They exist to facilitate the transfer of data from source systems to downstream data products built by software engineers, data analysts and business users.
+</p>
+<p>
+This is why data engineering teams operate best using engagement models–written agreements across teams, like contracts, that set the rules for collaboration on projects (strategic engagements) and set standards for day-to-day operational interactions (i.e. clear communication models, SLAs, On-Call services, etc.)
+</p>
+<h3>Practical limits of the data engineering role</h3>
+<p>
+    In general, data engineers are not involved in the deployment or management of the end-products–if the product is a series of metrics and a dashboard, that responsibility falls to the data analytics team. If the product is a new feature for the company’s web application, the software engineering team is responsible for it. For a new ML/AI model, the data science team will take responsibility. Instead, data engineers serve these teams as partners in their development process–ensuring these teams have access to the data they need to do their jobs.
+</p>
+<p>
+In practical terms: Consider the placement of your data engineering team in the context of your business–if it is heavily software development-focused, you’ll want to ensure there are clear engagement models for the product team, the software engineering team and the data eng team that enable them to work effectively–the same if it is sales-focused, etc.
+</p>
+
+<h3>Engagement models</h3>
+<p>Your data engineering team should develop an engagement model with every team it works with. It should also develop policies and processes to manage interactions across teams, as well as facilitate communication with the rest of the company. </p>
+<p>Engagement models should define and establish norms for cross-team collaboration using methods like:
+</p>
+<ul>
+    <li>Slack channels</li>
+    <li>On-call hours & office hours</li>
+    <li>Intake processes for new requests</li>
+    <li>Standard SLAs</li>
+    <li>Shared key metrics</li>
+    <li>Weekly leadership updates</li>
+</ul>
+<p>
+    In addition, engagement models should include processes for prioritization and execution of tasks, these will look very similar to traditional engineering teams:
+</p>
+<ul>
+    <li>Backlog grooming</li>
+    <li>Prioritization sessions</li>
+    <li>Project planning</li>
+    <li>Task assignment</li>
+    <li>Retros and feedback</li>
+    <li>Project & product design docs</li>
+</ul>
+<hr>
+<h2>Leadership Structure</h2>
+<p>
+    Data engineering generally sits under one of two org umbrellas: engineering or data analytics. Engineering usually rolls up to the CTO but data analytics groups tend to sit under whichever business unit is responsible for generating revenue. In SaaS companies this usually puts them under the CTO, but in other models it’s not uncommon to seat them under:
+</p>
+<ul>
+    <li>The CRO if the company is sales/revenue growth focused (i.e. B2B SaaS)</li>
+    <li>The COO if the company is focused on operational efficiency (i.e. logistics)</li>
+    <li>The CFO if the company is focused on cost reduction/revenue increases (i.e. consumer-products)</li>
+</ul>

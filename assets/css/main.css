@@ -79,6 +79,12 @@ h2.blog-subtitle  {
         font-weight: 600;
         margin-bottom: 1vh;
     }
+    h4 {
+        font-size: 12pt;
+        font-weight: 600;
+        margin-bottom: 1vh;
+        font-style: oblique;
+    }
     code {
         font-size: 12pt;
         background-color: #eeeff1;
@@ -125,6 +131,14 @@ h2.blog-subtitle  {
     ol>li {
         margin-bottom: 1vh;
         list-style-type: disc;
+    }
+    ul {
+        font-size: initial;
+        margin-left: 5%;
+    }
+    ul>li {
+        margin-bottom: 1vh;
+        list-style-type: circle;
     }
 
     a.footnote {
