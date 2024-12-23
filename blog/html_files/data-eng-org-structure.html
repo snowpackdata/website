@@ -1,4 +1,3 @@
-<h2>Introduction</h2>
 <p>Data Engineering is a nebulous term for a role that varies wildly from org to org. As you think about growing your data team you will inevitably come across this term and think about hiring a <em>data engineering team</em>. In this article we want to provide a framework for understanding the responsibilities of a data engineer, as well as define a standard org model for a data engineering team. We'll aim to answer 4 key questions:</p>
 <ol>
     <li>What are the key functions of a data engineering team and the roles of the staff?</li>
@@ -21,7 +20,7 @@
 
 <h3>3. Consumer Modeling</h3>
 <p>
-    Consumer modeling is the process of adding business logic to the base models and formatting them to be used for consumption.This is the final step in the “processing” phase of the data lifecycle before data gets shipped out of the database and piped into reports, dashboards, or AI/ML models.
+    Consumer modeling is the process of adding business logic to the base models and formatting them to be used for consumption. This is the final step in the “processing” phase of the data lifecycle before data gets shipped out of the database and piped into reports, dashboards, or AI/ML models.
 </p>
 <p>
     This process is often shared between data eng and analysts, with engineers building net new data assets, and analysts altering and maintaining those assets as needed as business requirements change over time.
@@ -71,7 +70,7 @@ Many data engineers have worked across both of the above functions. In a smaller
 <p>
 An alternative for larger (but still lean) data eng teams is to have the data engineering manager role be responsible for database and systems management (particularly where cost tracking and metrics are of concern), and the data engineers are responsible for infrastructure development.</p>
 <p>
-The above is a preferred structure because it optimizes the centralization and distribution of engineering resources–In this model, your security and cost-center concerns are the responsibility of one person. As an executive, you have only one point of accountability for data engineering, the same point of contact for security concerns and the same source of truth for data service performance.
+The above is a preferred structure because it optimizes the centralization and distribution of engineering resources. In this model, your security and cost-center concerns are the responsibility of one person. As an executive, you have only one point of accountability for data engineering, the same point of contact for security concerns and the same source of truth for data service performance.
 </p>
 <p>
 At the same time, it leaves your engineers free of dealing with tickets for new access permissions and other clerical issues, and allows them to be flexibly distributed across the projects or teams that require them most at a given moment.
@@ -124,4 +123,51 @@ In practical terms: Consider the placement of your data engineering team in the 
     <li>The CRO if the company is sales/revenue growth focused (i.e. B2B SaaS)</li>
     <li>The COO if the company is focused on operational efficiency (i.e. logistics)</li>
     <li>The CFO if the company is focused on cost reduction/revenue increases (i.e. consumer-products)</li>
+</ul>
+<p>
+The image below shows three org models composed of data engineering (ENG) and data analytics (DATA) teams. Each is viable depending on the stage of growth of a company and its organizational requirement. The data engineering and larger data organization’s structure will change as the company matures.
+</p>
+<img src="https://www.datacamp.com/data-eng-org-structure.png" alt="Data Engineering Org Structure">
+<h3> Model 1: Early/mid-stage startup</h3>
+<p>
+    The primary goal of companies in this stage is generally to move fast and grow as much as possible. Centralizing the data team under a specific executive (in this case, the CTO) is the quickest way to ensure executive accountability for your data infrastructure development early on–as well as ensures alignment across the two core functions in the data org (analytics and data eng) with the software engineering org.
+</p>
+<h3>Model 2: Established business undergoing data transformation</h3>
+<p>
+    In older, more established companies that are undergoing data transformations, adoption is an important factor in determining success. Many companies are slow to adopt new data technologies, and the introduction of databases and dashboards, or ML or AI models can be met with skepticism.</p>
+<p>
+In these cases, we keep the engineering team centralized under one executive (again, in this example: the CTO), while placing the data team on another executive’s–or across multiple executives’--P&Ls. Effectively, this is giving your execs a dedicated analyst or analyst team with the sole responsibility of fulfilling their data needs.
+</p>
+<p>
+Assuming your data engineering team has set up your infrastructure well, this structure allows the analysts to communicate directly with stakeholders as part of their chain of command, and quickly generate analysis or reporting for stakeholders.
+</p>
+<p>
+This can be an extremely effective method of evangelizing users that are new to the data space or that may otherwise be resistant to a cultural shift towards data-backed decision-making. On the other hand, this structure can be dangerous if drift across teams is not managed over time. Having analysts on different teams that don’t communicate often leads to the creation of multiple sources of truth, which in turn leads to loss of trust in data. Furthermore, it is difficult to walk back if you need to re-centralize the data team into one single business unit.
+</p>
+<h3>Model 3: Modern mid-market/enterprise firm</h3>
+<p>A fully modernized firm operating with data products at scale uses a structure that balances the use of centralization of services where required with the distribution of analyst resources as needed. Its focus is on making data “self-serve”, meaning empowering the organization to access and use data for any purpose they require.
+</p>
+<p>
+Their data engineering teams are fully centralized under one executive, as they manage infrastructure dev and maintenance as well as data security and access–processes that should be centralized to function effectively. The data analytics teams are under the same P&L as the data eng teams–meaning they have the same executive leader, but their services are distributed across the business units in dedicated teams. This structure allows a single data leader to manage alignment of priorities across the data organization (both eng and analytics), which is vital to protecting the quality and integrity of a company’s data. It also allows other business leaders to “adopt” their dedicated analysts as part of their team and integrate them into their functional workflows. This gives the data analyst business context necessary to be effective, while allowing the analytics leader the ability to provide air cover and challenge individual requests when they conflict with larger company priorities.
+</p>
+<p>
+<strong>Additional Note:</strong> <em>In large, highly tech-enabled firms, data engineering may also have an additional component of engineers known as ‘analytics engineers’, who are distributed across teams to help them build out their own data assets. Cases like this usually are only relevant to companies with platform technologies that have multiple databases and products in their portfolio.
+
+In these cases, Eng and Analytics remain consolidated under the same leader, on the same P&L. You’ll often see organizations that use this method do so by defining a separate role called “Analytics Enablement” with the core purpose of making data accessible.</em>
+</p>
+<h3>Centralization vs Decentralization</h3>
+<p>
+    There is a lot of content on the internet that debates the merits of centralizing vs. decentralizing your data teams. This is an ongoing debate in the data industry that is often used to generate marketing content. It’s better to think of centralization and distribution as tools, where distribution drives data proliferation across the company, and centralization ensures quality and security. The goal is to balance the two forces to maximize both ease of access to data (distributed), and data quality and integrity (centralized).
+
+</p>
+<hr>
+<h2>The Data Engineering Roadmap</h2>
+<p>Designing a roadmap for the data engineering organization is just a matter of connecting the dots across this document and consists of the following steps:
+</p>
+<p>Assessing the existing data staffing and technology assets of the organization</p>
+<ul>
+    <li>This includes costs associated with various tooling decisions as well as operational costs related to storage and compute.</li>
+    <li>It also includes identifying gaps or overspending in your staffing model.</li>
+    <li>The focus of this step is on identifying areas for cost-reduction and areas that need additional investment.</li>
+
 </ul>
