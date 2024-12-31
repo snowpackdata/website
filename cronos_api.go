@@ -813,10 +813,23 @@ func (a *App) ContactPageEmail(w http.ResponseWriter, r *http.Request) {
 	customerEmail := r.FormValue("email")
 	customerFirstName := r.FormValue("first_name")
 	customerLastName := r.FormValue("last_name")
+	customerCompany := r.FormValue("company")
 	customerMessage := r.FormValue("message")
 
 	// Send the email
-	//err := a.cronosApp.EmailFromAdmin(cronos.EmailTypeContact, "info@snowpack-data.com")
+	// Create an email object
+	email := cronos.Email{
+		SenderEmail:      "accounts@snowpack-data.io",
+		SenderName:       "Contact Form",
+		RecipientEmail:   "accounts@snowpack-data.io",
+		RecipientName:    "Snowpack Data",
+		Subject:          fmt.Sprintf("Contact Form Submission from %s %s", customerFirstName, customerLastName),
+		PlainTextContent: fmt.Sprintf("Email: %s \r\n Name: %s %s \r\n Company: %s \r\n Message: %s", customerEmail, customerFirstName, customerLastName, customerCompany, customerMessage),
+	}
+	err := a.cronosApp.SendTextEmail(email)
+	if err != nil {
+		fmt.Println(err)
+	}
 
 	a.logger.Printf("Email sent to %s %s at %s with message: %s", customerFirstName, customerLastName, customerEmail, customerMessage)
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
