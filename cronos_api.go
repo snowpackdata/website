@@ -813,6 +813,7 @@ func (a *App) ContactPageEmail(w http.ResponseWriter, r *http.Request) {
 	customerEmail := r.FormValue("email")
 	customerFirstName := r.FormValue("first_name")
 	customerLastName := r.FormValue("last_name")
+	customerCompany := r.FormValue("company")
 	customerMessage := r.FormValue("message")
 
 	// Send the email
@@ -823,7 +824,7 @@ func (a *App) ContactPageEmail(w http.ResponseWriter, r *http.Request) {
 		RecipientEmail:   "accounts@snowpack-data.io",
 		RecipientName:    "Snowpack Data",
 		Subject:          fmt.Sprintf("Contact Form Submission from %s %s", customerFirstName, customerLastName),
-		PlainTextContent: fmt.Sprintf("Email: %s\nName: %s %s\nMessage: %s", customerEmail, customerFirstName, customerLastName, customerMessage),
+		PlainTextContent: fmt.Sprintf("Email: %s \r\n Name: %s %s \r\n Company: %s \r\n Message: %s", customerEmail, customerFirstName, customerLastName, customerCompany, customerMessage),
 	}
 	err := a.cronosApp.SendTextEmail(email)
 	if err != nil {
