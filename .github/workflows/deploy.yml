@@ -24,8 +24,8 @@ jobs:
       - name: tailwindcss - update output.css
         uses: ZoeyVid/tailwindcss-update@main
         with:
-          input: assets/css/main.css
-          output: assets/css/outputs.css
+          input: static/css/main.css
+          output: static/css/outputs.css
           params: "--minify"
       # Build the Go application
       - name: Go Get

@@ -48,7 +48,7 @@ npm install tailwindcss@latest
 npm install -D @tailwindcss/forms
 
 # Finally you can run the following command to recompile the css file with any updates to relevant files
-npx tailwindcss -i ./assets/css/main.css -o ./assets/css/outputs.css --watch
+npx tailwindcss -i ./static/css/main.css -o ./static/css/outputs.css --watch
 ```
 
 You can read more about how tailwind works [here](https://tailwindcss.com/docs/installation) but the general idea is that you can use tailwind classes natively in html files to style the website, or add any custom classes to the `main.css` file. When we run the tailwind executable it will find all of the css classes that are either accessed in html files, or are in the `main.css` file and compile them into the `outputs.css` file which is the file that is used to style the website.

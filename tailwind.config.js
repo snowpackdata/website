@@ -1,6 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  content: ["./templates/**/*.{html, gohtml}", "./templates/*.{html, gohtml}", "./assets/**/*.js"],
+  content: ["./templates/**/*.{html, gohtml}", "./templates/*.{html, gohtml}", "./cronos/src/components/*.vue","./cronos/src/style.css"],
   theme: {
     colors: {
       'teal': '#226d87',
