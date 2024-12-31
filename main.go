@@ -2,7 +2,9 @@ package main
 
 import (
 	"context"
+	"embed"
 	"fmt"
+	"io/fs"
 	"log"
 	"net/http"
 	"os"
@@ -20,6 +22,9 @@ type App struct {
 	logger    *log.Logger
 	GitHash   string
 }
+
+//go:embed cronos/dist
+var cronosFiles embed.FS
 
 func main() {
 
@@ -75,8 +80,10 @@ func main() {
 	// Define a subrouter to handle files at static for accessing static content
 	// static, api, and r are all subrouters that allow us to handle different types of requests
 
-	static := r.PathPrefix("/assets").Subrouter()
-	static.Handle("/{*}/{*}", http.StripPrefix("/assets/", http.FileServer(http.Dir("./assets"))))
+	static := r.PathPrefix("/static").Subrouter()
+	static.Handle("/{*}/{*}", http.StripPrefix("/static/", http.FileServer(http.Dir("./static"))))
+	assets := r.PathPrefix("/assets").Subrouter()
+	assets.Handle("/{*}", http.StripPrefix("/assets/", http.FileServer(http.Dir("./cronos/dist/assets"))))
 
 	branding := r.PathPrefix("/branding").Subrouter()
 	branding.Handle("/{*}/{*}", http.StripPrefix("/branding/", http.FileServer(http.Dir("./branding"))))
@@ -84,9 +91,23 @@ func main() {
 	api := r.PathPrefix("/api").Subrouter()
 	api.Use(JwtVerify)
 
+	app := r.PathPrefix("/app").Subrouter()
+	app.Use(JwtVerify)
+
+	// Serve the asset files from the cronos/dist directory for the cronos application as a vue app
+	// However, if we are in development mode, we will serve these from disk as an OS.Dir
+	var dist fs.FS
+	if os.Getenv("ENVIRONMENT") == "production" {
+		dist, _ = fs.Sub(cronosFiles, "cronos/dist")
+	} else {
+		dist = os.DirFS("./cronos/dist")
+	}
+
+	r.Handle("/app", http.StripPrefix("/app", http.FileServerFS(dist)))
+
 	// our main routes are handled by the main router and are not protected by JWT
 	r.HandleFunc("/", a.indexHandler)
-	r.NotFoundHandler = http.HandlerFunc(notFoundHandler)
+	//r.NotFoundHandler = http.HandlerFunc(notFoundHandler)
 	r.HandleFunc("/services", a.servicesHandler)
 	r.HandleFunc("/about", a.aboutHandler)
 	r.HandleFunc("/contact", a.contactHandler)

@@ -18,7 +18,7 @@
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-TRLQYPPXKE"></script>
 <!-- Tailwind CSS -->
-<link href="/assets/css/outputs.css?v={{ .GitHash }}" rel="stylesheet" />
+<link href="/static/css/outputs.css?v={{ .GitHash }}" rel="stylesheet" />
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
@@ -104,7 +104,7 @@
             <!-- Image Section -->
             <div class="relative w-full">
               <a href="/blog/{{ .Slug }}">
-              <img src="/assets/img/{{ .Splash }}" alt="{{ .Splash }}" class="aspect-video w-full rounded-2xl bg-gray-light object-cover sm:aspect-[2/1] lg:aspect-[3/2]">
+              <img src="/static/img/{{ .Splash }}" alt="{{ .Splash }}" class="aspect-video w-full rounded-2xl bg-gray-light object-cover sm:aspect-[2/1] lg:aspect-[3/2]">
               <div class="absolute inset-0 rounded-2xl ring-1 ring-inset ring-gray-dark"></div>
               </a>
             </div>
@@ -127,7 +127,7 @@
               </div>
               <!-- Author Section -->
               <div class="mt-auto flex items-center gap-x-4 pt-4">
-                <img src="/assets/img/{{ .AuthorImage }}" alt="" class="h-10 w-10 rounded-full bg-gray-100" style="outline:1px solid #1a1e21;">
+                <img src="/static/img/{{ .AuthorImage }}" alt="" class="h-10 w-10 rounded-full bg-gray-100" style="outline:1px solid #1a1e21;">
                 <p class="text-sm font-semibold text-gray-900">
                   <a href="#" class="hover:underline">
                     {{ .Author }}
@@ -169,4 +169,4 @@
 </body>
 </html>
 
-<script src="/assets/js/index.js?v={{ .GitHash }}"></script>
+<script src="/static/js/index.js?v={{ .GitHash }}"></script>

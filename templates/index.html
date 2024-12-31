@@ -19,7 +19,7 @@
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-TRLQYPPXKE"></script>
 <!-- Tailwind CSS -->
-<link href="/assets/css/outputs.css?v={{ .GitHash }}" rel="stylesheet" />
+<link href="/static/css/outputs.css?v={{ .GitHash }}" rel="stylesheet" />
 <script>
   window.dataLayer = window.dataLayer || [];
   function gtag(){dataLayer.push(arguments);}
@@ -100,7 +100,7 @@
 
 <!--  HERO IMAGE AND SUPERIMPOSED TEXT-->
   <div class="relative isolate overflow-hidden pt-14">
-    <img src=/assets/img/mountain_splash.JPG alt="" class="absolute inset-0 -z-10 size-full object-cover brightness-50 bg-gradient-to-b from-blue to-gray-dark" >
+    <img src=/static/img/mountain_splash.JPG alt="" class="absolute inset-0 -z-10 size-full object-cover brightness-50 bg-gradient-to-b from-blue to-gray-dark" >
     <div class="mx-auto max-w-10xl px-10 lg:px-10">
       <div class="mx-auto max-w-2xl py-32 sm:py-48 lg:py-56">
         <div class="text-center">
@@ -188,7 +188,7 @@
         <!-- Image Section -->
         <div class="relative w-full">
           <a href="/blog/{{ .Slug }}">
-          <img src="/assets/img/{{ .Splash }}" alt="" class="aspect-video w-full rounded-2xl bg-gray-100 object-cover sm:aspect-[2/1] lg:aspect-[3/2]">
+          <img src="/static/img/{{ .Splash }}" alt="" class="aspect-video w-full rounded-2xl bg-gray-100 object-cover sm:aspect-[2/1] lg:aspect-[3/2]">
           </a>
         </div>
 
@@ -213,7 +213,7 @@
 
           <!-- Author Section -->
           <div class="mt-auto flex items-center gap-x-4 pt-4">
-            <img src="/assets/img/{{ .AuthorImage }}" alt="" class="h-10 w-10 rounded-full bg-gray-100" style="outline:1px solid #1a1e21;">
+            <img src="/static/img/{{ .AuthorImage }}" alt="" class="h-10 w-10 rounded-full bg-gray-100" style="outline:1px solid #1a1e21;">
             <p class="text-sm font-semibold text-gray-900">
               <a href="#" class="hover:underline">
                 {{ .Author }}
@@ -260,4 +260,4 @@
 </body>
 </html>
 <!--Add Javascript-->
-<script src="/assets/js/index.js?v={{ .GitHash }}"></script>
+<script src="/static/js/index.js?v={{ .GitHash }}"></script>
