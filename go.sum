@@ -105,6 +105,7 @@ github.com/sendgrid/sendgrid-go v3.13.0+incompatible h1:HZrzc06/QfBGesY9o3n1lvBr
 github.com/sendgrid/sendgrid-go v3.13.0+incompatible/go.mod h1:QRQt+LX/NmgVEvmdRw0VT/QgUn499+iza2FnDca9fg8=
 github.com/snowpackdata/cronos v1.0.24 h1:5vIEwRwJv8q0viIo8Hz3AiACBDOE22/FIg0UJ6bNgpU=
 github.com/snowpackdata/cronos v1.0.24/go.mod h1:2F0pMQNHsuETp0u6EyDVrR2xAM3886xbMktf+jJyUbY=
+github.com/snowpackdata/cronos v1.0.25/go.mod h1:2F0pMQNHsuETp0u6EyDVrR2xAM3886xbMktf+jJyUbY=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 github.com/stretchr/objx v0.4.0/go.mod h1:YvHI0jy2hoMjB+UWwv71VJQ9isScKT/TqJzVSSt89Yw=
 github.com/stretchr/objx v0.5.0/go.mod h1:Yh+to48EsGEfYuaHDzXPcE3xhTkx73EhmCGUpEOglKo=
