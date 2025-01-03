@@ -6,6 +6,7 @@ var App = new Vue({
             home : true,
             admin: false,
             invoices: false,
+            bills: false,
             projects : false,
             accounts : false,
             staff : false,
@@ -22,6 +23,7 @@ var App = new Vue({
         projects : null,
         draftInvoices : null,
         acceptedInvoices: null,
+        staffBills : null,
 
         // This is the data that will be used to populate the detail view
         detailProject : null,
@@ -110,6 +112,14 @@ var App = new Vue({
                 return text;
             }
         },
+        currency(value) {
+            return new Intl.NumberFormat("en-US",
+        { style: "currency", currency: "USD" }).format(value);
+        },
+        round(value, decimals = 2) {
+            const factor = Math.pow(10, decimals);
+            return Math.round(value * factor) / factor;
+        }
     },
     methods : {
         editEntry(invoice, entry) {
@@ -343,6 +353,35 @@ var App = new Vue({
             this.fetchAcceptedInvoices();
         },
 
+        markBillPaid(bill) {
+            axios({
+                method: 'post',
+                url: '/api/bills/' + bill.ID.toString() + '/paid',
+                headers: {'Content-Type': 'application/json', 'x-access-token': window.localStorage.snowpack_token},
+            })
+                .then(response => {
+                    console.log(response)
+                })
+                .catch(error => {
+                    console.log(error)
+                })
+            this.fetchBills();
+        },
+        markBillVoid(bill) {
+            axios({
+                method: 'post',
+                url: '/api/bills/' + bill.ID.toString() + '/void',
+                headers: {'Content-Type': 'application/json', 'x-access-token': window.localStorage.snowpack_token},
+            })
+                .then(response => {
+                    console.log(response)
+                })
+                .catch(error => {
+                    console.log(error)
+                })
+            this.fetchBills();
+        },
+
         getEntries(day, hour) {
             return this.weeklyEntries.filter(entry => (entry.start_day_of_week === day && entry.start_hour === hour));
         },
@@ -522,6 +561,9 @@ var App = new Vue({
             if (screen === 'invoices') {
                 this.fetchAcceptedInvoices();
             }
+            if (screen === 'bills') {
+                this.fetchBills();
+            }
             for (var key in this.workingScreen) {
                 this.workingScreen[key] = false;
             }
@@ -579,12 +621,48 @@ var App = new Vue({
             })
             return this.acceptedInvoices
         },
+        fetchBills() {
+            axios({
+                method: 'get',
+                url: '/api/bills',
+                headers: {'Content-Type': 'application/json', 'x-access-token': window.localStorage.snowpack_token},
+            })
+            .then (response => {
+                this.staffBills = response.data
+            })
+            .catch(error => {
+                console.log(error)
+            })
+            return this.staffBills
+        },
         filterInvoices(status) {
             try {
                 let output = this.acceptedInvoices.filter(function(el) { return el.state === status;})
                 return output
             } catch {
                 return []
+            }
+        },
+        filterBills(unpaid=true) {
+            if (unpaid === true) {
+                try {
+                    let output = this.staffBills.filter(function (el) {
+                        return el.accepted_at.substring(0, 3)  === "000";
+                    })
+                    return output
+                } catch {
+                    return []
+                }
+            }
+            if (unpaid === false) {
+                try {
+                    let output = this.staffBills.filter(function (el) {
+                        return el.accepted_at.substring(0, 3)  !== "000";
+                    })
+                    return output
+                } catch {
+                    return []
+                }
             }
         },
 
