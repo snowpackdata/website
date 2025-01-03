@@ -108,7 +108,7 @@ func (a *App) DraftInvoiceListHandler(w http.ResponseWriter, r *http.Request) {
 // and provide access to line items only via inspection.
 func (a *App) InvoiceListHandler(w http.ResponseWriter, r *http.Request) {
 	var invoices []cronos.Invoice
-	a.cronosApp.DB.Preload("Project").Preload("Project.Account").Where("state = ? or state = ? or state = ?", cronos.InvoiceStateApproved, cronos.InvoiceStateSent, cronos.InvoiceStatePaid).Find(&invoices)
+	a.cronosApp.DB.Preload("Project").Preload("Project.Account").Where("state = ? or state = ? or state = ?", cronos.InvoiceStateApproved, cronos.InvoiceStateSent, cronos.InvoiceStatePaid).Order("period_end desc").Find(&invoices)
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
 	_ = json.NewEncoder(w).Encode(invoices)
@@ -518,6 +518,70 @@ func (a *App) EntryHandler(w http.ResponseWriter, r *http.Request) {
 		a.cronosApp.DB.Where("id = ?", vars["id"]).Delete(&cronos.Entry{})
 		_ = json.NewEncoder(w).Encode("Deleted Record")
 		return
+	default:
+		fmt.Println("Fatal Error")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+}
+
+// BillHandler has a series of functions that allow us to view and manipulate staff payroll bills
+func (a *App) BillHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	var bill cronos.Bill
+	switch {
+	case r.Method == "GET":
+		a.cronosApp.DB.Preload("Employee").First(&bill, vars["id"])
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		w.WriteHeader(http.StatusOK)
+		_ = json.NewEncoder(w).Encode(&bill)
+		return
+	default:
+		fmt.Println("Fatal Error")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+}
+
+func (a *App) BillListHandler(w http.ResponseWriter, r *http.Request) {
+	var bills []cronos.Bill
+	a.cronosApp.DB.Preload("Employee").Order("period_end DESC").Find(&bills)
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	w.WriteHeader(http.StatusOK)
+	_ = json.NewEncoder(w).Encode(&bills)
+	w.Write([]byte("\n"))
+	return
+}
+
+func (a *App) BillStateHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	var bill cronos.Bill
+	a.cronosApp.DB.First(&bill, vars["id"])
+	status := vars["state"]
+	switch {
+	case status == "void":
+		// Void all the entries associated with the bill
+		a.cronosApp.DB.Model(&bill).Association("Entries").Find(&bill.Entries)
+		for _, entry := range bill.Entries {
+			entry.State = cronos.EntryStateVoid.String()
+			a.cronosApp.DB.Save(&entry)
+		}
+		bill.TotalFees = 0
+		bill.TotalAdjustments = 0
+		bill.TotalAmount = 0
+		bill.TotalHours = 0
+		a.cronosApp.DB.Delete(&bill)
+
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		_ = json.NewEncoder(w).Encode(http.StatusOK)
+		return
+	case status == "paid":
+		// Mark the bill as paid
+		a.cronosApp.MarkBillPaid(&bill)
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		_ = json.NewEncoder(w).Encode(http.StatusOK)
+		return
+
 	default:
 		fmt.Println("Fatal Error")
 		w.WriteHeader(http.StatusInternalServerError)
