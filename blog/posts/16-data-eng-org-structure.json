@@ -1,7 +1,7 @@
 {
   "id" : 16,
-  "title" : "Data Engineering Org Design",
-  "subtitle": "A framework for structuring the staff and roles of a data engineering team",
+  "title" : "Data Engineering in Modern Organizations",
+  "subtitle": "A framework for managing and structuring a data engineering team",
   "splash" : "org-chart-splash.jpg",
   "author" : "Kevin Koenitzer",
   "slug" : "data-eng-org-structure",
