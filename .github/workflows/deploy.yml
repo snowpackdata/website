@@ -20,13 +20,13 @@ jobs:
         with:
           go-version: 1.21
       - run: git config --global url."https://${{ secrets.GH_ACCESS_TOKEN }}:x-oauth-basic@github.com/snowpackdata".insteadOf "https://github.com/snowpackdata"
-      # Recompile output.css for UI changes
-      - name: tailwindcss - update output.css
-        uses: ZoeyVid/tailwindcss-update@main
-        with:
-          input: assets/css/main.css
-          output: assets/css/outputs.css
-          params: "--minify"
+      # # Recompile output.css for UI changes
+      # - name: tailwindcss - update output.css
+      #   uses: ZoeyVid/tailwindcss-update@main
+      #   with:
+      #     input: assets/css/main.css
+      #     output: assets/css/outputs.css
+          # params: "--minify"
       # Build the Go application
       - name: Go Get
         run: go get .
