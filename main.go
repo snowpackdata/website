@@ -132,6 +132,9 @@ func main() {
 	api.HandleFunc("/adjustments/{id:[0-9]+}", a.AdjustmentHandler).Methods("GET", "PUT", "POST", "DELETE")
 	api.HandleFunc("/adjustments/state/{id:[0-9]+}/{state:(?:void)|(?:draft)|(?:approve)}", a.AdjustmentStateHandler).Methods("POST")
 	api.HandleFunc("/user/invoices", a.ClientInvoiceHandler).Methods("GET")
+	api.HandleFunc("/bills", a.BillListHandler).Methods("GET")
+	api.HandleFunc("/bills/{id:[0-9]+}", a.BillHandler).Methods("GET")
+	api.HandleFunc("/bills/{id:[0-9]+}/{state:(?:paid)|(?:void)}", a.BillStateHandler).Methods("POST")
 
 	// Logging for web server
 	f, _ := os.Create("/var/log/golang/golang-server.log")

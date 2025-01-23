@@ -46,7 +46,7 @@
     <script src="https://cdn.jsdelivr.net/npm/vue-js-modal@2.0.1/dist/index.min.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/vue-js-modal@2.0.1/dist/styles.min.css" rel="stylesheet">
 
-    <link type="text/css" rel="stylesheet" href="../assets/css/style.css">
+    <link type="text/css" rel="stylesheet" href="../assets/css/style.css?v=1">
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-TRLQYPPXKE"></script>
     <script>
@@ -98,6 +98,7 @@
         <div @click="updateWorkingScreen('home')" class="tile"><i class="fa-solid fa-clock nav-icon"></i>Time Sheet</div>
         <div @click="updateWorkingScreen('admin')" class="tile"><i class="fa-solid fa-toolbox nav-icon"></i>Timesheet Admin</div>
         <div @click="updateWorkingScreen('invoices')" class="tile"><i class="fa-solid fa-file-invoice-dollar nav-icon"></i>Invoices</div>
+        <div @click="updateWorkingScreen('bills')" class="tile"><i class="fa-solid fa-file-invoice-dollar nav-icon"></i>Bills</div>
         <hr>
         <div @click="updateWorkingScreen('projects')" class="tile"><i class="fa-solid fa-bars-progress nav-icon"></i>Projects</div>
         <div @click="updateWorkingScreen('billing_codes')" class="tile"><i class="fa-solid fa-barcode nav-icon"></i>Billing Codes</div>
@@ -325,7 +326,7 @@
                 </div>
             </div>
         </div>
-        <!--        Invoicing & Billing UI SECTION-->
+        <!--        Invoicing UI SECTION-->
         <div id="billing" v-if="workingScreen.invoices" class="admin-content">
             <h2 class="blog-title">Invoicing</h2>
             <hr>
@@ -349,9 +350,9 @@
                         <td>{{ invoice.project.account.name }}</td>
                         <td>{{ invoice.name }}</td>
                         <td>Accepted {{ parseDate(invoice.sent_at, 'll') }}</td>
-                        <td>${{ invoice.total_fees }}</td>
-                        <td>${{ invoice.total_adjustments }}</button></td>
-                        <td>${{ invoice.total_amount }}</td>
+                        <td>{{ invoice.total_fees | currency }}</td>
+                        <td>{{ invoice.total_adjustments | currency }}</button></td>
+                        <td>{{ invoice.total_amount | currency }}</td>
                         <td>
                             <button @click="markInvoiceSent(invoice)" class="button-ready">Mark Sent</button>
                             <button @click="markInvoiceVoid(invoice)" class="button-void">Void</button>
@@ -365,9 +366,9 @@
                             {{ invoice.name }}
                         </td>
                         <td>Due {{ parseDate(invoice.due_at, 'll') }}</td>
-                        <td>${{ invoice.total_fees }}</td>
-                        <td>${{ invoice.total_adjustments }}</td>
-                        <td>${{ invoice.total_amount }}</td>
+                        <td>{{ invoice.total_fees | currency }}</td>
+                        <td>{{ invoice.total_adjustments | currency}}</td>
+                        <td>{{ invoice.total_amount | currency }}</td>
                         <td>
                             <button @click="markInvoicePaid(invoice)" class="button-ready">Mark Paid</button>
                             <button @click="markInvoiceVoid(invoice)" class="button-void">Void</button>
@@ -381,9 +382,54 @@
                             {{ invoice.name }}
                         </td>
                         <td>Paid {{ parseDate(invoice.closed_at, 'll') }}</td>
-                        <td>${{ invoice.total_fees }}</td>
-                        <td>${{ invoice.total_adjustments }}</td>
-                        <td>${{ invoice.total_amount }}</td>
+                        <td>{{ invoice.total_fees | currency }}</td>
+                        <td>{{ invoice.total_adjustments | currency }}</td>
+                        <td>{{ invoice.total_amount | currency }}</td>
+                        <td></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <!--   Staff Billing UI SECTION-->
+        <div id="payroll" v-if="workingScreen.bills" class="admin-content">
+            <h2 class="blog-title">Payroll</h2>
+            <hr>
+            <div id="billing-container">
+                <!--                a table to hold all the invoices organized by state-->
+                <table id="bill-table">
+                    <thead>
+                    <tr>
+                        <th style="width:10%">Status</th>
+                        <th style="width:15%">Staff</th>
+                        <th style="width:20%">Name</th>
+                        <th style="width:10%">Hours</th>
+                        <th style="width:10%">Fee</th>
+                        <th style="width:10%">Action</th>
+                    </tr>
+                    </thead>
+                    <tr v-for="bill in filterBills()">
+                        <td><span style="color:#d97132;font-weight:bolder">Unpaid</span></td>
+                        <td>{{ bill.user.first_name + " " + bill.user.last_name }}</td>
+                       <td>
+                            <a :href="bill.file" download class="link-dark"><i class="fa-solid fa-download"></i></a>
+                            {{ bill.name }}
+                        </td>
+                        <td>{{ bill.total_hours | round }}</td>
+                        <td>{{ bill.total_fees/100 | currency }}</td>
+                        <td>
+                            <button @click="markBillPaid(bill)" class="button-ready">Mark Paid</button>
+                            <button @click="markBillVoid(bill)" class="button-void">Void</button>
+                        </td>
+                    </tr>
+                    <tr v-for="bill in filterBills(false)">
+                        <td><span style="color:forestgreen;font-weight:bolder">Paid</span></td>
+                        <td>{{ bill.user.first_name + " " + bill.user.last_name }}</td>
+                        <td>
+                            <a :href="bill.file" download class="link-dark"><i class="fa-solid fa-download"></i></a>
+                            {{ bill.name }}
+                        </td>
+                        <td>{{ bill.total_hours | round }}</td>
+                        <td>{{ bill.total_fees/100 | currency }}</td>
                         <td></td>
                     </tr>
                 </table>
@@ -717,7 +763,7 @@
 </footer>
 
 </body>
-<script src="../assets/js/admin.js"></script>
+<script src="../assets/js/admin.js?v=1"></script>
 
 <script>
     // Prepopulate Data we may need in the front end
