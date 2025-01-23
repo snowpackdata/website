@@ -1,0 +1,11 @@
+{
+  "id" : 16,
+  "title" : "Data Engineering in Modern Organizations",
+  "subtitle": "A framework for managing and structuring a data engineering team",
+  "splash" : "org-chart-splash.jpg",
+  "author" : "Kevin Koenitzer",
+  "slug" : "data-eng-org-structure",
+  "tags" : ["org-structure", "data-engineering", "guide", "data"],
+  "date" : "December 15, 2024",
+  "content" : "data-eng-org-structure.html"
+}
