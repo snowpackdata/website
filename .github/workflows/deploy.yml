@@ -32,10 +32,10 @@ jobs:
           fi
       - name: Install Tailwind CSS
         run: |
-          npm install tailwindcss
-          npm install postcss postcss-cli autoprefixer
+          npm install -g tailwindcss
+          tailwindcss --help
       - name: Build CSS
-        run: ./node_modules/.bin/tailwindcss -i assets/css/main.css -o assets/css/outputs.css --minify
+        run: tailwindcss -i assets/css/main.css -o assets/css/outputs.css --minify
       # Build the Go application
       - name: Go Get
         run: go get .
