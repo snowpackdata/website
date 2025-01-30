@@ -28,9 +28,8 @@ jobs:
           node-version: '20'
           cache: 'npm'
       - name: Install npm dependencies for Tailwind CSS
-        run: |
-          rm -rf node_modules package-lock.json  # Ensure clean installs
-          npm ci  # Installs based on package-lock.json (more stable than npm install)
+        # Using npm ci to install dependencies from package-lock.json
+        run: npm ci
       - name: Build Tailwind CSS
         run: npx tailwindcss -i assets/css/main.css -o assets/css/outputs.css --minify
       # Build the Go application
