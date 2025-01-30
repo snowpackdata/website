@@ -19,23 +19,20 @@ jobs:
         uses: actions/setup-go@v4
         with:
           go-version: 1.21
+      # Configure Git to access private repo
       - run: git config --global url."https://${{ secrets.GH_ACCESS_TOKEN }}:x-oauth-basic@github.com/snowpackdata".insteadOf "https://github.com/snowpackdata"
       # Tailwind CSS steps: recompile output.css for UI changes
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '20'
-      - name: Initialize npm if needed
+          cache: 'npm'
+      - name: Install npm dependencies for Tailwind CSS
         run: |
-          if [ ! -f package.json ]; then
-            npm init -y
-          fi
-      - name: Install Tailwind CSS
-        run: |
-          npm install -g tailwindcss
-          tailwindcss --help
-      - name: Build CSS
-        run: tailwindcss -i assets/css/main.css -o assets/css/outputs.css --minify
+          rm -rf node_modules package-lock.json  # Ensure clean installs
+          npm ci  # Installs based on package-lock.json (more stable than npm install)
+      - name: Build Tailwind CSS
+        run: npx tailwindcss -i assets/css/main.css -o assets/css/outputs.css --minify
       # Build the Go application
       - name: Go Get
         run: go get .
