@@ -408,7 +408,7 @@
                     </tr>
                     </thead>
                     <tr v-for="bill in filterBills()">
-                        <td><span style="color:#d97132;font-weight:bolder">Unpaid</span></td>
+                        <td><span style="color:#d97132;font-weight:bolder">Unpaid </span> <button @click="refreshBill(bill)"><i class="fa-solid fa-arrows-rotate" ></i></button></td>
                         <td>{{ bill.user.first_name + " " + bill.user.last_name }}</td>
                        <td>
                             <a :href="bill.file" download class="link-dark"><i class="fa-solid fa-download"></i></a>
