@@ -570,6 +570,8 @@ func (a *App) BillStateHandler(w http.ResponseWriter, r *http.Request) {
 		bill.TotalAdjustments = 0
 		bill.TotalAmount = 0
 		bill.TotalHours = 0
+		timeNow := time.Now()
+		bill.ClosedAt = &timeNow
 		a.cronosApp.DB.Delete(&bill)
 
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
@@ -587,6 +589,20 @@ func (a *App) BillStateHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+}
+
+func (a *App) RegenerateBillHandler(w http.ResponseWriter, r *http.Request) {
+	// Regenerate the bill
+	vars := mux.Vars(r)
+	var bill cronos.Bill
+	a.cronosApp.DB.First(&bill, vars["id"])
+	err := a.cronosApp.RegeneratePDF(&bill)
+	if err != nil {
+		fmt.Println(err)
+	}
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	w.WriteHeader(http.StatusOK)
+	return
 }
 
 func (a *App) InviteUserHandler(w http.ResponseWriter, r *http.Request) {
