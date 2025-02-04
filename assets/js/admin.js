@@ -382,6 +382,22 @@ var App = new Vue({
             this.fetchBills();
         },
 
+        refreshBill(bill) {
+            axios({
+                method: 'post',
+                url: '/api/bills/' + bill.ID.toString() + '/regenerate',
+                headers: {'Content-Type': 'application/json', 'x-access-token': window.localStorage.snowpack_token},
+            })
+                .then(response => {
+                    console.log(response)
+                })
+                .catch(error => {
+                    console.log(error)
+                })
+            console.log('testing')
+            window.location.reload();
+        },
+
         getEntries(day, hour) {
             return this.weeklyEntries.filter(entry => (entry.start_day_of_week === day && entry.start_hour === hour));
         },

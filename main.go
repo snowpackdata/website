@@ -134,6 +134,7 @@ func main() {
 	api.HandleFunc("/user/invoices", a.ClientInvoiceHandler).Methods("GET")
 	api.HandleFunc("/bills", a.BillListHandler).Methods("GET")
 	api.HandleFunc("/bills/{id:[0-9]+}", a.BillHandler).Methods("GET")
+	api.HandleFunc("/bills/{id:[0-9]+}/regenerate", a.RegenerateBillHandler).Methods("POST")
 	api.HandleFunc("/bills/{id:[0-9]+}/{state:(?:paid)|(?:void)}", a.BillStateHandler).Methods("POST")
 
 	// Logging for web server
