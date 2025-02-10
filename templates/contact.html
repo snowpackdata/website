@@ -128,14 +128,14 @@
     <form type="submit" class="px-6 pb-24 pt-20 sm:pb-32 lg:px-8 lg:py-48">
       <div class="mx-auto max-w-xl lg:mr-0 lg:max-w-lg">
         <div class="grid grid-cols-1 gap-x-8 gap-y-6 sm:grid-cols-2">
-        <div class="sm:col-span-2">
+          <div class="sm:col-span-2">
             <label for="company" class="block text-sm/6 font-semibold text-gray-900">Company</label>
             <div class="mt-2.5">
-                <input type="text" name="company" id="company" class="block w-full rounded-md border-0 px-3.5 py-2 text-gray-dark shadow-sm ring-1 ring-inset ring-gray-dark placeholder:text-gray-dark focus:ring-2 focus:ring-inset focus:ring-gray-dark sm:text-sm/6">
+              <input type="text" name="company" id="company" class="block w-full rounded-md border-0 px-3.5 py-2 text-gray-dark shadow-sm ring-1 ring-inset ring-gray-dark placeholder:text-gray-dark focus:ring-2 focus:ring-inset focus:ring-gray-dark sm:text-sm/6">
             </div>
-        </div>
+          </div>
           <div>
-            <label for="first-name" class="block text-sm/6 font-semibold text-gray-dark">First name</label>
+            <label for="first-name" class="block text-sm/6 font-semibold text-gray-900">First name</label>
             <div class="mt-2.5">
               <input type="text" name="first-name" id="first-name" autocomplete="given-name" class="block w-full rounded-md border-0 px-3.5 py-2 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-dark placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-gray-dark sm:text-sm/6">
             </div>
@@ -148,14 +148,21 @@
           </div>
           <div class="sm:col-span-2">
             <label for="email" class="block text-sm/6 font-semibold text-gray-900">Email</label>
-            <div class="mt-2.5">
-              <input type="email" name="email" id="email" autocomplete="email" class="block w-full rounded-md border-0 px-3.5 py-2 text-gray-dark shadow-sm ring-1 ring-inset ring-gray-dark placeholder:text-gray-dark focus:ring-2 focus:ring-inset focus:ring-gray-dark sm:text-sm/6">
+            <div class="mt-2.5 grid grid-cols-1">
+              <input type="email" name="email" id="email" autocomplete="email" class="col-start-1 row-start-1 block w-full rounded-md border-0 px-3.5 py-2 text-gray-dark shadow-sm ring-1 ring-inset ring-gray-dark placeholder:text-gray-dark focus:ring-2 focus:ring-inset focus:ring-gray-dark sm:text-sm/6" aria-invalid="true" aria-describedby="email-error">
+              <div id="error-icon" style="display:none;" class="col-start-1 row-start-1 mr-3 size-5 self-center justify-self-end text-red-600 sm:size-4">
+                <svg class="size-5 text-red-600" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" data-slot="icon">
+                  <path fill-rule="evenodd" d="M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0Zm-8-5a.75.75 0 0 1 .75.75v4.5a.75.75 0 0 1-1.5 0v-4.5A.75.75 0 0 1 10 5Zm0 10a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z" clip-rule="evenodd" />
+                </svg>
+              </div>
             </div>
+            <p class="mt-2 mb-2 text-sm text-red-600" id="email-error" style="display:none;"></p>
           </div>
           <div class="sm:col-span-2">
-            <label for="message" class="block text-sm/6 font-semibold text-gray-dark">Message</label>
+            <label for="message" class="block text-sm/6 font-semibold text-gray-900">Message</label>
             <div class="mt-2.5">
               <textarea name="message" id="message" rows="4" class="block w-full rounded-md border-0 px-3.5 py-2 text-gray-dark shadow-sm ring-1 ring-inset ring-gray-dark placeholder:text-gray-dark focus:ring-2 focus:ring-inset focus:ring-gray-dark sm:text-sm/6"></textarea>
+              <p class="mt-2 text-sm text-red-600" id="message-error" style="display:none;"></p>
             </div>
           </div>
         </div>
