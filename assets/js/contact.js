@@ -10,6 +10,63 @@ const message = document.getElementById('message');
 const success = document.getElementById('emailSuccess');
 const error = document.getElementById('emailError');
 const sendButton = document.getElementById('send-email');
+const emailError = document.getElementById('email-error');
+const emailErrorIcon = document.getElementById('error-icon');
+const messageError = document.getElementById('message-error');
+const confirmationScreen = document.getElementById('confirmation-screen');
+const contactScreen = document.getElementById('contact-screen');
+
+
+// Function to validate email and show error if invalid
+function isEmailValid() {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email.value.trim()) {
+        emailError.textContent = "Please enter your email.";
+        emailError.style.display = 'block';
+        emailErrorIcon.style.display = 'flex';
+        return false;
+    } else if (!emailRegex.test(email.value)) {
+        emailError.textContent = "Please enter a valid email address.";
+        emailError.style.display = 'block';
+        emailErrorIcon.style.display = 'flex';
+        return false;
+    } else {
+        emailError.style.display = 'none';  // Hide error if email is valid
+        emailErrorIcon.style.display = 'none';
+        return true;
+    }
+  }
+
+function isMessageValid() {
+    if (!message.value.trim()) {
+        messageError.textContent = "Please include a message in your response.";
+        messageError.style.display = 'block';
+        return false;
+    } else {
+        messageError.style.display = 'none';
+        return true;
+    }
+}
+
+
+function submitForm() {
+    const isEmailOk = isEmailValid();
+    const isMessageOk = isMessageValid();
+
+    if (isEmailOk && isMessageOk) {
+        // Send the message
+        sendMessage().then(() => {
+            // Hide the entire Contact container
+            contactScreen.style.display = 'none';
+            // Show the confirmation screen
+            confirmationScreen.style.display = 'block';
+        })
+        .catch(error => {
+            console.error("Error submitting final response:", error);
+        });
+    }
+}
+
 
 async function sendMessage() {
     console.log('Sending Message');
@@ -26,11 +83,12 @@ async function sendMessage() {
       body: postForm,
       redirect: "follow"
     };
-    fetch("/contact-us-submit", requestOptions)
+    return fetch("/contact-us-submit", requestOptions)
         .then((response) => {
             if (response.status !== 200) {
                 error.style.display = "block";
-                console.log(response)
+                console.log(response);
+                throw new Error('Failed to send message');
                 return
             }
             if (response.status === 200) {
@@ -43,4 +101,5 @@ async function sendMessage() {
         });
 }
 
-sendButton.addEventListener('click',  sendMessage);
+
+sendButton.addEventListener('click',  submitForm);
