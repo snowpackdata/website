@@ -1,0 +1,11 @@
+{
+  "id" : 16,
+  "title" : "Technology Implementations",
+  "subtitle": "Why you’re thinking about it (and doing it) wrong",
+  "splash" : "org-chart-splash.jpg",
+  "author" : "Kevin Koenitzer",
+  "slug" : "technology-implementations",
+  "tags" : ["implementations", "contractors", "consultants", "data"],
+  "date" : "February 18, 2025",
+  "content" : "implementation.html"
+}
