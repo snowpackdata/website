@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Implementation - Why you’re thinking about it (and doing it) wrong.</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+      margin: 20px;
+      max-width: 800px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    h1, h2 {
+      text-align: center;
+    }
+    p {
+      margin-bottom: 1em;
+    }
+    .author-info {
+      text-align: center;
+      color: #555;
+      margin-bottom: 2em;
+    }
+    img {
+      display: block;
+      margin: 20px auto;
+      max-width: 80%;
+      height: auto;
+    }
+    ul {
+      margin-left: 20px;
+      margin-bottom: 1em;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Implementation - Why you’re thinking about it (and doing it) wrong.</h1>
+    <div class="author-info">
+      <p><strong>Author:</strong> Kevin Koenitzer</p>
+    </div>
+  </header>
+
+  <!-- Background Section -->
+  <section>
+    <h2>Background</h2>
+    <p>Deploying data services and managing flows of information across companies is a complex and costly process that has been the downfall of many hyper-growth startups.</p>
+    <p>This is particularly true of advanced products such as NLP/LLMs and other AI technologies – things that rely heavily on complex data to function effectively.</p>
+    <p>Spiraling implementation costs as software companies scale have a negative impact on SaaS margins. Teams of internal engineers, consultants, and contractors spend hours implementing increasingly complex technologies with a perpetually growing body of clients.</p>
+    
+    <!-- Example Image (if present in original document) -->
+    <img src="path-to-your-image.jpg" alt="Background illustration">
+  </section>
+
+  <!-- Shared Responsibility Section -->
+  <section>
+    <h2>Shared Responsibility</h2>
+    <p>When a company onboards a new vendor, there’s a process that occurs to join the information systems of the two companies. Companies build and share APIs – endpoints (like plugs and sockets) that allow their internal systems to connect securely and pass information across nodes to and from their partners’ systems.</p>
+    <p>If you’ve ever used Google, Salesforce, or Shopify, you’ve worked with a vendor who makes their data available via an API.</p>
+    <p>With companies that size, you as the customer are generally expected to do the work to connect your systems to their API. In this sense their model is self-serve – meaning the responsibility lies with the customer, not the vendor, to spend time and energy building and maintaining this connection.</p>
+    <p>This is not the standard in cases where companies are contracting startups with advanced platform technologies –</p>
+    <p>For example: NLP/LLM products often need client data as an input to make decisions or offer recommendations.</p>
+    <p>Someone needs to do the work of pulling this data from the client and piping it into the company’s product. In many cases that responsibility lies with the vendor, not the customer – and that process can get very complicated and expensive.</p>
+    <p>A telltale sign of companies facing this challenge can be found with a quick visit to their careers page. We typically see startups with complex technology products hiring for roles like “implementation engineer”. This is a clear indicator that the company is being forced to sink time and money into getting their software to play nice with their customers’ data stacks.</p>
+    <p>On the other end, customers of these technologies often engage SaaS-specific admins (i.e. SFDC or Hubspot admins for sales teams), sinking money into hiring FTEs to serve as POCs and internal managers of these softwares at a price incremental to the cost of subscription.</p>
+    <p>Either way, money and time being spent on implementation is money and time not spent on improving the product and moving the company forward.</p>
+    <p>Implementation teams are a cost-center – a cost required to deliver on the promise of the contract – they are not a driver of growth. Any startup whose implementation costs are increasing at a faster rate than their revenue growth will be doomed when those two curves cross.</p>
+  </section>
+
+  <!-- How do we treat cost centers? Section -->
+  <section>
+    <h2>How do we treat cost centers?</h2>
+    <p>If we’re smart business owners and managers, we aim to minimise the impact our cost centers have on our revenues. As a company, the easiest way to do this is to force the other party in the contract to do the work.</p>
+    <p>The pecking order for implementation responsibility seems to follow a basic “my company is bigger than your company” principle, which means that the smaller company is always expected to shoulder the cost of whatever implementation work is necessary to get the service up and running.</p>
+    <img src="website/assets/img/implementation_1.png" alt="Background illustration">
+    <p>In cases like the aforementioned Google, where the larger company is the provider the customers are forced to use their technologists, or hire contractors to do this work. In cases where the provider is smaller than the customer, they are expected to provide the implementation services.</p>
+    <p>In cases where the size disparity is significant, smaller startups are forced to provide white glove service to large and demanding clients, spending whatever is necessary to keep this “strategically significant” client happy.</p>
+    <p>The degree of disparity between the two companies will determine whether the increase in costs will be nominal or insupportable, and ultimately whether the startup loses money on the client. It is tremendously risky for a small startup to take on a huge client, but also often is seen as a necessary step to drive growth.</p>
+  </section>
+
+  <!-- Risk of Using Small Vendors Section -->
+  <section>
+    <h2>Risk of Using Small Vendors</h2>
+    <p>It is similarly risky for larger clients to favor working with smaller vendors. Often, their technology is relatively new, unpolished and untested and therefore actually requires a high level of service to implement and maintain. In this way, there is an inherent risk of using a small vendor.</p>
+  </section>
+
+  <!-- How do I limit my technology implementation costs? Section -->
+  <section>
+    <h2>How do I limit my technology implementation costs?</h2>
+    <p>The primary way startups limit implementation costs is by leveraging a partnerships strategy. The data product industry is actually great at this – a quick visit to Snowflake’s website and you’ll find their “partner network” page easily under the “Solutions” tab of the banner across their site.</p>
+    <p>By building a partner network, companies can design a model that offsets their primary cost center to a third party – a network of trusted partners (contractors) that have been vetted for legitimacy by the company, understand their technology, and can be hired by the client for any implementation work necessary.</p>
+    <p>This doesn’t solve the problem of implementation cost, but it displaces the cost back onto the customer rather than the vendor. Furthermore – customers may not want to grant 3rd parties access to their information systems, much less pay for them to do so.</p>
+    <p>As a customer, if you’re expected to shoulder the cost of implementation you need to make sure whoever is doing the work will do so quickly and efficiently, thereby minimizing cost and maximizing time to value.</p>
+  </section>
+
+  <!-- Why it is so hard to come up with a solution Section -->
+  <section>
+    <h2>Why it is so hard to come up with a solution</h2>
+    <p>The problem is one of perspective: specifically, that we think of implementation as a zero sum game:</p>
+    <p><em>“Someone has to shoulder the cost so that I don’t have to.”</em></p>
+    <p>If I’m a huge company – serving all of these clients at scale is an untenable task. If I’m a small startup, putting all my resources into implementation for one big client might mean I’m not around next year.</p>
+    <p>In these cases, I need the other party to shoulder the burden absolutely.</p>
+    <p>We like to put things in absolute terms because they’re easier to understand, and therefore easier to quantify. But complex problems defy this categorization (by being so f*ckin’ complicated that reducing them to a binary expression actually changes them so much that they become meaningless).</p>
+    <p>It goes without saying that if the goal of software implementation were for the other person on the contract to shoulder the costs and troubles rather than you, then the zero sum model would work great. We wouldn’t need this article and I wouldn’t be standing on this cardboard box, screaming into the void, disguised as a Linkedin Feed.</p>
+    <p>The difference between the expectation and reality in the example above is where the greatest risk to both parties, and to the contract’s success can be found. No one wants to end up spending more on something they expected their vendor/customer to pay for.</p>
+  </section>
+
+  <!-- The solution is always collaboration Section -->
+  <section>
+    <h2>The solution is always collaboration</h2>
+    <p>Unfortunately for all of us, the goal is for your software purchase to actually work. And this model is terrible at incentivizing the involved parties to do a good job implementing the software they just bought/sold.</p>
+    <p>Incentivising collaboration involves building and certifying trust in each involved party. This requires the customer and the vendor meeting each other in good faith across the table and equitably dividing costs and responsibilities in the way that makes the most sense.</p>
+    <p>For the very largest software providers like Google or Microsoft, this may look like offering extensive documentation on their software and all its features – running classes and seminars teaching and certifying professionals to use and teach others to use their softwares.</p>
+    <p>But for most of us, this involves a frank conversation about our firms’ priorities and capabilities and a contractual negotiation that ends with an equitable and documented division of work among the involved parties.</p>
+  </section>
+
+  <!-- A simple model for mutual compensation Section -->
+  <section>
+    <h2>A simple model for mutual compensation</h2>
+    <p>I’ll start this section with the caveat that I’m obviously a biased observer – as a contractor my belief is that we are well-positioned to act as intermediaries between the groups that can minimize costs for both parties.</p>
+    <p>In this section I will make a pitch for hiring contractors to solve this problem – I’ll try to make it not sales-y but I figured I’d warn you in advance so it doesn’t feel like you read this article only to stumble into the middle of a car commercial.</p>
+    <p>Now that we understand that the greatest implementation risk is the difference between expectation and reality, we need to find ways to de-risk our implementation plan.</p>
+    <p>Whether you choose to work with a third party or not, the best model for implementation relies on shared benefit – meaning that the work should be aligned in a manner that reasonably fits the resources and capabilities of the parties. Let’s examine this using a literal example:</p>
+    
+    <h3>Smaller Startup / Bigger Customer</h3>
+    <p>The smaller startup takes on contractor A as a partner in their partner network. They then sign a client that has a need for implementation support and propose the contractor as the implementation team.</p>
+    <p>In this case we are assuming the goal of the startup is to offset implementation costs in the form of hours worked by passing them off to a third party.</p>
+    <p>In this case we are assuming the goal of the customer is to maximise time-to-value and limit costs that come from complexities and delays.</p>
+    <p>In both cases we assume the primary goal is to achieve a positive outcome – meaning the product delivers value to the customer as intended and the contract renews.</p>
+  </section>
+
+  <!-- Requirements for a successful contractor partnership Section -->
+  <section>
+    <h2>Requirements for a Successful Contractor Partnership</h2>
+    <p>If we are to successfully pass this responsibility off to contractors as the provider we need:</p>
+    <ul>
+      <li>Confidence that the product will work.</li>
+      <li>Confidence that implementation costs will be offset.</li>
+    </ul>
+    <p>If we are to successfully pass this responsibility off to contractors as the customer we need:</p>
+    <ul>
+      <li>Confidence that the product will work.</li>
+      <li>Confidence that the installation process will be limited in time and monetary cost.</li>
+    </ul>
+    <p>For contractors to succeed, they must have:</p>
+    <ul>
+      <li>Knowledge of the product.</li>
+      <li>Knowledge of data engineering to work with the vendor’s stack.</li>
+      <li>Trust from both parties that they will deliver on the work promised by the contract.</li>
+      <li>Effective communication and collaboration across all three parties.</li>
+    </ul>
+  </section>
+
+  <!-- Why hiring contractors works on a fundamental level Section -->
+  <section>
+    <h2>Why Hiring Contractors Works on a Fundamental Level</h2>
+    <p>In a zero sum game, the easiest way to break the system is to offer an out – meaning a th
+    <p>The promise for the vendor is offset costs. The promise for the customer is bespoke service that maximizes time-to-value.</p>
+    <p>However, this promise is fickle: the risk when hiring contractors is that they fail to deliver – so buyers must be discerning when considering working with a 3rd party contractor.</p>
+    <p>For vendors with complex software products: if the product is constantly under development and changing very quickly (as is often the case with tech startups), it is key to set up a robust set of standards and workflows around communicating those changes to your partner network.</p>
+  </section>
+
+  <!-- Placing the contractors in the right spot Section -->
+  <section>
+    <h2>Placing the Contractors in the Right Spot</h2>
+    <p>This step is absolutely key to ensuring proper implementation: you as the customer have to grant the contractors (or your vendor’s implementation team) access to your data stack – not just read access, but write access.</p>
+    <p>It is easy to think that implementation is about setting up new assets in the software platform you just bought access to, but it’s really about transforming your existing infrastructure to feed your new software purchase. Implementation engineers often spend more time modeling data for ingestion than actually ingesting it and spinning up new data assets.</p>
+    <p>Partner contractors are a good solution here because they’ve normally been trained by the vendor – which means they know the exact transformations needed to get the product up and running quickly. The only challenge limiting them from delivering quickly is access and permissions.</p>
+    <p>As a big company it can be a hard sell to let third party contractors into your stack, but lacking this access is the biggest barrier to a quick and efficient implementation of a vendor tooling solution.</p>
+    <p>By granting contractors access to its internal systems, the customer can ensure that all transformations can be done in-house without unnecessary exposure of data to external third-party systems. They can create an internal account for the contractors from which they can centrally manage all security concerns and access permissions.</p>
+    <p>As the buyer, ensuring that the contractor meets the criteria listed above before employing them is key to de-risking the actual access and implementation process. After that, as long as they have data security certifications, have signed an NDA, and have business insurance, it should be much easier to grant that access.</p>
+  </section>
+
+  <!-- Splitting the costs Section -->
+  <section>
+    <h2>Splitting the Costs</h2>
+    <p>The example above assumes that the customer would shoulder the financial burden of implementation with the caveat that the level of service would limit downside in the short term and therefore offset short-term costs with long-term gains.</p>
+    <p>However, in cases where this assumption is not clear, it is also possible for the provider and customer to negotiate costs associated with implementation in the form of discounts, kickbacks, referral bonuses, etc.</p>
+    <p>When vetting a provider, be sure to ask about the details of their partnership model to determine whether there are opportunities to get a discounted rate on professional services or on subscriptions in your contract. A good provider will have an incentives plan that benefits you by limiting costs while still allowing them to offset the full cost of implementation on a 3rd party contractor. These details can and should be negotiated and re-negotiated in your contract at each renewal cycle.</p>
+  </section>
+
+  <!-- Conclusion Section -->
+  <section>
+    <h2>That’s it for this article!</h2>
+    <p>Join us next week for more data-related content. For questions and inquiries, please visit our contact form.</p>
+  </section>
+
+  <footer style="text-align: center; margin-top: 2em;">
+    <p>&copy; 2025 Kevin Koenitzer</p>
+  </footer>
+
+</body>
+</html>
