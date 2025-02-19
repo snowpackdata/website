@@ -2,7 +2,7 @@
   "id" : 16,
   "title" : "Technology Implementations",
   "subtitle": "Why you’re thinking about it (and doing it) wrong",
-  "splash" : "org-chart-splash.jpg",
+  "splash" : "implementation_splash.jpg",
   "author" : "Kevin Koenitzer",
   "slug" : "technology-implementations",
   "tags" : ["implementations", "contractors", "consultants", "data"],
