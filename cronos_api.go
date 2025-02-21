@@ -754,17 +754,14 @@ func (a *App) InvoiceStateHandler(w http.ResponseWriter, r *http.Request) {
 		}{cronos.InvoiceStateSent.String(), invoice.ID})
 
 	case state == "paid":
-		invoice.State = cronos.InvoiceStatePaid.String()
 		invoice.ClosedAt = time.Now()
+		invoice.State = cronos.InvoiceStatePaid.String()
 		// Save the invoice
 		a.cronosApp.DB.Save(&invoice)
-		for i, _ := range invoice.Entries {
-			if invoice.Entries[i].State != cronos.EntryStateSent.String() {
-				continue
-			}
-			invoice.Entries[i].State = cronos.EntryStatePaid.String()
+		err := a.cronosApp.MarkInvoicePaid(invoice.ID) // Mark the invoice as paid
+		if err != nil {
+			fmt.Println(err)
 		}
-		a.cronosApp.DB.Save(&invoice)
 		go a.cronosApp.GenerateBills(&invoice)
 		go a.cronosApp.AddJournalEntries(&invoice)
 
