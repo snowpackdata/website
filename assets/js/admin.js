@@ -119,6 +119,10 @@ var App = new Vue({
         round(value, decimals = 2) {
             const factor = Math.pow(10, decimals);
             return Math.round(value * factor) / factor;
+        },
+        generateInvoiceNumber(invoiceId) {
+            const year = new Date().getFullYear();
+            return year.toString() + "00" + invoiceId.toString();
         }
     },
     methods : {
@@ -663,7 +667,7 @@ var App = new Vue({
             if (unpaid === true) {
                 try {
                     let output = this.staffBills.filter(function (el) {
-                        return el.accepted_at.substring(0, 3)  === "000";
+                        return el.closed_at === null;
                     })
                     return output
                 } catch {
@@ -673,7 +677,7 @@ var App = new Vue({
             if (unpaid === false) {
                 try {
                     let output = this.staffBills.filter(function (el) {
-                        return el.accepted_at.substring(0, 3)  !== "000";
+                        return el.closed_at !== null;
                     })
                     return output
                 } catch {
@@ -1320,3 +1324,4 @@ Date.prototype.addDays = function(days) {
     date.setDate(date.getDate() + days);
     return date;
 }
+
