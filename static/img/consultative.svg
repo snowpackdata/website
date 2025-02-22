@@ -1,0 +1,14 @@
+<svg width="800" height="600" xmlns="http://www.w3.org/2000/svg">
+ <title>consultative</title>
+ <g>
+  <title>Layer 1</title>
+  <path fill="#fff" stroke="#000" d="m955.82687,400.64562l0.745,-1.30375l0.745,1.30375l-1.49,0z" id="svg_8"/>
+  <ellipse ry="50" rx="50" id="svg_3" cy="150" cx="400" stroke="#58837e" fill="#58837e"/>
+  <ellipse ry="50" rx="50" id="svg_5" cy="275" cx="325" stroke="#e5e5e5" fill="#e5e5e5"/>
+  <ellipse ry="50" rx="50" id="svg_6" cy="275" cx="475" stroke="#e5e5e5" fill="#e5e5e5"/>
+  <ellipse ry="50" rx="50" id="svg_7" cy="400" cx="400" stroke="#e5e5e5" fill="#e5e5e5"/>
+  <ellipse ry="50" rx="50" id="svg_9" cy="400" cx="250" stroke="#e5e5e5" fill="#e5e5e5"/>
+  <ellipse ry="50" rx="50" id="svg_10" cy="400" cx="550" stroke="#e5e5e5" fill="#e5e5e5"/>
+ </g>
+
+</svg>

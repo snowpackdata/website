@@ -18,7 +18,7 @@
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-TRLQYPPXKE"></script>
     <!-- Tailwind CSS -->
-    <link href="/assets/css/outputs.css?v={{ . }}" rel="stylesheet" />
+    <link href="/static/css/outputs.css?v={{ . }}" rel="stylesheet" />
     <script>
         window.dataLayer = window.dataLayer || [];
         function gtag(){dataLayer.push(arguments);}
@@ -94,49 +94,33 @@
 </header>
 <div class="bg-white">
   <div class="mx-auto max-w-2xl px-4 py-24 sm:px-6 sm:py-32 lg:max-w-7xl lg:px-8">
-    <div class="max-w-5xl">
-      <h2 class="font-medium text-gray-500">How We Work With You</h2>
+    <div class="max-w-3xl">
+      <h2 class="font-medium text-gray-500">Work With Us</h2>
       <p class="mt-2 text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">Our Engagement Model</p>
-      <p class="mt-4 text-gray-500">We have three standard models of engagement: defined project-based work, retainers, and consultative services.</p>
+      <p class="mt-4 text-gray-500">We have three standard models of engagement: project work, retainers, and consultative services.</p>
     </div>
 
-    <div class="grid grid-cols-1 items-start gap-x-6 gap-y-8 sm:grid-cols-1 lg:grid-cols-3 lg:gap-x-8 mt-6">
-      <div class="flex flex-col-reverse gap-y-4">
-        <div class="mt-4 space-y-4">
-          <h3 class="text-lg font-medium text-gray-900">Scoped Projects</h3>
-          <p class="text-sm text-gray-500">Snowpack will partner with your team to scope and plan the details of key projects. From there, we independently deliver completed solutions - from project kickoff to final handoff - while your team stays focused on core business needs.</p>
-          <p class="text-sm text-gray-500">We specialize in implementing modern data stacks including: cloud data warehouses, ETL pipeline development and orchestration, and advanced analytics and AI/ML solutions.</p>
+    <div class="grid grid-cols-1 items-start gap-x-6 sm:grid-cols-1 lg:grid-cols-3 lg:gap-x-8">
+      <div class="flex flex-col-reverse">
+        <div class="">
+          <h3 class="text-sm font-medium text-gray-900">Project Work</h3>
+          <p class="mt-2 text-sm text-gray-500">Snowpack will partner with your team to scope and plan the details of key projects and deliver completed products indepently, leaving your team with the bandwidth they need to support the business. We specialize in implementing modern data stacks including ETL pipelines, cloud data warehouses, orchestration systems, and predictive models.</p>
         </div>
-        <div class="flex justify-center">
-          <div class="relative w-64 h-64">
-            <img src="/assets/img/project_v2.svg" alt="Icon indicating project based engagement" class="absolute inset-0 w-full h-full object-contain" />
-          </div>
-        </div>
+        <img src="/static/img/project.svg" alt="Icon indicating project based engagement" class="aspect-square w-full rounded-lg object-cover">
       </div>
-      <div class="flex flex-col-reverse gap-y-4">
-        <div class="mt-4 space-y-4">
-          <h3 class="text-lg font-medium text-gray-900">Embedded Analytics Team (Retainer)</h3>
-          <p class="text-sm text-gray-500">Get the expertise you need without the overhead of hiring or the commitment to full-time roles.</p>
-          <p class="text-sm text-gray-500">Our team will deeply embed in your existing operating model, and can either function as your fractional data team, or enhance your existing team's analytics capabilities through technical support and expertise.</p>
+      <div class="flex flex-col-reverse">
+        <div class="">
+          <h3 class="text-sm font-medium text-gray-900">Retainer</h3>
+          <p class="mt-2 text-sm text-gray-500">Growing data teams need on-demand expertise for specific roles. Our Snowpack experts augment and support your existing staff without the overhead of hiring or the commitment to full-time roles. Our staff will integrate with your team's existing operating model to provide technical support and expertise.</p>
         </div>
-        <div class="flex justify-center">
-          <div class="relative w-64 h-64">
-            <img src="/assets/img/retainer_v2.svg" alt="Icon indicating retainer based engagement" class="absolute inset-0 w-full h-full object-contain" />
-          </div>
-        </div>
+        <img src="/static/img/retainer.svg" alt="Icon indicating retainer based engagement" class="aspect-square w-full rounded-lg bg-gray-100 object-cover">
       </div>
-      <div class="flex flex-col-reverse gap-y-4">
-        <div class="mt-4 space-y-4">
-          <h3 class="text-lg font-medium text-gray-900">Strategic Analytics Advisory</h3>
-          <p class="text-sm text-gray-500">Our experienced team can provide technology recommendations, as well as guidance on team structure and analytics strategy. Through focused engagements, we provide actionable recommendations to help you accelerate your analytical maturity without hiring a dedicated analytics leader.</p>
-          <p class="text-sm text-gray-500">Services include: technology stack evaluation and recommendations, team structure and hiring planning, and analytics roadmap development.</p>
+      <div class="flex flex-col-reverse">
+        <div class="">
+          <h3 class="text-sm font-medium text-gray-900">Consultative Services</h3>
+          <p class="mt-2 text-sm text-gray-500">Businesses need detailed guidance on technology recommendations, team structure and hiring plans from data professionals. Snowpack can provide recommendations and roadmaps through short term engagements to improve your organization's analytical maturity without the need to hire an analytics leader.</p>
         </div>
-        <div class="flex justify-center">
-          <div class="relative w-64 h-64">
-            <img src="/assets/img/consultative_v2.svg" alt="Icon indicating consultative based engagement" class="absolute inset-0 w-full h-full object-contain"/>
-          </div>
-        </div>
-
+        <img src="/static/img/consultative.svg" alt="Icon indicating consultative based engagement" class="aspect-square w-full rounded-lg bg-gray-100 object-cover">
       </div>
     </div>
   </div>
@@ -146,6 +130,7 @@
     <div class="mx-auto max-w-2xl px-4 lg:max-w-none lg:px-0">
       <div class="max-w-3xl">
         <h2 id="features-heading" class="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">Core Technical Competencies</h2>
+<!--        <p class="mt-4 text-gray-500">By no means exhaustive, we've detailed some of our core technological competencies </p>-->
       </div>
 
       <div class="mt-4">
@@ -164,11 +149,10 @@
         <div class="flex flex-col-reverse lg:grid lg:grid-cols-12 lg:gap-x-8">
             <div class="mt-6 lg:col-span-5 lg:mt-0">
               <h3 class="text-lg font-medium text-gray-900">Data Engineering</h3>
-              <p class="mt-2 text-sm text-gray-500">Our team supports traditional data engineering workflows, including data loading, transformation, and orchestration. We have experience with self-hosted open source options, as well as managed enterprise options.</p>
-              <p class="mt-4 text-sm text-gray-500">We aim to build scalable infrastructure that can grow with your organization and be easily managed by your staff after our engagement.</p>
+              <p class="mt-2 text-sm text-gray-500">Our team supports traditional data engineering workflows, including data loading, transformation, and orchestration. We have experience with self-hosted open source options, as well as managed enterprise options. We aim to build scalable infrastructure that can grow with your organization and be easily managed by your staff after our engagement.</p>
             </div>
             <div class="col-span-2 lg:gap-x-2">
-              <img src="/assets/img/data-engineering.png" alt="Diagram of standard Data Engineering Workflow" class="aspect-square w-full rounded-lg bg-gray-100 object-cover sm:aspect-square">
+              <img src="/static/img/data-engineering.png" alt="Diagram of standard Data Engineering Workflow" class="aspect-square w-full rounded-lg bg-gray-100 object-cover sm:aspect-square">
             </div>
           </div>
           <dl class="mx-auto mt-16 grid max-w-2xl grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 sm:gap-y-16 lg:max-w-none lg:grid-cols-3 lg:gap-x-8">
@@ -196,11 +180,10 @@
           <div class="flex flex-col-reverse lg:grid lg:grid-cols-12 lg:gap-x-8">
             <div class="mt-6 lg:col-span-5 lg:mt-0">
               <h3 class="text-lg font-medium text-gray-900">Data Modeling</h3>
-              <p class="mt-2 text-sm text-gray-500">Data modeling encompasses the work of transforming and preparing data for use throughout the business. This type of work entails combining and optimizing data sources for different streaming, reading, and reporting use cases.</p>
-              <p class="mt-4 text-sm text-gray-500">Our team excels in reducing costs and computational overheads in this process to get your business the data you need, when you need it.</p>
+              <p class="mt-2 text-sm text-gray-500">Data modeling encompasses the work of transforming and preparing data for use throughout the business. This type of work entails combining and optimizing data sources for different streaming, reading, and reporting use cases. Our team excels in reducing costs and computational overheads in this process to get your business the data you need, when you need it.</p>
             </div>
             <div class="lg:col-span-2">
-              <img src="/assets/img/data-modeling.png" alt="Data modeling techniques" class="aspect-square w-full rounded-lg bg-gray-100 object-cover sm:aspect-square">
+              <img src="/static/img/data-modeling.png" alt="Data modeling techniques" class="aspect-square w-full rounded-lg bg-gray-100 object-cover sm:aspect-square">
             </div>
           </div>
         </div>
@@ -208,12 +191,11 @@
           <div class="flex flex-col-reverse lg:grid lg:grid-cols-12 lg:gap-x-8">
             <div class="mt-6 lg:col-span-5 lg:mt-0">
               <h3 class="text-lg font-medium text-gray-900">Business Intelligence</h3>
-              <p class="mt-2 text-sm text-gray-500">Business Intelligence is a broad category of work that describes presenting data in a meaningful way to run a business. Our team is adept at implementing many of the BI tools on the market, as well as delivering executive level reports and dashboards.</p>
-              <p class="mt-4 text-sm text-gray-500">Beyond the world of reporting is the world of workflow tooling, using internal data for operational purposes. Our team can ensure that your operators get the data
-                they need to run the business effectively.</p>
+              <p class="mt-2 text-sm text-gray-500">Business intelligence is a broad category of work that describes presenting data in a meaningful way to run a business. Our team is adept at implementing many of the Business Intelligence software systems on the market, as well as delivering executive level reports and dashboards. Beyond the world of reporting is the world of workflow tooling, using internal data for operational purposes. Our team can ensure that your operators get the data
+              they need to run the business effectively.</p>
             </div>
             <div class="lg:col-span-2">
-              <img src="/assets/img/business-intelligence.png" alt="Dashboard generic image." class="aspect-square w-full rounded-lg bg-gray-100 object-cover sm:aspect-square">
+              <img src="/static/img/business-intelligence.png" alt="Dashboard generic image." class="aspect-square w-full rounded-lg bg-gray-100 object-cover sm:aspect-square">
             </div>
           </div>
         </div>
@@ -221,11 +203,10 @@
           <div class="flex flex-col-reverse lg:grid lg:grid-cols-12 lg:gap-x-8">
             <div class="mt-6 lg:col-span-5 lg:mt-0">
               <h3 class="text-lg font-medium text-gray-900">Predictive Analytics</h3>
-              <p class="mt-2 text-sm text-gray-500">Our team has experience in delivering predictive analytics spanning the technical spectrum from traditional data science, to machine learning, and AI.</p>
-              <p class="mt-4 text-sm text-gray-500">From predicting and measuring customer churn, to forecasting, and fraud detection, our team can design and build custom predictive systems for your specific business cases.</p>
+              <p class="mt-2 text-sm text-gray-500">Our team has experience in delivering predictive analytics spanning the technical spectrum from traditional data science, to machine learning, and AI. From predicting and measuring customer churn, to forecasting, and fraud detection, our team can design and build custom predictive systems for your specific business cases.</p>
             </div>
             <div class="lg:col-span-2">
-              <img src="/assets/img/data-science.png" alt="Data science splash image" class="aspect-square w-full rounded-lg bg-gray-100 object-cover sm:aspect-square">
+              <img src="/static/img/data-science.png" alt="Data science splash image" class="aspect-square w-full rounded-lg bg-gray-100 object-cover sm:aspect-square">
             </div>
           </div>
         </div>
@@ -263,5 +244,5 @@
 </body>
 </html>
 
-<script src="/assets/js/index.js?v={{ . }}"></script>
-<script src="/assets/js/services.js?v={{ . }}"></script>
+<script src="/static/js/index.js?v={{ . }}"></script>
+<script src="/static/js/services.js?v={{ . }}"></script>
