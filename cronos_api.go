@@ -91,14 +91,19 @@ func (a *App) EntriesListHandler(w http.ResponseWriter, r *http.Request) {
 // DraftInvoiceListHandler provides a list of Draft Invoices that are available and associated entries
 func (a *App) DraftInvoiceListHandler(w http.ResponseWriter, r *http.Request) {
 	var invoices []cronos.Invoice
+
+	// Use preload for all relationships in a single query
 	a.cronosApp.DB.Preload("Entries", func(db *gorm.DB) *gorm.DB {
 		return db.Order("entries.start ASC")
-	}).Preload("Project").Where("state = ? and type = ?", cronos.InvoiceStateDraft, cronos.InvoiceTypeAR).Find(&invoices)
+	}).Preload("Account").Preload("Project.Account").
+		Where("state = ? and type = ?", cronos.InvoiceStateDraft, cronos.InvoiceTypeAR).Find(&invoices)
+
 	var draftInvoices = make([]cronos.DraftInvoice, len(invoices))
 	for i, invoice := range invoices {
 		draftInvoice := a.cronosApp.GetDraftInvoice(&invoice)
 		draftInvoices[i] = draftInvoice
 	}
+
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
 	_ = json.NewEncoder(w).Encode(draftInvoices)
@@ -107,11 +112,16 @@ func (a *App) DraftInvoiceListHandler(w http.ResponseWriter, r *http.Request) {
 // InvoiceListHandler provides access to all approved/pending/paid invoices. These invoices may be filtered by project
 // and provide access to line items only via inspection.
 func (a *App) InvoiceListHandler(w http.ResponseWriter, r *http.Request) {
+	// Get all invoices that are approved, sent, or paid
 	var invoices []cronos.Invoice
-	a.cronosApp.DB.Preload("Project").Preload("Project.Account").Where("state = ? or state = ? or state = ?", cronos.InvoiceStateApproved, cronos.InvoiceStateSent, cronos.InvoiceStatePaid).Order("period_end desc").Find(&invoices)
-	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	w.WriteHeader(http.StatusOK)
-	_ = json.NewEncoder(w).Encode(invoices)
+	a.cronosApp.DB.Preload("Account").Preload("Project.Account").Where("state = ? or state = ? or state = ?",
+		cronos.InvoiceStateApproved.String(),
+		cronos.InvoiceStateSent.String(),
+		cronos.InvoiceStatePaid.String()).Find(&invoices)
+
+	// Return the invoices directly
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(invoices)
 }
 
 // Individual CRUD handlers for each specific model
@@ -168,10 +178,6 @@ func (a *App) ProjectHandler(w http.ResponseWriter, r *http.Request) {
 			internal, _ := strconv.ParseBool(r.FormValue("internal"))
 			project.Internal = internal
 		}
-		if r.FormValue("billing_frequency") != "" {
-			billingFrequencyValue := r.FormValue("billing_frequency")
-			project.BillingFrequency = billingFrequencyValue
-		}
 		a.cronosApp.DB.Save(&project)
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		_ = json.NewEncoder(w).Encode(&project)
@@ -183,7 +189,6 @@ func (a *App) ProjectHandler(w http.ResponseWriter, r *http.Request) {
 		project.BudgetHours, _ = strconv.Atoi(r.FormValue("budget_hours"))
 		project.BudgetDollars, _ = strconv.Atoi(r.FormValue("budget_dollars"))
 		project.Internal, _ = strconv.ParseBool(r.FormValue("internal"))
-		project.BillingFrequency = r.FormValue("billing_frequency")
 		var account cronos.Account
 		a.cronosApp.DB.Where("id = ?", r.FormValue("account_id")).First(&account)
 		project.AccountID = account.ID
@@ -237,6 +242,21 @@ func (a *App) AccountHandler(w http.ResponseWriter, r *http.Request) {
 		if r.FormValue("address") != "" {
 			account.Address = r.FormValue("address")
 		}
+		if r.FormValue("billing_frequency") != "" {
+			account.BillingFrequency = r.FormValue("billing_frequency")
+		}
+		if r.FormValue("budget_hours") != "" {
+			budgetHours, _ := strconv.Atoi(r.FormValue("budget_hours"))
+			account.BudgetHours = budgetHours
+		}
+		if r.FormValue("budget_dollars") != "" {
+			budgetDollars, _ := strconv.Atoi(r.FormValue("budget_dollars"))
+			account.BudgetDollars = budgetDollars
+		}
+		if r.FormValue("projects_single_invoice") != "" {
+			singleInvoice, _ := strconv.ParseBool(r.FormValue("projects_single_invoice"))
+			account.ProjectsSingleInvoice = singleInvoice
+		}
 		a.cronosApp.DB.Save(&account)
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		_ = json.NewEncoder(w).Encode(&account)
@@ -248,6 +268,13 @@ func (a *App) AccountHandler(w http.ResponseWriter, r *http.Request) {
 		account.Email = r.FormValue("email")
 		account.Website = r.FormValue("website")
 		account.Address = r.FormValue("address")
+		account.BillingFrequency = r.FormValue("billing_frequency")
+		budgetHours, _ := strconv.Atoi(r.FormValue("budget_hours"))
+		account.BudgetHours = budgetHours
+		budgetDollars, _ := strconv.Atoi(r.FormValue("budget_dollars"))
+		account.BudgetDollars = budgetDollars
+		singleInvoice, _ := strconv.ParseBool(r.FormValue("projects_single_invoice"))
+		account.ProjectsSingleInvoice = singleInvoice
 		a.cronosApp.DB.Create(&account)
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(http.StatusCreated)

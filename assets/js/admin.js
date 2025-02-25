@@ -815,7 +815,6 @@ var App = new Vue({
                    budget_dollars: 0,
                    active_start_vis : null,
                    active_end_vis : null,
-                   billing_frequency : null,
                };
            } else if (detail_type === 'billing_code') {
                this.detailBillingCode = {
@@ -846,6 +845,10 @@ var App = new Vue({
                    email : '',
                    address: '',
                    clients :  null,
+                   billing_frequency: '',
+                   budget_hours: 0,
+                   budget_dollars: 0,
+                   projects_single_invoice: true
                };
            }
         },
@@ -859,7 +862,6 @@ var App = new Vue({
                 postForm.set("active_start", this.detailProject.active_start_vis)
                 postForm.set("active_end", this.detailProject.active_end_vis)
                 postForm.set("internal", this.detailProject.internal)
-                postForm.set("billing_frequency", this.detailProject.billing_frequency)
                 let selectedAccount = retrieveFromList(this.accounts, 'name', this.detailProject.account.name)
                 postForm.set("account_id", selectedAccount.ID)
                if (this.isNew) {
@@ -960,7 +962,6 @@ var App = new Vue({
                         console.log(error)
                     })
             } else if (detail_type === 'account'){
-                // Duplicate the same logic for billing codes
                 let postForm = new FormData();
                 postForm.set("name", this.detailAccount.name)
                 postForm.set("website", this.detailAccount.website)
@@ -968,6 +969,10 @@ var App = new Vue({
                 postForm.set("type", this.detailAccount.type)
                 postForm.set('legal_name', this.detailAccount.legal_name)
                 postForm.set("address", this.detailAccount.address)
+                postForm.set("billing_frequency", this.detailAccount.billing_frequency)
+                postForm.set("budget_hours", this.detailAccount.budget_hours)
+                postForm.set("budget_dollars", this.detailAccount.budget_dollars)
+                postForm.set("projects_single_invoice", this.detailAccount.projects_single_invoice)
                 if (this.isNew) {
                     method = 'post'
                     posturl = '/api/accounts/0'

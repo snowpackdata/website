@@ -216,6 +216,12 @@
                 <div class="col-12 admin-scroll-overlay" style="display:block;" tabindex="0">
                     <div v-for="invoice in draftInvoices" class="draft-invoice admin-record-card" style="display:block">
                         <h2><span style="color:#8B0000">DRAFT</span> {{ invoice.invoice_name }}</h2>
+                        <h3>
+                          <span v-if="invoice.account_name">{{ invoice.account_name }}</span>
+                          <span v-else>No Client</span>
+                          <span v-if="invoice.project_name"> - {{ invoice.project_name }}</span>
+                          <span v-else> - All Projects</span>
+                        </h3>
                         <hr>
                         <table class="draftinvoices">
                             <tr>
@@ -347,11 +353,19 @@
                     </thead>
                     <tr v-for="invoice in filterInvoices('INVOICE_STATE_APPROVED')">
                         <td><span style="color:#d97132;font-weight:bolder">UNSENT #{{ invoice.ID | generateInvoiceNumber }}</span></td>
-                        <td>{{ invoice.project.account.name }}</td>
-                        <td>{{ invoice.name }}</td>
+                        <td>
+                            <span v-if="invoice.account && invoice.account.name">{{ invoice.account.name }}</span>
+                            <span v-else-if="invoice.AccountName">{{ invoice.AccountName }}</span>
+                            <span v-else>No Client</span>
+                        </td>
+                        <td>{{ invoice.name || invoice.InvoiceName }} 
+                          <span v-if="invoice.project && invoice.project.name">({{ invoice.project.name }})</span>
+                          <span v-else-if="invoice.ProjectName">({{ invoice.ProjectName }})</span>
+                          <span v-else>(All Projects)</span>
+                        </td>
                         <td>Accepted {{ parseDate(invoice.sent_at, 'll') }}</td>
                         <td>{{ invoice.total_fees | currency }}</td>
-                        <td>{{ invoice.total_adjustments | currency }}</button></td>
+                        <td>{{ invoice.total_adjustments | currency}}</td>
                         <td>{{ invoice.total_amount | currency }}</td>
                         <td>
                             <button @click="markInvoiceSent(invoice)" class="button-ready">Mark Sent</button>
@@ -360,10 +374,17 @@
                     </tr>
                     <tr v-for="invoice in filterInvoices('INVOICE_STATE_SENT')">
                         <td><span style="color:rgba(246,211,34,0.94);font-weight:bolder">SENT #{{ invoice.ID | generateInvoiceNumber }}</span></td>
-                        <td>{{ invoice.project.account.name }}</td>
+                        <td>
+                            <span v-if="invoice.account && invoice.account.name">{{ invoice.account.name }}</span>
+                            <span v-else-if="invoice.AccountName">{{ invoice.AccountName }}</span>
+                            <span v-else>No Client</span>
+                        </td>
                         <td>
                             <a :href="invoice.file" download class="link-dark"><i class="fa-solid fa-download"></i></a>
-                            {{ invoice.name }}
+                            {{ invoice.name || invoice.InvoiceName }} 
+                            <span v-if="invoice.project && invoice.project.name">({{ invoice.project.name }})</span>
+                            <span v-else-if="invoice.ProjectName">({{ invoice.ProjectName }})</span>
+                            <span v-else>(All Projects)</span>
                         </td>
                         <td>Due {{ parseDate(invoice.due_at, 'll') }}</td>
                         <td>{{ invoice.total_fees | currency }}</td>
@@ -376,10 +397,17 @@
                     </tr>
                     <tr v-for="invoice in filterInvoices('INVOICE_STATE_PAID')">
                         <td><span style="color:rgba(39,152,13,0.94);font-weight:bolder">PAID #{{ invoice.ID | generateInvoiceNumber }}</span></td>
-                        <td>{{ invoice.project.account.name }}</td>
+                        <td>
+                            <span v-if="invoice.account && invoice.account.name">{{ invoice.account.name }}</span>
+                            <span v-else-if="invoice.AccountName">{{ invoice.AccountName }}</span>
+                            <span v-else>No Client</span>
+                        </td>
                         <td>
                             <a :href="invoice.file" download class="link-dark"><i class="fa-solid fa-download"></i></a>
-                            {{ invoice.name }}
+                            {{ invoice.name || invoice.InvoiceName }} 
+                            <span v-if="invoice.project && invoice.project.name">({{ invoice.project.name }})</span>
+                            <span v-else-if="invoice.ProjectName">({{ invoice.ProjectName }})</span>
+                            <span v-else>(All Projects)</span>
                         </td>
                         <td>Paid {{ parseDate(invoice.closed_at, 'll') }}</td>
                         <td>{{ invoice.total_fees | currency }}</td>
@@ -488,14 +516,6 @@
                             <input type="number" v-model="detailProject.budget_hours">
                             <label>Budget Dollars</label>
                             <input type="number" v-model="detailProject.budget_dollars">
-                        </div>
-                        <div>
-                            <label>Billing Frequency</label>
-                            <select type="text" v-model="detailProject.billing_frequency">
-                                <option v-for="billingFrequency in billingFrequencies" :value="billingFrequency.value">
-                                    {{ billingFrequency.name }}
-                                </option>
-                            </select>
                         </div>
                         <div>
                             <label>Internal Project</label>
@@ -721,6 +741,25 @@
                             <input type="text" v-model="detailAccount.website">
                             <label>Email</label>
                             <input type="email" v-model="detailAccount.email">
+                        </div>
+                        <hr>
+                        <div>
+                            <label>Billing Frequency</label>
+                            <select type="text" v-model="detailAccount.billing_frequency">
+                                <option v-for="billingFrequency in billingFrequencies" :value="billingFrequency.value">
+                                    {{ billingFrequency.name }}
+                                </option>
+                            </select>
+                        </div>
+                        <div>
+                            <label>Budget Hours</label>
+                            <input type="number" v-model="detailAccount.budget_hours">
+                            <label>Budget Dollars</label>
+                            <input type="number" v-model="detailAccount.budget_dollars">
+                        </div>
+                        <div>
+                            <label>Single Invoice for All Projects</label>
+                            <input type="checkbox" v-model="detailAccount.projects_single_invoice">
                         </div>
                         <hr>
                         <div>
