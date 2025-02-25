@@ -91,14 +91,34 @@ func (a *App) EntriesListHandler(w http.ResponseWriter, r *http.Request) {
 // DraftInvoiceListHandler provides a list of Draft Invoices that are available and associated entries
 func (a *App) DraftInvoiceListHandler(w http.ResponseWriter, r *http.Request) {
 	var invoices []cronos.Invoice
+
+	// First get all draft invoices with their entries
 	a.cronosApp.DB.Preload("Entries", func(db *gorm.DB) *gorm.DB {
 		return db.Order("entries.start ASC")
-	}).Preload("Project").Where("state = ? and type = ?", cronos.InvoiceStateDraft, cronos.InvoiceTypeAR).Find(&invoices)
+	}).Where("state = ? and type = ?", cronos.InvoiceStateDraft, cronos.InvoiceTypeAR).Find(&invoices)
+
+	// Explicitly load the Account for each invoice
+	for i := range invoices {
+		if invoices[i].AccountID != 0 {
+			var account cronos.Account
+			a.cronosApp.DB.Where("id = ?", invoices[i].AccountID).First(&account)
+			invoices[i].Account = account
+		}
+
+		// Load Project data if available
+		if invoices[i].ProjectID != nil && *invoices[i].ProjectID != 0 {
+			var project cronos.Project
+			a.cronosApp.DB.Preload("Account").Where("id = ?", *invoices[i].ProjectID).First(&project)
+			invoices[i].Project = project
+		}
+	}
+
 	var draftInvoices = make([]cronos.DraftInvoice, len(invoices))
 	for i, invoice := range invoices {
 		draftInvoice := a.cronosApp.GetDraftInvoice(&invoice)
 		draftInvoices[i] = draftInvoice
 	}
+
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
 	_ = json.NewEncoder(w).Encode(draftInvoices)
@@ -108,7 +128,28 @@ func (a *App) DraftInvoiceListHandler(w http.ResponseWriter, r *http.Request) {
 // and provide access to line items only via inspection.
 func (a *App) InvoiceListHandler(w http.ResponseWriter, r *http.Request) {
 	var invoices []cronos.Invoice
-	a.cronosApp.DB.Preload("Project").Preload("Project.Account").Where("state = ? or state = ? or state = ?", cronos.InvoiceStateApproved, cronos.InvoiceStateSent, cronos.InvoiceStatePaid).Order("period_end desc").Find(&invoices)
+
+	// First get the invoices with the desired states
+	a.cronosApp.DB.Where("state = ? or state = ? or state = ?",
+		cronos.InvoiceStateApproved, cronos.InvoiceStateSent, cronos.InvoiceStatePaid).
+		Order("period_end desc").Find(&invoices)
+
+	// Explicitly load the Account for each invoice
+	for i := range invoices {
+		if invoices[i].AccountID != 0 {
+			var account cronos.Account
+			a.cronosApp.DB.Where("id = ?", invoices[i].AccountID).First(&account)
+			invoices[i].Account = account
+		}
+
+		// Load Project data if available
+		if invoices[i].ProjectID != nil && *invoices[i].ProjectID != 0 {
+			var project cronos.Project
+			a.cronosApp.DB.Preload("Account").Where("id = ?", *invoices[i].ProjectID).First(&project)
+			invoices[i].Project = project
+		}
+	}
+
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
 	_ = json.NewEncoder(w).Encode(invoices)
