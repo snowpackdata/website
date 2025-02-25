@@ -490,14 +490,6 @@
                             <input type="number" v-model="detailProject.budget_dollars">
                         </div>
                         <div>
-                            <label>Billing Frequency</label>
-                            <select type="text" v-model="detailProject.billing_frequency">
-                                <option v-for="billingFrequency in billingFrequencies" :value="billingFrequency.value">
-                                    {{ billingFrequency.name }}
-                                </option>
-                            </select>
-                        </div>
-                        <div>
                             <label>Internal Project</label>
                             <input type="checkbox" v-model="detailProject.internal">
                         </div>
@@ -721,6 +713,25 @@
                             <input type="text" v-model="detailAccount.website">
                             <label>Email</label>
                             <input type="email" v-model="detailAccount.email">
+                        </div>
+                        <hr>
+                        <div>
+                            <label>Billing Frequency</label>
+                            <select type="text" v-model="detailAccount.billing_frequency">
+                                <option v-for="billingFrequency in billingFrequencies" :value="billingFrequency.value">
+                                    {{ billingFrequency.name }}
+                                </option>
+                            </select>
+                        </div>
+                        <div>
+                            <label>Budget Hours</label>
+                            <input type="number" v-model="detailAccount.budget_hours">
+                            <label>Budget Dollars</label>
+                            <input type="number" v-model="detailAccount.budget_dollars">
+                        </div>
+                        <div>
+                            <label>Single Invoice for All Projects</label>
+                            <input type="checkbox" v-model="detailAccount.projects_single_invoice">
                         </div>
                         <hr>
                         <div>

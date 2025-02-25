@@ -168,10 +168,6 @@ func (a *App) ProjectHandler(w http.ResponseWriter, r *http.Request) {
 			internal, _ := strconv.ParseBool(r.FormValue("internal"))
 			project.Internal = internal
 		}
-		if r.FormValue("billing_frequency") != "" {
-			billingFrequencyValue := r.FormValue("billing_frequency")
-			project.BillingFrequency = billingFrequencyValue
-		}
 		a.cronosApp.DB.Save(&project)
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		_ = json.NewEncoder(w).Encode(&project)
@@ -183,7 +179,6 @@ func (a *App) ProjectHandler(w http.ResponseWriter, r *http.Request) {
 		project.BudgetHours, _ = strconv.Atoi(r.FormValue("budget_hours"))
 		project.BudgetDollars, _ = strconv.Atoi(r.FormValue("budget_dollars"))
 		project.Internal, _ = strconv.ParseBool(r.FormValue("internal"))
-		project.BillingFrequency = r.FormValue("billing_frequency")
 		var account cronos.Account
 		a.cronosApp.DB.Where("id = ?", r.FormValue("account_id")).First(&account)
 		project.AccountID = account.ID
@@ -237,6 +232,21 @@ func (a *App) AccountHandler(w http.ResponseWriter, r *http.Request) {
 		if r.FormValue("address") != "" {
 			account.Address = r.FormValue("address")
 		}
+		if r.FormValue("billing_frequency") != "" {
+			account.BillingFrequency = r.FormValue("billing_frequency")
+		}
+		if r.FormValue("budget_hours") != "" {
+			budgetHours, _ := strconv.Atoi(r.FormValue("budget_hours"))
+			account.BudgetHours = budgetHours
+		}
+		if r.FormValue("budget_dollars") != "" {
+			budgetDollars, _ := strconv.Atoi(r.FormValue("budget_dollars"))
+			account.BudgetDollars = budgetDollars
+		}
+		if r.FormValue("projects_single_invoice") != "" {
+			singleInvoice, _ := strconv.ParseBool(r.FormValue("projects_single_invoice"))
+			account.ProjectsSingleInvoice = singleInvoice
+		}
 		a.cronosApp.DB.Save(&account)
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		_ = json.NewEncoder(w).Encode(&account)
@@ -248,6 +258,13 @@ func (a *App) AccountHandler(w http.ResponseWriter, r *http.Request) {
 		account.Email = r.FormValue("email")
 		account.Website = r.FormValue("website")
 		account.Address = r.FormValue("address")
+		account.BillingFrequency = r.FormValue("billing_frequency")
+		budgetHours, _ := strconv.Atoi(r.FormValue("budget_hours"))
+		account.BudgetHours = budgetHours
+		budgetDollars, _ := strconv.Atoi(r.FormValue("budget_dollars"))
+		account.BudgetDollars = budgetDollars
+		singleInvoice, _ := strconv.ParseBool(r.FormValue("projects_single_invoice"))
+		account.ProjectsSingleInvoice = singleInvoice
 		a.cronosApp.DB.Create(&account)
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(http.StatusCreated)
