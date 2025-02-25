@@ -817,6 +817,26 @@ func (a *App) InvoiceStateHandler(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
+
+		// Reload the invoice to get the updated state
+		if err := a.cronosApp.DB.First(&invoice, invoice.ID).Error; err != nil {
+			log.Printf("Error reloading invoice after MarkInvoicePaid: %v", err)
+			http.Error(w, "Error updating invoice", http.StatusInternalServerError)
+			return
+		}
+
+		// Verify the invoice state was updated
+		if invoice.State != cronos.InvoiceStatePaid.String() {
+			log.Printf("Warning: Invoice state not set to PAID after MarkInvoicePaid: %s", invoice.State)
+			// Force the correct state
+			invoice.State = cronos.InvoiceStatePaid.String()
+			if err := a.cronosApp.DB.Save(&invoice).Error; err != nil {
+				log.Printf("Error saving corrected invoice state: %v", err)
+			} else {
+				log.Printf("Successfully forced invoice state to PAID")
+			}
+		}
+
 		// Note: MarkInvoicePaid already calls GenerateBills and AddCommissionsToBills
 		// so we only need to add journal entries here
 		go a.cronosApp.AddJournalEntries(&invoice)
@@ -825,7 +845,7 @@ func (a *App) InvoiceStateHandler(w http.ResponseWriter, r *http.Request) {
 		_ = json.NewEncoder(w).Encode(struct {
 			State string
 			ID    uint
-		}{cronos.InvoiceStatePaid.String(), invoice.ID})
+		}{invoice.State, invoice.ID}) // Use the actual invoice state
 	}
 	return
 }
