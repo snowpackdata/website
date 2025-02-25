@@ -24,6 +24,10 @@ var App = new Vue({
         draftInvoices : null,
         acceptedInvoices: null,
         staffBills : null,
+        projectTypes: [
+            { name : 'New Business', value: 'PROJECT_TYPE_NEW'},
+            { name : 'Existing Business', value: 'PROJECT_TYPE_EXISTING'},
+        ],
 
         // This is the data that will be used to populate the detail view
         detailProject : null,
@@ -815,6 +819,10 @@ var App = new Vue({
                    budget_dollars: 0,
                    active_start_vis : null,
                    active_end_vis : null,
+                   internal: false,
+                   project_type: 'PROJECT_TYPE_NEW',
+                   ae_id: null,
+                   sdr_id: null
                };
            } else if (detail_type === 'billing_code') {
                this.detailBillingCode = {
@@ -862,6 +870,9 @@ var App = new Vue({
                 postForm.set("active_start", this.detailProject.active_start_vis)
                 postForm.set("active_end", this.detailProject.active_end_vis)
                 postForm.set("internal", this.detailProject.internal)
+                postForm.set("project_type", this.detailProject.project_type)
+                postForm.set("ae_id", this.detailProject.ae_id)
+                postForm.set("sdr_id", this.detailProject.sdr_id)
                 let selectedAccount = retrieveFromList(this.accounts, 'name', this.detailProject.account.name)
                 postForm.set("account_id", selectedAccount.ID)
                if (this.isNew) {
@@ -1093,7 +1104,7 @@ var App = new Vue({
                     console.log(error)
                 })
             } else if (object_type === 'entry'){
-                this.entries = this.entries.filter(function(el) { return el.ID !== object.entry_id; })
+                this.entries = this.entries.filter(function(el) { return el.entry_id !== object.entry_id; })
                 axios({
                     method: 'delete',
                     url: '/api/entries/' + object.entry_id,
@@ -1239,11 +1250,17 @@ var App = new Vue({
             this.removeHighlighting();
         },
         removeHighlighting() {
-            const highlightedCells = document.querySelectorAll('.highlight');
-            highlightedCells.forEach(cell => {
+            const cells = document.querySelectorAll('.calendar-cell');
+            cells.forEach(cell => {
                 cell.classList.remove('highlight');
             });
-        }
+        },
+        autoSelectSDR() {
+            // If AE is selected, set SDR to the same value
+            if (this.detailProject.ae_id) {
+                this.detailProject.sdr_id = this.detailProject.ae_id;
+            }
+        },
     },
     watch: {
         // Watch for changes to the 'editable' property of each entry within each invoice

@@ -178,6 +178,23 @@ func (a *App) ProjectHandler(w http.ResponseWriter, r *http.Request) {
 			internal, _ := strconv.ParseBool(r.FormValue("internal"))
 			project.Internal = internal
 		}
+		if r.FormValue("project_type") != "" {
+			project.ProjectType = r.FormValue("project_type")
+		}
+		if r.FormValue("ae_id") != "" && r.FormValue("ae_id") != "null" {
+			aeID, _ := strconv.ParseUint(r.FormValue("ae_id"), 10, 64)
+			uintAEID := uint(aeID)
+			project.AEID = &uintAEID
+		} else {
+			project.AEID = nil
+		}
+		if r.FormValue("sdr_id") != "" && r.FormValue("sdr_id") != "null" {
+			sdrID, _ := strconv.ParseUint(r.FormValue("sdr_id"), 10, 64)
+			uintSDRID := uint(sdrID)
+			project.SDRID = &uintSDRID
+		} else {
+			project.SDRID = nil
+		}
 		a.cronosApp.DB.Save(&project)
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		_ = json.NewEncoder(w).Encode(&project)
@@ -189,6 +206,20 @@ func (a *App) ProjectHandler(w http.ResponseWriter, r *http.Request) {
 		project.BudgetHours, _ = strconv.Atoi(r.FormValue("budget_hours"))
 		project.BudgetDollars, _ = strconv.Atoi(r.FormValue("budget_dollars"))
 		project.Internal, _ = strconv.ParseBool(r.FormValue("internal"))
+		project.ProjectType = r.FormValue("project_type")
+
+		if r.FormValue("ae_id") != "" && r.FormValue("ae_id") != "null" {
+			aeID, _ := strconv.ParseUint(r.FormValue("ae_id"), 10, 64)
+			uintAEID := uint(aeID)
+			project.AEID = &uintAEID
+		}
+
+		if r.FormValue("sdr_id") != "" && r.FormValue("sdr_id") != "null" {
+			sdrID, _ := strconv.ParseUint(r.FormValue("sdr_id"), 10, 64)
+			uintSDRID := uint(sdrID)
+			project.SDRID = &uintSDRID
+		}
+
 		var account cronos.Account
 		a.cronosApp.DB.Where("id = ?", r.FormValue("account_id")).First(&account)
 		project.AccountID = account.ID
@@ -781,15 +812,13 @@ func (a *App) InvoiceStateHandler(w http.ResponseWriter, r *http.Request) {
 		}{cronos.InvoiceStateSent.String(), invoice.ID})
 
 	case state == "paid":
-		invoice.ClosedAt = time.Now()
-		invoice.State = cronos.InvoiceStatePaid.String()
-		// Save the invoice
-		a.cronosApp.DB.Save(&invoice)
-		err := a.cronosApp.MarkInvoicePaid(invoice.ID) // Mark the invoice as paid
+		err := a.cronosApp.MarkInvoicePaid(invoice.ID) // This handles setting the state, saving, and generating bills/commissions
 		if err != nil {
-			fmt.Println(err)
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
 		}
-		go a.cronosApp.GenerateBills(&invoice)
+		// Note: MarkInvoicePaid already calls GenerateBills and AddCommissionsToBills
+		// so we only need to add journal entries here
 		go a.cronosApp.AddJournalEntries(&invoice)
 
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")

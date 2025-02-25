@@ -521,6 +521,32 @@
                             <label>Internal Project</label>
                             <input type="checkbox" v-model="detailProject.internal">
                         </div>
+                        <div>
+                            <label>Project Type</label>
+                            <select v-model="detailProject.project_type">
+                                <option v-for="type in projectTypes" :value="type.value">
+                                    {{ type.name }}
+                                </option>
+                            </select>
+                        </div>
+                        <div>
+                            <label>Account Executive</label>
+                            <select v-model="detailProject.ae_id" @change="autoSelectSDR">
+                                <option :value="null">None</option>
+                                <option v-for="employee in staff" :value="employee.ID">
+                                    {{ employee.first_name }} {{ employee.last_name }}
+                                </option>
+                            </select>
+                        </div>
+                        <div>
+                            <label>Sales Development Rep</label>
+                            <select v-model="detailProject.sdr_id">
+                                <option :value="null">None</option>
+                                <option v-for="employee in staff" :value="employee.ID">
+                                    {{ employee.first_name }} {{ employee.last_name }}
+                                </option>
+                            </select>
+                        </div>
                         <hr>
                         <div>
                             <h3>Associated Billing Codes</h3>
