@@ -33,5 +33,3 @@ cronos.db
 *.db
 
 # Package files
-package.json
-package-lock.json
