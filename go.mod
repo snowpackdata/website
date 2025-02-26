@@ -2,17 +2,15 @@ module github.com/snowpackdata/website
 
 // Used for running locally with cronos updates
 
- //replace github.com/snowpackdata/cronos => ../cronos
+// replace github.com/snowpackdata/cronos => ../cronos
 
 go 1.21
-
-toolchain go1.23.0
 
 require (
 	github.com/golang-jwt/jwt/v5 v5.1.0
 	github.com/gorilla/handlers v1.5.2
 	github.com/gorilla/mux v1.8.0
-	github.com/snowpackdata/cronos v1.0.34
+	github.com/snowpackdata/cronos v1.0.35
 	golang.org/x/crypto v0.18.0
 	gorm.io/gorm v1.25.5
 )
@@ -40,7 +38,7 @@ require (
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/jung-kurt/gofpdf v1.16.2 // indirect
 	github.com/lib/pq v1.10.9 // indirect
-	github.com/mattn/go-sqlite3 v1.14.17 // indirect
+	github.com/mattn/go-sqlite3 v1.14.24 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/sendgrid/rest v2.6.9+incompatible // indirect
 	github.com/sendgrid/sendgrid-go v3.13.0+incompatible // indirect
@@ -55,7 +53,7 @@ require (
 	golang.org/x/net v0.20.0 // indirect
 	golang.org/x/oauth2 v0.16.0 // indirect
 	golang.org/x/sync v0.6.0 // indirect
-	golang.org/x/sys v0.16.0 // indirect
+	golang.org/x/sys v0.26.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
 	golang.org/x/time v0.5.0 // indirect
 	google.golang.org/api v0.157.0 // indirect
