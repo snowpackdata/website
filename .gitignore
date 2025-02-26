@@ -17,6 +17,7 @@
 
 # Dependency directories (remove the comment below to include it)
 # vendor/
+node_modules/
 
 # secrets
 gcs-service-account.json
@@ -26,3 +27,11 @@ sendgrid.env
 
 #Tailwind CSS configs
 assets/css/outputs.css
+
+# Database files
+cronos.db
+*.db
+
+# Package files
+package.json
+package-lock.json
