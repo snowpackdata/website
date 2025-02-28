@@ -3,13 +3,14 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/gorilla/mux"
-	"github.com/snowpackdata/cronos"
-	"gorm.io/gorm"
 	"log"
 	"net/http"
 	"strconv"
 	"time"
+
+	"github.com/gorilla/mux"
+	"github.com/snowpackdata/cronos"
+	"gorm.io/gorm"
 )
 
 // List Handlers will provide a list of objects for a given resource
@@ -77,10 +78,22 @@ func (a *App) EntriesListHandler(w http.ResponseWriter, r *http.Request) {
 	userIDInt := r.Context().Value("user_id")
 	a.cronosApp.DB.Where("user_id = ?", userIDInt).First(&employee)
 
-	a.cronosApp.DB.Preload("BillingCode").Preload("Employee").Where("employee_id = ?", employee.ID).Where("internal = ?", false).Find(&entries)
+	// Modified query to include entries where:
+	// 1. Current user created the entry (employee_id = employee.ID)
+	// 2. Current user is being impersonated by others (impersonate_as_user_id = employee.ID)
+	a.cronosApp.DB.Preload("BillingCode.Rate").Preload("BillingCode.InternalRate").
+		Preload("Employee").Preload("ImpersonateAsUser").
+		Where("employee_id = ? OR impersonate_as_user_id = ?", employee.ID, employee.ID).
+		Find(&entries)
+
 	apiEntries := make([]cronos.ApiEntry, len(entries))
 	for i, entry := range entries {
 		apiEntry := entry.GetAPIEntry()
+		// Set a flag for UI to identify if this entry was created by someone else impersonating this user
+		if entry.ImpersonateAsUserID != nil && *entry.ImpersonateAsUserID == employee.ID && entry.EmployeeID != employee.ID {
+			apiEntry.IsBeingImpersonated = true
+			apiEntry.EmployeeName = entry.Employee.FirstName + " " + entry.Employee.LastName
+		}
 		apiEntries[i] = apiEntry
 	}
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
@@ -95,7 +108,7 @@ func (a *App) DraftInvoiceListHandler(w http.ResponseWriter, r *http.Request) {
 	// Use preload for all relationships in a single query
 	a.cronosApp.DB.Preload("Entries", func(db *gorm.DB) *gorm.DB {
 		return db.Order("entries.start ASC")
-	}).Preload("Account").Preload("Project.Account").
+	}).Preload("Entries.BillingCode").Preload("Account").Preload("Project.Account").
 		Where("state = ? and type = ?", cronos.InvoiceStateDraft, cronos.InvoiceTypeAR).Find(&invoices)
 
 	var draftInvoices = make([]cronos.DraftInvoice, len(invoices))
@@ -498,25 +511,55 @@ func (a *App) EntryHandler(w http.ResponseWriter, r *http.Request) {
 	// Initial setup for the entry handler is similar to all the above handlers
 	vars := mux.Vars(r)
 	var entry cronos.Entry
+
+	// Get current user's employee record
+	var employee cronos.Employee
+	userIDInt := r.Context().Value("user_id")
+	a.cronosApp.DB.Where("user_id = ?", userIDInt).First(&employee)
+
 	switch {
 	case r.Method == "GET":
-		a.cronosApp.DB.First(&entry, vars["id"])
+		a.cronosApp.DB.Preload("BillingCode.Rate").Preload("BillingCode.InternalRate").Preload("Employee").Preload("ImpersonateAsUser").First(&entry, vars["id"])
+		apiEntry := entry.GetAPIEntry()
+
+		// Set a flag for UI to identify if this entry was created by someone else impersonating this user
+		if entry.ImpersonateAsUserID != nil && *entry.ImpersonateAsUserID == employee.ID && entry.EmployeeID != employee.ID {
+			apiEntry.IsBeingImpersonated = true
+			apiEntry.EmployeeName = entry.Employee.FirstName + " " + entry.Employee.LastName
+		}
+
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(http.StatusOK)
-		_ = json.NewEncoder(w).Encode(entry.GetAPIEntry())
+		_ = json.NewEncoder(w).Encode(apiEntry)
 		return
 	case r.Method == "PUT":
 		a.cronosApp.DB.First(&entry, vars["id"])
+
 		// We cannot edit entries that are approved, paid, or voided
 		if entry.State == cronos.EntryStateApproved.String() || entry.State == cronos.EntryStatePaid.String() || entry.State == cronos.EntryStateVoid.String() {
 			w.WriteHeader(http.StatusNotFound)
 			return
 		}
+
+		// Check if user has permission to edit this entry:
+		// 1. They created it (employee_id = employee.ID), OR
+		// 2. They are being impersonated in it (impersonate_as_user_id = employee.ID)
+		if entry.EmployeeID != employee.ID && (entry.ImpersonateAsUserID == nil || *entry.ImpersonateAsUserID != employee.ID) {
+			w.WriteHeader(http.StatusForbidden)
+			_ = json.NewEncoder(w).Encode(map[string]string{"error": "You do not have permission to edit this entry"})
+			return
+		}
+
 		if r.FormValue("billing_code_id") != "" {
 			var billingCode cronos.BillingCode
-			a.cronosApp.DB.Where("id = ?", r.FormValue("billing_code_id")).First(&billingCode)
+			a.cronosApp.DB.Preload("Rate").Preload("InternalRate").Where("id = ?", r.FormValue("billing_code_id")).First(&billingCode)
 			entry.BillingCodeID = billingCode.ID
-			entry.BillingCode = billingCode
+			entry.BillingCode = billingCode // Explicitly associate the full billing code object
+
+			// Update project ID if billing code has changed
+			if entry.ProjectID != billingCode.ProjectID {
+				entry.ProjectID = billingCode.ProjectID
+			}
 		}
 		if r.FormValue("start") != "" {
 			// first convert the string to a time.Time object
@@ -538,9 +581,34 @@ func (a *App) EntryHandler(w http.ResponseWriter, r *http.Request) {
 			entry.Notes = r.FormValue("notes")
 		}
 
+		// Handle impersonation - if present, set the impersonation user ID
+		if r.FormValue("impersonate_as_user_id") != "" {
+			if r.FormValue("impersonate_as_user_id") == "0" {
+				// If 0 is provided, clear the impersonation
+				entry.ImpersonateAsUserID = nil
+			} else {
+				impersonateID, err := strconv.Atoi(r.FormValue("impersonate_as_user_id"))
+				if err == nil {
+					impersonateIDUint := uint(impersonateID)
+					entry.ImpersonateAsUserID = &impersonateIDUint
+				}
+			}
+		}
+
 		a.cronosApp.DB.Save(&entry)
+
+		// Get the updated entry with all relationships loaded
+		a.cronosApp.DB.Preload("BillingCode.Rate").Preload("BillingCode.InternalRate").Preload("Employee").Preload("ImpersonateAsUser").First(&entry, entry.ID)
+		apiEntry := entry.GetAPIEntry()
+
+		// Set a flag for UI to identify if this entry was created by someone else impersonating this user
+		if entry.ImpersonateAsUserID != nil && *entry.ImpersonateAsUserID == employee.ID && entry.EmployeeID != employee.ID {
+			apiEntry.IsBeingImpersonated = true
+			apiEntry.EmployeeName = entry.Employee.FirstName + " " + entry.Employee.LastName
+		}
+
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-		_ = json.NewEncoder(w).Encode(entry.GetAPIEntry())
+		_ = json.NewEncoder(w).Encode(apiEntry)
 		return
 	case r.Method == "POST":
 		entry.Start, _ = time.Parse("2006-01-02T15:04", r.FormValue("start"))
@@ -550,13 +618,30 @@ func (a *App) EntryHandler(w http.ResponseWriter, r *http.Request) {
 		a.cronosApp.DB.Where("user_id = ?", userID).First(&employee)
 		entry.EmployeeID = employee.ID
 
-		// Retrieve the billing code so we can get the project off it
+		// Retrieve the billing code with all its relationships
 		var billingCode cronos.BillingCode
-		a.cronosApp.DB.Where("id = ?", r.FormValue("billing_code_id")).First(&billingCode)
+		a.cronosApp.DB.Preload("Rate").Preload("InternalRate").Where("id = ?", r.FormValue("billing_code_id")).First(&billingCode)
 		entry.BillingCodeID = billingCode.ID
+		entry.BillingCode = billingCode // Explicitly associate the full billing code object
 		entry.ProjectID = billingCode.ProjectID
 		entry.Internal = false
 		entry.Notes = r.FormValue("notes")
+		entry.State = cronos.EntryStateDraft.String() // Initialize state to draft
+
+		// Handle impersonation for new entries
+		if r.FormValue("impersonate_as_user_id") != "" && r.FormValue("impersonate_as_user_id") != "0" {
+			impersonateID, err := strconv.Atoi(r.FormValue("impersonate_as_user_id"))
+			if err == nil {
+				impersonateIDUint := uint(impersonateID)
+				entry.ImpersonateAsUserID = &impersonateIDUint
+
+				// Load the impersonated user's data
+				var impersonatedEmployee cronos.Employee
+				a.cronosApp.DB.Where("id = ?", impersonateIDUint).First(&impersonatedEmployee)
+				entry.ImpersonateAsUser = &impersonatedEmployee
+			}
+		}
+
 		// Need to first create the entries before we can associate them
 		a.cronosApp.DB.Create(&entry)
 
@@ -565,9 +650,19 @@ func (a *App) EntryHandler(w http.ResponseWriter, r *http.Request) {
 			fmt.Println(err)
 		}
 
+		// Get the created entry with all relationships loaded
+		a.cronosApp.DB.Preload("BillingCode.Rate").Preload("BillingCode.InternalRate").Preload("Employee").Preload("ImpersonateAsUser").First(&entry, entry.ID)
+		apiEntry := entry.GetAPIEntry()
+
+		// Set a flag for UI to identify if this entry was created by someone else impersonating this user
+		if entry.ImpersonateAsUserID != nil && *entry.ImpersonateAsUserID == employee.ID && entry.EmployeeID != employee.ID {
+			apiEntry.IsBeingImpersonated = true
+			apiEntry.EmployeeName = entry.Employee.FirstName + " " + entry.Employee.LastName
+		}
+
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(http.StatusCreated)
-		err = json.NewEncoder(w).Encode(entry.GetAPIEntry())
+		err = json.NewEncoder(w).Encode(apiEntry)
 		if err != nil {
 			fmt.Println(err)
 		}

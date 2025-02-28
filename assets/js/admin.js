@@ -48,7 +48,7 @@ var App = new Vue({
             start_hour: null,
             start_day_of_week: null,
             duration_hours: null,
-
+            impersonate_as_user_id: null,
         },
         invitedUserEmail : null,
         billingCategories : [
@@ -107,6 +107,12 @@ var App = new Vue({
         dragDate: null,
         dragStartHour: null,
         dragEndHour: null,
+
+        // Add new filters for impersonation
+        impersonationFilters: {
+            showImpersonatedByMe: true,
+            showImpersonatingMe: true
+        },
     },
     filters: {
         truncate: function (text, length, suffix) {
@@ -150,8 +156,8 @@ var App = new Vue({
                 data: postForm,
             })
             .then(response => {
-                console.log(response)
-                entry = response.data
+                // Update the entry with the response data
+                Object.assign(entry, response.data);
             })
             .catch(error => {
                 console.log(error)
@@ -162,6 +168,7 @@ var App = new Vue({
                 newStatus = 'draft'
                 entry.state = 'ENTRY_STATE_DRAFT'
                 this.$set(entry, 'editable', false);
+                entry.editable = false;
                 invoice.total_hours = invoice.total_hours + entry.duration_hours;
                 invoice.total_fees = invoice.total_fees + entry.fee;
                 invoice.total_amount = invoice.total_fees + invoice.total_adjustments;
@@ -180,7 +187,6 @@ var App = new Vue({
                 headers: {'Content-Type': 'application/json', 'x-access-token': window.localStorage.snowpack_token},
             })
             .then(response => {
-                console.log(response)
                 entry.state = response.data.State
             })
             .catch(error => {
@@ -214,7 +220,6 @@ var App = new Vue({
                 data: postForm,
             })
             .then(response => {
-                console.log(response)
                 adjustment = response.data
                 multiplier = 1.0
                 if (adjustment.type === 'ADJUSTMENT_TYPE_CREDIT') {
@@ -261,7 +266,6 @@ var App = new Vue({
                 headers: {'Content-Type': 'application/json', 'x-access-token': window.localStorage.snowpack_token},
             })
                 .then(response => {
-                    console.log(response)
                     adjustment.state = response.data.state
                 })
                 .catch(error => {
@@ -285,7 +289,6 @@ var App = new Vue({
                 data: postForm,
             })
             .then(response => {
-                console.log(response)
                 adjustment = response.data
                 invoice.adjustments.push(adjustment)
                 multiplier = 1.0
@@ -307,7 +310,6 @@ var App = new Vue({
                 headers: {'Content-Type': 'application/json', 'x-access-token': window.localStorage.snowpack_token},
             })
                 .then(response => {
-                    console.log(response)
                     invoice.State = response.data.State
                 })
                 .catch(error => {
@@ -322,7 +324,6 @@ var App = new Vue({
                 headers: {'Content-Type': 'application/json', 'x-access-token': window.localStorage.snowpack_token},
             })
                 .then(response => {
-                    console.log(response)
                     invoice.State = response.data.State
                 })
                 .catch(error => {
@@ -337,7 +338,6 @@ var App = new Vue({
                 headers: {'Content-Type': 'application/json', 'x-access-token': window.localStorage.snowpack_token},
             })
                 .then(response => {
-                    console.log(response)
                     invoice.State = response.data.State
                 })
                 .catch(error => {
@@ -352,7 +352,6 @@ var App = new Vue({
                 headers: {'Content-Type': 'application/json', 'x-access-token': window.localStorage.snowpack_token},
             })
                 .then(response => {
-                    console.log(response)
                     invoice.State = response.data.State
                 })
                 .catch(error => {
@@ -402,11 +401,11 @@ var App = new Vue({
                 .catch(error => {
                     console.log(error)
                 })
-            console.log('testing')
             window.location.reload();
         },
 
         getEntries(day, hour) {
+            const entries = this.weeklyEntries.filter(entry => (entry.start_day_of_week === day && entry.start_hour === hour));
             return this.weeklyEntries.filter(entry => (entry.start_day_of_week === day && entry.start_hour === hour));
         },
        // Functions used to calculate the position and size of each entry
@@ -525,7 +524,7 @@ var App = new Vue({
                 start_vis : moment(defaultStart).format( 'yyyy-MM-DDTHH:mm'),
                 end_vis : moment(defaultEnd).format( 'yyyy-MM-DDTHH:mm'),
                 duration_hours: 1,
-
+                impersonate_as_user_id: null
             }
             this.selectedEntry = blankEntry;
 
@@ -549,16 +548,40 @@ var App = new Vue({
                 duration_hours: hourEnd+1 - hourStart,
                 start_day_of_week: day,
                 start_hour: hourStart,
+                impersonate_as_user_id: null
             }
             this.selectedEntry = blankEntry;
 
             $('#entry-modal').modal('show');
         },
         showEntryModal(entry) {
-            console.log(this.selectedEntry)
-            this.selectedEntry = entry;
+            this.isNew = false; // Explicitly set isNew to false when editing an existing entry
+            console.log("Opening entry modal for existing entry:", entry);
+            console.log("Entry ID before assignment:", entry.entry_id);
+            
+            // Create a deep copy of the entry to avoid modifying the original
+            this.selectedEntry = JSON.parse(JSON.stringify(entry));
+            console.log("selectedEntry after deep copy:", this.selectedEntry);
+            console.log("Entry ID after deep copy:", this.selectedEntry.entry_id);
+            
             this.selectedEntry.start_vis = this.parseDate(this.selectedEntry.start, 'yyyy-MM-DDTHH:mm');
             this.selectedEntry.end_vis = this.parseDate(this.selectedEntry.end, 'yyyy-MM-DDTHH:mm');
+            
+            // Ensure the impersonate_as_user_id is set (may be null, which is fine)
+            if (!this.selectedEntry.hasOwnProperty('impersonate_as_user_id')) {
+                this.selectedEntry.impersonate_as_user_id = null;
+            }
+            
+            // Add a clear indication in the modal title if this entry is someone impersonating the current user
+            if (this.selectedEntry.is_being_impersonated && !this.selectedEntry.impersonate_as_user_id) {
+                // Add a class to the modal to highlight it differently
+                document.getElementById('entry-modal-title').textContent = 'Edit Entry (Created by someone impersonating you)';
+                document.getElementById('entry-modal-title').classList.add('impersonated-entry-title');
+            } else {
+                document.getElementById('entry-modal-title').textContent = 'Edit Journal Entry';
+                document.getElementById('entry-modal-title').classList.remove('impersonated-entry-title');
+            }
+            
             $('#entry-modal').modal('show');
         },
         hideModal() {
@@ -580,7 +603,6 @@ var App = new Vue({
             this.showDetail = false;
             if (screen === 'admin') {
                 this.fetchDraftInvoices();
-                console.log(this.draftInvoices)
             }
             if (screen === 'invoices') {
                 this.fetchAcceptedInvoices();
@@ -1009,17 +1031,26 @@ var App = new Vue({
                     console.log(error)
                 })
             } else if (detail_type === 'entry'){
+                console.log("Processing entry submission, isNew:", this.isNew);
                 let postForm = new FormData();
                 postForm.set("billing_code_id", this.selectedEntry.billing_code_id)
                 postForm.set("start", this.parseDate(this.selectedEntry.start_vis, 'yyyy-MM-DDTHH:mm'))
                 postForm.set("end", this.parseDate(this.selectedEntry.end_vis, 'yyyy-MM-DDTHH:mm'))
                 postForm.set("notes", this.selectedEntry.notes)
+                
+                // Add impersonation data if selected
+                if (this.selectedEntry.impersonate_as_user_id !== null) {
+                    postForm.set("impersonate_as_user_id", this.selectedEntry.impersonate_as_user_id)
+                }
+                
                 if (this.isNew) {
                     method = 'post'
                     posturl = '/api/entries/0'
+                    console.log("Creating new entry with POST to", posturl);
                 } else {
                     method = 'put'
                     posturl = '/api/entries/' + this.selectedEntry.entry_id.toString()
+                    console.log("Updating existing entry with PUT to", posturl, "entry_id:", this.selectedEntry.entry_id);
                 }
                 axios({
                     method: method,
@@ -1028,19 +1059,37 @@ var App = new Vue({
                     data: postForm
                 })
                 .then(response => {
-                    console.log(response.data)
-                    this.selectedEntry = response.data
+                    console.log("API response:", response.data);
                     if (this.isNew === true) {
-                        this.entries.push(this.selectedEntry)
-                        this.weeklyEntries = this.getWeeklyEntries();
-                     } else {
-                        this.entries = this.entries.filter(function(el) { return el.entry_id !== response.data.entry_id; })
-                        this.entries.push(this.selectedEntry)
-                        this.weeklyEntries = this.getWeeklyEntries();
+                        // For new entries, add the response data to the entries array
+                        console.log("Adding new entry to entries array");
+                        this.entries.push(response.data);
+                    } else {
+                        // For existing entries, find and replace the entry in the array
+                        console.log("Updating existing entry in entries array, entry ID:", response.data.entry_id);
+                        
+                        // Find the index of the entry to update
+                        const entryIndex = this.entries.findIndex(e => e.entry_id === response.data.entry_id);
+                        
+                        if (entryIndex !== -1) {
+                            // Replace the entry at the found index
+                            console.log("Found entry at index:", entryIndex);
+                            this.entries.splice(entryIndex, 1, response.data);
+                        } else {
+                            // If not found (shouldn't happen), remove by ID and add the new one
+                            console.log("Entry not found in array, filtering and adding");
+                            this.entries = this.entries.filter(el => el.entry_id !== response.data.entry_id);
+                            this.entries.push(response.data);
+                        }
                     }
+                    // Update the selectedEntry with the response data
+                    this.selectedEntry = response.data;
+                    // Refresh the weekly entries
+                    this.weeklyEntries = this.getWeeklyEntries();
                     this.hideModal();
                 })
                 .catch(error => {
+                    console.error("Error saving entry:", error);
                     alert('There was an error saving the entry. Please contact support.');
                 })
             }
@@ -1105,6 +1154,7 @@ var App = new Vue({
                 })
             } else if (object_type === 'entry'){
                 this.entries = this.entries.filter(function(el) { return el.entry_id !== object.entry_id; })
+                this.weeklyEntries = this.weeklyEntries.filter(function(el) { return el.entry_id !== object.entry_id; })
                 axios({
                     method: 'delete',
                     url: '/api/entries/' + object.entry_id,
@@ -1156,7 +1206,12 @@ var App = new Vue({
                 const entryDate = new Date(entry.start);
                 return entryDate >= this.currentWeek && entryDate < getNextWeek(this.currentWeek);
             });
-            return weeklyEntries
+            
+            if (!this.impersonationFilters.showImpersonatingMe) {
+                weeklyEntries = weeklyEntries.filter(entry => !entry.is_being_impersonated);
+            }
+            
+            return weeklyEntries;
         },
 
         sumEntryHours(day = null) {
@@ -1250,16 +1305,25 @@ var App = new Vue({
             this.removeHighlighting();
         },
         removeHighlighting() {
-            const cells = document.querySelectorAll('.calendar-cell');
-            cells.forEach(cell => {
-                cell.classList.remove('highlight');
-            });
+          const highlightedCells = document.querySelectorAll('.highlight');
+          highlightedCells.forEach(cell => {
+              cell.classList.remove('highlight');
+          });
         },
         autoSelectSDR() {
             // If AE is selected, set SDR to the same value
             if (this.detailProject.ae_id) {
                 this.detailProject.sdr_id = this.detailProject.ae_id;
             }
+        },
+        
+        toggleImpersonatingMeFilter() {
+            this.impersonationFilters.showImpersonatingMe = !this.impersonationFilters.showImpersonatingMe;
+            this.weeklyEntries = this.getWeeklyEntries();
+        },
+        
+        countImpersonatingMe() {
+            return this.weeklyEntries.filter(entry => entry.is_being_impersonated && !entry.impersonate_as_user_id).length;
         },
     },
     watch: {

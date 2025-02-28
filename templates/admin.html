@@ -46,7 +46,7 @@
     <script src="https://cdn.jsdelivr.net/npm/vue-js-modal@2.0.1/dist/index.min.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/vue-js-modal@2.0.1/dist/styles.min.css" rel="stylesheet">
 
-    <link type="text/css" rel="stylesheet" href="../assets/css/style.css?v=1">
+    <link type="text/css" rel="stylesheet" href="../assets/css/style.css?v=2">
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-TRLQYPPXKE"></script>
     <script>
@@ -111,12 +111,21 @@
         <!--        HOME UI SECTION-->
         <div id="home" v-if="workingScreen.home" class="admin-content">
             <div class="col-12" v-if="workingScreen.home" style="margin:15px;">
-                <div style="display:flex;justify-content:space-around">
+                <div style="display:flex;justify-content:space-around;align-items:center;margin-bottom:15px">
                     <button @click="showNewEntryModal()" class="">Add Entry</button>
-                    <div style="margin-left:auto;margin-right:10%">
-                        <button @click="decrementWeek()" class=""><i class="fa-solid fa-circle-chevron-left"></i></button>
-                        {{ currentWeekDaysFormatted[0] }} to {{ currentWeekDaysFormatted[6] }}
-                        <button @click="incrementWeek()" class=""><i class="fa-solid fa-circle-chevron-right"></i></button>
+                    <div style="display:flex;align-items:center;">
+                        <button @click="decrementWeek()" class="" style="margin:4px;"><i class="fa-solid fa-circle-chevron-left"></i></button>
+                        {{ currentWeekDaysFormatted[0] }} to {{ currentWeekDaysFormatted[6] }} 
+                        <button @click="incrementWeek()" class="" style="margin:4px;"><i class="fa-solid fa-circle-chevron-right"></i></button>
+                    </div>
+                    <!-- Impersonation filter controls -->
+                    <div class="impersonation-filters">
+                        <button @click="toggleImpersonatingMeFilter()" class="filter-button" :class="{ 'active': impersonationFilters.showImpersonatingMe }">
+                            <i class="fa-solid fa-user-friends"></i> 
+                            <span v-if="impersonationFilters.showImpersonatingMe">Hide</span>
+                            <span v-else>Show</span> 
+                            Impersonating Me
+                        </button>
                     </div>
                 </div>
             </div>
@@ -125,7 +134,7 @@
                     <div class="modal-dialog" role="document">
                         <div class="modal-content">
                             <div class="modal-header">
-                                <h3 class="blog-title" style="">Edit Journal Entry</h3>
+                                <h3 id="entry-modal-title" class="blog-title" style="">Edit Journal Entry</h3>
                                 <span @click="hideModal()" style="margin-left:40%"><i class="fa-solid fa-circle-xmark fa-lg"></i></span>
                                 </button>
                             </div>
@@ -148,6 +157,15 @@
                                     <br>
                                     Fee : ${{ selectedEntry.fee }}
                                 </div>
+                                <hr>
+                                <!-- Add impersonation dropdown -->
+                                <label>Impersonate as User</label>
+                                <select v-model="selectedEntry.impersonate_as_user_id">
+                                    <option :value="null">No impersonation</option>
+                                    <option v-for="staff_member in staff" :value="staff_member.ID">
+                                        {{staff_member.first_name}} {{staff_member.last_name}}
+                                    </option>
+                                </select>
                                 <hr>
                                 <label>Notes</label>
                                 <textarea style="width:100%;height:80px;" v-model="selectedEntry.notes"></textarea>
@@ -196,10 +214,25 @@
                                         left: calculateEntryLeft(entry, day, hour.hour) + 'px',
                                         width: calculateEntryWidth(day, hour.hour) + 'px'
                                         }"
-                                     :class="['entry', entry.state]">
-                                        <div><u><strong>{{ displayEntryState(entry.state) }}</strong></u></div>
+                                      :class="['entry', entry.state, 
+                                        { 'impersonated': entry.impersonate_as_user_id && !entry.is_being_impersonated },
+                                        { 'being-impersonated': entry.is_being_impersonated }
+                                      ]"> 
+                                        <div>
+                                          <div v-if="entry.impersonate_as_user_id && !entry.is_being_impersonated" class="impersonation-info">
+                                            <i class="fa-solid fa-user-tag" title="You are impersonating another user"></i><u><strong>{{ displayEntryState(entry.state) }}</strong></u>
+                                          </div>
+                                          <div v-if="entry.is_being_impersonated" class="impersonation-info">
+                                            <i class="fa-solid fa-user-friends" title="Entry created by someone else impersonating you"></i>
+                                            <u><strong>{{ displayEntryState(entry.state) }}</strong></u>
+                                          </div>
+                                        </div>
                                         <div>{{ entry.billing_code_name }}</div>
                                         <div>{{ entry.duration_hours }} hours</div>
+                                        <div v-if="entry.is_being_impersonated" class="impersonation-info">
+                                            <i class="fa-solid fa-user-friends" title="Entry created by someone else impersonating you"></i>
+                                            <span><strong>{{ entry.employee_name }}</strong> created this entry impersonating you</span>
+                                        </div>
                                 </div>
                             </td>
                         </tr>
@@ -251,7 +284,13 @@
                                 </td>
                                 <td :class="{'strikeout' : entry.state == 'ENTRY_STATE_VOID'}">{{ entry.start_date }} </td>
                                 <td :class="{'strikeout' : entry.state == 'ENTRY_STATE_VOID'}">{{ entry.billing_code }}</td>
-                                <td :class="{'strikeout' : entry.state == 'ENTRY_STATE_VOID'}">{{ entry.user_name }}</td>
+                                <td :class="{'strikeout' : entry.state == 'ENTRY_STATE_VOID'}">
+                                    <span>{{ entry.user_name }}</span>
+                                    <span v-if="entry.is_impersonated" style="font-style: italic; color: #684caf; display: block; background-color: rgba(104, 76, 175, 0.1); padding: 3px; border-radius: 3px; margin-top: 2px; border-left: 3px solid #684caf;">
+                                        <i class="fa-solid fa-user-tag" title="Impersonated Entry"></i>
+                                        Entry created by {{ entry.created_by_name }} impersonating {{ entry.impersonate_as_user_name }}
+                                    </span>
+                                </td>
                                 <td :class="{'editable' : entry.editable, 'strikeout' : entry.state == 'ENTRY_STATE_VOID'}" :contenteditable="entry.editable" @blur="updateEditedValue(entry, $event)">{{ entry.notes }}</td>
                                 <td :class="{'strikeout' : entry.state == 'ENTRY_STATE_VOID'}">{{ entry.duration_hours }}</td>
                                 <td :class="{'strikeout' : entry.state == 'ENTRY_STATE_VOID'}">${{ entry.fee }}</td>
