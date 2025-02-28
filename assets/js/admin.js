@@ -156,7 +156,8 @@ var App = new Vue({
                 data: postForm,
             })
             .then(response => {
-                entry = response.data
+                // Update the entry with the response data
+                Object.assign(entry, response.data);
             })
             .catch(error => {
                 console.log(error)
@@ -523,7 +524,7 @@ var App = new Vue({
                 start_vis : moment(defaultStart).format( 'yyyy-MM-DDTHH:mm'),
                 end_vis : moment(defaultEnd).format( 'yyyy-MM-DDTHH:mm'),
                 duration_hours: 1,
-
+                impersonate_as_user_id: null
             }
             this.selectedEntry = blankEntry;
 
@@ -547,13 +548,22 @@ var App = new Vue({
                 duration_hours: hourEnd+1 - hourStart,
                 start_day_of_week: day,
                 start_hour: hourStart,
+                impersonate_as_user_id: null
             }
             this.selectedEntry = blankEntry;
 
             $('#entry-modal').modal('show');
         },
         showEntryModal(entry) {
-            this.selectedEntry = entry;
+            this.isNew = false; // Explicitly set isNew to false when editing an existing entry
+            console.log("Opening entry modal for existing entry:", entry);
+            console.log("Entry ID before assignment:", entry.entry_id);
+            
+            // Create a deep copy of the entry to avoid modifying the original
+            this.selectedEntry = JSON.parse(JSON.stringify(entry));
+            console.log("selectedEntry after deep copy:", this.selectedEntry);
+            console.log("Entry ID after deep copy:", this.selectedEntry.entry_id);
+            
             this.selectedEntry.start_vis = this.parseDate(this.selectedEntry.start, 'yyyy-MM-DDTHH:mm');
             this.selectedEntry.end_vis = this.parseDate(this.selectedEntry.end, 'yyyy-MM-DDTHH:mm');
             
@@ -1021,6 +1031,7 @@ var App = new Vue({
                     console.log(error)
                 })
             } else if (detail_type === 'entry'){
+                console.log("Processing entry submission, isNew:", this.isNew);
                 let postForm = new FormData();
                 postForm.set("billing_code_id", this.selectedEntry.billing_code_id)
                 postForm.set("start", this.parseDate(this.selectedEntry.start_vis, 'yyyy-MM-DDTHH:mm'))
@@ -1035,9 +1046,11 @@ var App = new Vue({
                 if (this.isNew) {
                     method = 'post'
                     posturl = '/api/entries/0'
+                    console.log("Creating new entry with POST to", posturl);
                 } else {
                     method = 'put'
                     posturl = '/api/entries/' + this.selectedEntry.entry_id.toString()
+                    console.log("Updating existing entry with PUT to", posturl, "entry_id:", this.selectedEntry.entry_id);
                 }
                 axios({
                     method: method,
@@ -1046,19 +1059,37 @@ var App = new Vue({
                     data: postForm
                 })
                 .then(response => {
-                    console.log(response.data)
-                    this.selectedEntry = response.data
+                    console.log("API response:", response.data);
                     if (this.isNew === true) {
-                        this.entries.push(this.selectedEntry)
-                        this.weeklyEntries = this.getWeeklyEntries();
-                     } else {
-                        this.entries = this.entries.filter(function(el) { return el.entry_id !== response.data.entry_id; })
-                        this.entries.push(this.selectedEntry)
-                        this.weeklyEntries = this.getWeeklyEntries();
+                        // For new entries, add the response data to the entries array
+                        console.log("Adding new entry to entries array");
+                        this.entries.push(response.data);
+                    } else {
+                        // For existing entries, find and replace the entry in the array
+                        console.log("Updating existing entry in entries array, entry ID:", response.data.entry_id);
+                        
+                        // Find the index of the entry to update
+                        const entryIndex = this.entries.findIndex(e => e.entry_id === response.data.entry_id);
+                        
+                        if (entryIndex !== -1) {
+                            // Replace the entry at the found index
+                            console.log("Found entry at index:", entryIndex);
+                            this.entries.splice(entryIndex, 1, response.data);
+                        } else {
+                            // If not found (shouldn't happen), remove by ID and add the new one
+                            console.log("Entry not found in array, filtering and adding");
+                            this.entries = this.entries.filter(el => el.entry_id !== response.data.entry_id);
+                            this.entries.push(response.data);
+                        }
                     }
+                    // Update the selectedEntry with the response data
+                    this.selectedEntry = response.data;
+                    // Refresh the weekly entries
+                    this.weeklyEntries = this.getWeeklyEntries();
                     this.hideModal();
                 })
                 .catch(error => {
+                    console.error("Error saving entry:", error);
                     alert('There was an error saving the entry. Please contact support.');
                 })
             }
