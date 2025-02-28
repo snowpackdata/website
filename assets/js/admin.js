@@ -156,7 +156,6 @@ var App = new Vue({
                 data: postForm,
             })
             .then(response => {
-                console.log(response)
                 entry = response.data
             })
             .catch(error => {
@@ -187,7 +186,6 @@ var App = new Vue({
                 headers: {'Content-Type': 'application/json', 'x-access-token': window.localStorage.snowpack_token},
             })
             .then(response => {
-                console.log(response)
                 entry.state = response.data.State
             })
             .catch(error => {
@@ -221,7 +219,6 @@ var App = new Vue({
                 data: postForm,
             })
             .then(response => {
-                console.log(response)
                 adjustment = response.data
                 multiplier = 1.0
                 if (adjustment.type === 'ADJUSTMENT_TYPE_CREDIT') {
@@ -268,7 +265,6 @@ var App = new Vue({
                 headers: {'Content-Type': 'application/json', 'x-access-token': window.localStorage.snowpack_token},
             })
                 .then(response => {
-                    console.log(response)
                     adjustment.state = response.data.state
                 })
                 .catch(error => {
@@ -292,7 +288,6 @@ var App = new Vue({
                 data: postForm,
             })
             .then(response => {
-                console.log(response)
                 adjustment = response.data
                 invoice.adjustments.push(adjustment)
                 multiplier = 1.0
@@ -314,7 +309,6 @@ var App = new Vue({
                 headers: {'Content-Type': 'application/json', 'x-access-token': window.localStorage.snowpack_token},
             })
                 .then(response => {
-                    console.log(response)
                     invoice.State = response.data.State
                 })
                 .catch(error => {
@@ -329,7 +323,6 @@ var App = new Vue({
                 headers: {'Content-Type': 'application/json', 'x-access-token': window.localStorage.snowpack_token},
             })
                 .then(response => {
-                    console.log(response)
                     invoice.State = response.data.State
                 })
                 .catch(error => {
@@ -344,7 +337,6 @@ var App = new Vue({
                 headers: {'Content-Type': 'application/json', 'x-access-token': window.localStorage.snowpack_token},
             })
                 .then(response => {
-                    console.log(response)
                     invoice.State = response.data.State
                 })
                 .catch(error => {
@@ -359,7 +351,6 @@ var App = new Vue({
                 headers: {'Content-Type': 'application/json', 'x-access-token': window.localStorage.snowpack_token},
             })
                 .then(response => {
-                    console.log(response)
                     invoice.State = response.data.State
                 })
                 .catch(error => {
@@ -409,13 +400,11 @@ var App = new Vue({
                 .catch(error => {
                     console.log(error)
                 })
-            console.log('testing')
             window.location.reload();
         },
 
         getEntries(day, hour) {
             const entries = this.weeklyEntries.filter(entry => (entry.start_day_of_week === day && entry.start_hour === hour));
-            console.log(entries)
             return this.weeklyEntries.filter(entry => (entry.start_day_of_week === day && entry.start_hour === hour));
         },
        // Functions used to calculate the position and size of each entry
@@ -564,7 +553,6 @@ var App = new Vue({
             $('#entry-modal').modal('show');
         },
         showEntryModal(entry) {
-            console.log(this.selectedEntry)
             this.selectedEntry = entry;
             this.selectedEntry.start_vis = this.parseDate(this.selectedEntry.start, 'yyyy-MM-DDTHH:mm');
             this.selectedEntry.end_vis = this.parseDate(this.selectedEntry.end, 'yyyy-MM-DDTHH:mm');
@@ -605,7 +593,6 @@ var App = new Vue({
             this.showDetail = false;
             if (screen === 'admin') {
                 this.fetchDraftInvoices();
-                console.log(this.draftInvoices)
             }
             if (screen === 'invoices') {
                 this.fetchAcceptedInvoices();
