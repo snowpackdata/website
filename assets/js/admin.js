@@ -48,7 +48,7 @@ var App = new Vue({
             start_hour: null,
             start_day_of_week: null,
             duration_hours: null,
-
+            impersonate_as_user_id: null,
         },
         invitedUserEmail : null,
         billingCategories : [
@@ -107,6 +107,12 @@ var App = new Vue({
         dragDate: null,
         dragStartHour: null,
         dragEndHour: null,
+
+        // Add new filters for impersonation
+        impersonationFilters: {
+            showImpersonatedByMe: true,
+            showImpersonatingMe: true
+        },
     },
     filters: {
         truncate: function (text, length, suffix) {
@@ -162,6 +168,7 @@ var App = new Vue({
                 newStatus = 'draft'
                 entry.state = 'ENTRY_STATE_DRAFT'
                 this.$set(entry, 'editable', false);
+                entry.editable = false;
                 invoice.total_hours = invoice.total_hours + entry.duration_hours;
                 invoice.total_fees = invoice.total_fees + entry.fee;
                 invoice.total_amount = invoice.total_fees + invoice.total_adjustments;
@@ -407,6 +414,8 @@ var App = new Vue({
         },
 
         getEntries(day, hour) {
+            const entries = this.weeklyEntries.filter(entry => (entry.start_day_of_week === day && entry.start_hour === hour));
+            console.log(entries)
             return this.weeklyEntries.filter(entry => (entry.start_day_of_week === day && entry.start_hour === hour));
         },
        // Functions used to calculate the position and size of each entry
@@ -559,6 +568,22 @@ var App = new Vue({
             this.selectedEntry = entry;
             this.selectedEntry.start_vis = this.parseDate(this.selectedEntry.start, 'yyyy-MM-DDTHH:mm');
             this.selectedEntry.end_vis = this.parseDate(this.selectedEntry.end, 'yyyy-MM-DDTHH:mm');
+            
+            // Ensure the impersonate_as_user_id is set (may be null, which is fine)
+            if (!this.selectedEntry.hasOwnProperty('impersonate_as_user_id')) {
+                this.selectedEntry.impersonate_as_user_id = null;
+            }
+            
+            // Add a clear indication in the modal title if this entry is someone impersonating the current user
+            if (this.selectedEntry.is_being_impersonated && !this.selectedEntry.impersonate_as_user_id) {
+                // Add a class to the modal to highlight it differently
+                document.getElementById('entry-modal-title').textContent = 'Edit Entry (Created by someone impersonating you)';
+                document.getElementById('entry-modal-title').classList.add('impersonated-entry-title');
+            } else {
+                document.getElementById('entry-modal-title').textContent = 'Edit Journal Entry';
+                document.getElementById('entry-modal-title').classList.remove('impersonated-entry-title');
+            }
+            
             $('#entry-modal').modal('show');
         },
         hideModal() {
@@ -1014,6 +1039,12 @@ var App = new Vue({
                 postForm.set("start", this.parseDate(this.selectedEntry.start_vis, 'yyyy-MM-DDTHH:mm'))
                 postForm.set("end", this.parseDate(this.selectedEntry.end_vis, 'yyyy-MM-DDTHH:mm'))
                 postForm.set("notes", this.selectedEntry.notes)
+                
+                // Add impersonation data if selected
+                if (this.selectedEntry.impersonate_as_user_id !== null) {
+                    postForm.set("impersonate_as_user_id", this.selectedEntry.impersonate_as_user_id)
+                }
+                
                 if (this.isNew) {
                     method = 'post'
                     posturl = '/api/entries/0'
@@ -1105,6 +1136,7 @@ var App = new Vue({
                 })
             } else if (object_type === 'entry'){
                 this.entries = this.entries.filter(function(el) { return el.entry_id !== object.entry_id; })
+                this.weeklyEntries = this.weeklyEntries.filter(function(el) { return el.entry_id !== object.entry_id; })
                 axios({
                     method: 'delete',
                     url: '/api/entries/' + object.entry_id,
@@ -1156,7 +1188,12 @@ var App = new Vue({
                 const entryDate = new Date(entry.start);
                 return entryDate >= this.currentWeek && entryDate < getNextWeek(this.currentWeek);
             });
-            return weeklyEntries
+            
+            if (!this.impersonationFilters.showImpersonatingMe) {
+                weeklyEntries = weeklyEntries.filter(entry => !entry.is_being_impersonated);
+            }
+            
+            return weeklyEntries;
         },
 
         sumEntryHours(day = null) {
@@ -1250,16 +1287,25 @@ var App = new Vue({
             this.removeHighlighting();
         },
         removeHighlighting() {
-            const cells = document.querySelectorAll('.calendar-cell');
-            cells.forEach(cell => {
-                cell.classList.remove('highlight');
-            });
+          const highlightedCells = document.querySelectorAll('.highlight');
+          highlightedCells.forEach(cell => {
+              cell.classList.remove('highlight');
+          });
         },
         autoSelectSDR() {
             // If AE is selected, set SDR to the same value
             if (this.detailProject.ae_id) {
                 this.detailProject.sdr_id = this.detailProject.ae_id;
             }
+        },
+        
+        toggleImpersonatingMeFilter() {
+            this.impersonationFilters.showImpersonatingMe = !this.impersonationFilters.showImpersonatingMe;
+            this.weeklyEntries = this.getWeeklyEntries();
+        },
+        
+        countImpersonatingMe() {
+            return this.weeklyEntries.filter(entry => entry.is_being_impersonated && !entry.impersonate_as_user_id).length;
         },
     },
     watch: {
