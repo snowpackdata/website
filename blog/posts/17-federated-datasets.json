@@ -2,7 +2,7 @@
   "id" : 16,
   "title" : "Federated Datasets",
   "subtitle": "A guide to building useful (and useable) datasets.",
-  "splash" : "org-chart-splash.jpg",
+  "splash" : "federated_splash.jpg",
   "author" : "David Olodort",
   "slug" : "federated-datasets",
   "tags" : ["org-structure", "data-engineering", "guide", "data"],
