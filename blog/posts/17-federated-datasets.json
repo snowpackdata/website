@@ -1,0 +1,11 @@
+{
+  "id" : 16,
+  "title" : "Federated Datasets",
+  "subtitle": "A guide to building useful (and useable) datasets.",
+  "splash" : "federated_splash.jpg",
+  "author" : "David Olodort",
+  "slug" : "federated-datasets",
+  "tags" : ["org-structure", "data-engineering", "guide", "data"],
+  "date" : "January 28, 2025",
+  "content" : "federated-datasets.html"
+}
