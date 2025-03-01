@@ -751,7 +751,7 @@ const updateDateTime = (field: 'start' | 'end', dateStr: string, timeStr: string
 
 <template>
   <div class="timesheet-view">
-    <div class="flex justify-between items-center p-4 bg-white border-b border-gray-200">
+    <div class="flex justify-between items-center p-4 bg-[#e6efee] border-b border-gray-200 rounded-xl shadow-sm mb-2">
       <div class="text-lg font-semibold text-gray-900">
         {{ monthAndYear }}
         <span class="ml-2 text-sm text-gray-500">
@@ -793,7 +793,7 @@ const updateDateTime = (field: 'start' | 'end', dateStr: string, timeStr: string
       {{ error }}
     </div>
     
-    <div v-else class="timesheet-container h-[calc(100vh-9rem)]">
+    <div v-else class="timesheet-container h-[calc(100vh-9rem)] rounded-xl overflow-hidden">
       <div class="flex h-full flex-col">
         <!-- Loading state -->
         <div v-if="isLoading" class="flex flex-col items-center justify-center p-10 bg-white flex-grow">
@@ -814,9 +814,9 @@ const updateDateTime = (field: 'start' | 'end', dateStr: string, timeStr: string
         </div>
         
         <!-- Calendar View -->
-        <div v-else ref="container" class="isolate flex flex-auto flex-col overflow-auto bg-white">
+        <div v-else ref="container" class="isolate flex flex-auto flex-col overflow-auto bg-white rounded-xl">
           <div style="width: 165%" class="flex max-w-full flex-none flex-col sm:max-w-none md:max-w-full">
-            <div ref="containerNav" class="flex-none bg-white shadow ring-1 ring-black/5 sm:pr-8">
+            <div ref="containerNav" class="sticky top-0 z-50 flex-none bg-white shadow ring-1 ring-black/5 sm:pr-8 rounded-t-xl">
               <!-- Mobile day headers -->
               <div class="grid grid-cols-7 text-sm/6 text-gray-500 sm:hidden">
                 <button 
@@ -1196,11 +1196,14 @@ div.calendar-cell.bg-sage-pale,
 .timesheet-container {
   height: calc(100vh - 9rem);
   overflow: hidden;
+  border-radius: 0.75rem; /* 12px rounded corners */
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
 @media (min-width: 1024px) {
   .timesheet-container {
     height: calc(100vh - 6.5rem); /* Adjusted for the top padding on desktop */
+    border-radius: 0.75rem;
   }
 }
 
