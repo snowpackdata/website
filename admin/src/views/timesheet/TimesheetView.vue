@@ -135,14 +135,52 @@ const createNewEntry = (day: Date, hour: number) => {
   formEntry.value = createEmptyTimesheetEntry();
   
   // Set up start and end times based on the day and hour clicked
-  const startDate = new Date(day);
-  startDate.setHours(hour, 0, 0, 0);
+  // We need to carefully handle timezone conversion to avoid time shifts
+  console.log(`Creating new entry with day ${day.toDateString()} and hour ${hour}`);
   
-  const endDate = new Date(day);
-  endDate.setHours(hour + 1, 0, 0, 0);
+  // Get the date part in local timezone format
+  const dateStr = day.toISOString().split('T')[0];
   
-  formEntry.value.start = startDate.toISOString();
-  formEntry.value.end = endDate.toISOString();
+  // For direct clicks on the calendar cell
+  if (hour >= 8 && hour <= 22) {
+    // Create start time string - format: "2023-01-01T08:00:00"
+    // Construct time string directly to avoid timezone conversion issues
+    const startHourInt = Math.floor(hour);
+    const startMinInt = hour % 1 === 0 ? 0 : 30;
+    
+    // Format hours and minutes with leading zeros
+    const startHour = startHourInt.toString().padStart(2, '0');
+    const startMin = startMinInt.toString().padStart(2, '0');
+    
+    // Calculate end time (1 hour later)
+    let endHourInt = startHourInt + 1;
+    const endMinInt = startMinInt;
+    
+    // Format end hours and minutes
+    const endHour = endHourInt.toString().padStart(2, '0');
+    const endMin = endMinInt.toString().padStart(2, '0');
+    
+    // Create direct ISO strings with the correct time (no timezone conversion)
+    formEntry.value.start = `${dateStr}T${startHour}:${startMin}:00.000Z`;
+    formEntry.value.end = `${dateStr}T${endHour}:${endMin}:00.000Z`;
+    
+    console.log('Direct time string creation:', {
+      dateStr,
+      hour,
+      startTime: `${startHour}:${startMin}`,
+      endTime: `${endHour}:${endMin}`,
+      startFull: formEntry.value.start,
+      endFull: formEntry.value.end
+    });
+  } 
+  // For header clicks, we use a fixed time (noon)
+  else {
+    const startTime = '12:00:00';
+    const endTime = '13:00:00';
+    
+    formEntry.value.start = `${dateStr}T${startTime}.000Z`;
+    formEntry.value.end = `${dateStr}T${endTime}.000Z`;
+  }
   
   showModal.value = true;
 };
@@ -311,25 +349,48 @@ const endDrag = (event?: MouseEvent) => {
   
   console.log('Creating entry for day:', day.toISOString().split('T')[0]);
   
-  // Create date objects for start and end
-  const startDate = new Date(day);
-  // Set hours and minutes based on the hour value (8.0 = 8:00, 8.5 = 8:30)
-  startDate.setHours(Math.floor(startHour), startHour % 1 === 0 ? 0 : 30, 0, 0);
+  // Get the date part in local timezone format
+  const dateStr = day.toISOString().split('T')[0];
   
-  const endDate = new Date(day);
-  endDate.setHours(Math.floor(endHour), endHour % 1 === 0 ? 0 : 30, 0, 0);
+  // Create start time string - format: "2023-01-01T08:00:00"
+  // Construct time string directly to avoid timezone conversion issues
+  const startHourInt = Math.floor(startHour);
+  const startMinInt = startHour % 1 === 0 ? 0 : 30;
   
-  // Add 30 minutes to end time to make the end time exclusive
-  endDate.setMinutes(endDate.getMinutes() + 30);
+  // Format hours and minutes with leading zeros
+  const startHour_str = startHourInt.toString().padStart(2, '0');
+  const startMin_str = startMinInt.toString().padStart(2, '0');
   
-  formEntry.value.start = startDate.toISOString();
-  formEntry.value.end = endDate.toISOString();
+  // Calculate end time
+  const endHourInt = Math.floor(endHour);
+  const endMinInt = endHour % 1 === 0 ? 0 : 30;
   
-  console.log('Entry time range:', {
-    startDate: startDate.toLocaleString(),
-    endDate: endDate.toLocaleString(),
-    startISO: formEntry.value.start,
-    endISO: formEntry.value.end,
+  // Add 30 minutes to end time to make it exclusive
+  let finalEndHourInt = endHourInt;
+  let finalEndMinInt = endMinInt + 30;
+  
+  // Handle minute overflow
+  if (finalEndMinInt >= 60) {
+    finalEndHourInt += 1;
+    finalEndMinInt -= 60;
+  }
+  
+  // Format end hours and minutes
+  const endHour_str = finalEndHourInt.toString().padStart(2, '0');
+  const endMin_str = finalEndMinInt.toString().padStart(2, '0');
+  
+  // Create direct ISO strings with the correct time (no timezone conversion)
+  formEntry.value.start = `${dateStr}T${startHour_str}:${startMin_str}:00.000Z`;
+  formEntry.value.end = `${dateStr}T${endHour_str}:${endMin_str}:00.000Z`;
+  
+  console.log('Drag time creation:', {
+    dateStr,
+    startHour, 
+    endHour,
+    startTime: `${startHour_str}:${startMin_str}`,
+    endTime: `${endHour_str}:${endMin_str}`,
+    startFull: formEntry.value.start,
+    endFull: formEntry.value.end,
     dayOfWeek: day.toLocaleDateString('en-US', { weekday: 'long' }),
     formattedDay: day.toLocaleDateString()
   });
@@ -743,8 +804,8 @@ const updateDateTime = (field: 'start' | 'end', dateStr: string, timeStr: string
                         style="cursor: pointer;"
                       >
                         <!-- Debug display showing both the data attributes and coordinates -->
-                        <span v-if="false" class="text-xs text-gray-400 select-none">
-                          {{ (8 + (hourIncrement - 1) / 2).toFixed(1) }}:{{ dayIndex }}
+                        <span v-if="false" class="text-xs text-gray-400 select-none opacity-30 hover:opacity-100">
+                          {{ (8 + (hourIncrement - 1) / 2).toFixed(1) }}
                         </span>
                       </div>
                     </template>

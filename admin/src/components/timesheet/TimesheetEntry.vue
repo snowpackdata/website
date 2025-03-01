@@ -120,30 +120,50 @@ const handleEdit = () => {
   emit('edit', props.entry);
 };
 
-// Calculate a subtle offset for entries based on ID to help with overlapping entries
+// Calculate a subtle offset for entries based on time to help with overlapping entries
 const entryOffset = computed(() => {
-  // Use the entry ID to create a visual offset (modulo 3 to keep it reasonable)
-  const offsetIndex = props.entry.entry_id % 3;
-  
-  // Calculate the horizontal offset percentage (0%, 4%, or 8%)
-  const rightOffset = offsetIndex * 4;
-  
-  return {
-    right: `${rightOffset}%`,
-    top: `${offsetIndex * 2}px`
-  };
+  if (!props.entry || !props.entry.start) {
+    return { right: '0%', top: '0px' };
+  }
+
+  try {
+    // Extract the entry ID - higher IDs should be wider and at the bottom
+    const entryId = props.entry.entry_id || 0;
+    
+    // Invert logic: Higher IDs should be wider (at bottom), lower IDs narrower (at top)
+    // Use modulo to cycle through different styles (0-4)
+    const offsetIndex = entryId % 5;
+    
+    // Calculate offsets - higher offsetIndex (higher ID) means less offset
+    const rightOffset = (4 - offsetIndex) * 6;  // 6% increments for width from right
+    const topOffset = (4 - offsetIndex) * 4;    // 4px increments for top margin
+    
+    // Z-index calculation - LOWER values for higher IDs so they appear at bottom
+    // Keep z-index below 30 to stay under the sticky nav (z-40)
+    const calculatedZIndex = 25 - offsetIndex;
+    
+    return {
+      right: `${rightOffset}%`,
+      top: `${topOffset}px`,
+      width: offsetIndex === 4 ? '100%' : `calc(100% - ${rightOffset}%)`, // Full width for highest offsetIndex
+      boxShadow: `0 ${(4-offsetIndex) + 1}px ${(4-offsetIndex) * 2 + 2}px rgba(0, 0, 0, 0.0${(4-offsetIndex) + 1})`,
+      zIndex: calculatedZIndex
+    };
+  } catch (error) {
+    console.error('Error calculating entry offset:', error);
+    return { right: '0%', top: '0px' };
+  }
 });
 
-// Get grid styles for the entry
+// Get grid styles for the entry with better z-index handling
 const gridStyle = computed((): CSSProperties => {
   if (gridRowValues.value.start === 0 || gridRowValues.value.span === 0) {
     return { display: 'none' };
   }
 
-  // Use explicit grid-area to position the entry without affecting the grid structure
   return {
     gridArea: `${gridRowValues.value.start} / ${colStart.value} / span ${gridRowValues.value.span} / span 1`,
-    zIndex: 20 // Ensure entries appear above grid cells
+    position: 'relative'
   };
 });
 </script>
@@ -151,13 +171,13 @@ const gridStyle = computed((): CSSProperties => {
 <template>
   <li 
     v-if="gridRowValues.span > 0"
-    class="relative mt-px flex"
+    class="relative mt-px flex timesheet-entry"
     :style="gridStyle"
   >
     <a 
       href="#" 
       @click.prevent="handleEdit"
-      class="group absolute inset-1 flex flex-col overflow-y-auto rounded-lg p-2 text-xs/5 shadow-sm"
+      class="group absolute inset-1 flex flex-col overflow-y-auto rounded-lg p-2 text-xs/5 shadow-sm entry-link"
       :class="entryColor"
       :style="entryOffset"
     >
@@ -172,15 +192,25 @@ const gridStyle = computed((): CSSProperties => {
 
 <style scoped>
 /* Time entries hover effect */
-a.group {
+a.entry-link {
   transition: all 0.2s ease;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
   z-index: 20; /* Ensure entries appear above the grid */
+  position: relative; /* Create stacking context */
+  border-width: 2px !important; /* Thicker border for better visibility */
+  margin: 2px !important; /* Increased margin for better separation */
 }
 
-a.group:hover {
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  transform: translateY(-1px);
-  z-index: 30; /* Bring hovered entry to front */
+a.entry-link:hover {
+  box-shadow: 0 6px 10px -2px rgba(0, 0, 0, 0.2), 0 3px 6px -1px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+  z-index: 1000 !important; /* Much higher z-index to ensure it's above all other entries */
+  margin: 0 !important; /* Remove margin on hover for full size */
+  border-width: 2px !important;
+}
+
+/* Add a class for parent element to make z-index work */
+.timesheet-entry:hover {
+  z-index: 900 !important; /* Apply higher z-index to the parent element when hovering */
 }
 </style> 
