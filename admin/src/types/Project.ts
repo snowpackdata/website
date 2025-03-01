@@ -1,23 +1,26 @@
 /**
  * Interface representing a Project in the system
  */
+
+import { createEmptyAccount, type Account } from './Account';
+
 export interface Project {
   ID: number;
   name: string;
   code: string; // Project code/identifier
   account_id: number;
-  account_name: string;
+  account: Account;
   state: string;
   type: string;
   description: string;
-  start_date: string; // Project start date
-  end_date: string; // Project end date
-  client_po: string; // Client purchase order
-  active: boolean; // Whether the project is active
+  active_start: string; // Project start date
+  active_end: string; // Project end date
+  billing_frequency: string; // Client purchase order
   budget_hours: number;
   budget_dollars: number;
-  total_hours: number;
-  total_fees: number;
+  project_type: string;
+  ae_id: number;
+  sdr_id: number;
 }
 
 /**
@@ -47,23 +50,23 @@ export function createEmptyProject(): Project {
   const today = new Date();
   const endDate = new Date();
   endDate.setMonth(today.getMonth() + 6); // Default end date is 6 months from now
-  
+  const account = createEmptyAccount();
   return {
     ID: 0,
     name: '',
     code: '',
     account_id: 0,
-    account_name: '',
+    account: account,
     state: 'PROJECT_STATE_PLANNING',
     type: 'PROJECT_TYPE_EXTERNAL',
     description: '',
-    start_date: today.toISOString().split('T')[0],
-    end_date: endDate.toISOString().split('T')[0],
-    client_po: '',
-    active: true,
+    active_start: today.toISOString().split('T')[0],
+    active_end: endDate.toISOString().split('T')[0],
+    billing_frequency: '',
     budget_hours: 0,
     budget_dollars: 0,
-    total_hours: 0,
-    total_fees: 0
+    project_type: '',
+    ae_id: 0,
+    sdr_id: 0,
   };
 } 

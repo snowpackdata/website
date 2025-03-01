@@ -1,36 +1,19 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-
-// Define Project interface
-interface Project {
-  id: number;
-  name: string;
-  client: string;
-  status: string;
-  start_date: string;
-  end_date: string;
-}
+import projectsApi from '../../api/projects';
+import type { Project } from '../../types/Project';
 
 // State
 const projects = ref<Project[]>([]);
 const isLoading = ref(true);
 const error = ref<string | null>(null);
 
-// Fetch projects on component mount
-onMounted(async () => {
-  await fetchProjects();
-});
-
-// Fetch all projects
+// Fetch projects function
 const fetchProjects = async () => {
   isLoading.value = true;
   error.value = null;
-  
   try {
-    // Placeholder for API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    projects.value = []; // This would be populated from an API
-    
+    projects.value = await projectsApi.getProjects();
   } catch (err) {
     console.error('Error fetching projects:', err);
     error.value = 'Failed to load projects. Please try again.';
@@ -38,6 +21,12 @@ const fetchProjects = async () => {
     isLoading.value = false;
   }
 };
+
+// Fetch projects on component mount
+onMounted(async () => {
+  await fetchProjects();
+});
+
 
 // Format date for display
 const formatDate = (dateString: string): string => {
@@ -84,19 +73,19 @@ const formatDate = (dateString: string): string => {
         <thead>
           <tr>
             <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-medium text-gray-900">Name</th>
-            <th scope="col" class="px-3 py-3.5 text-left text-sm font-medium text-gray-900">Client</th>
+            <th scope="col" class="px-3 py-3.5 text-left text-sm font-medium text-gray-900">Account</th>
             <th scope="col" class="px-3 py-3.5 text-left text-sm font-medium text-gray-900">Start Date</th>
             <th scope="col" class="px-3 py-3.5 text-left text-sm font-medium text-gray-900">End Date</th>
             <th scope="col" class="px-3 py-3.5 text-left text-sm font-medium text-gray-900">Status</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-gray-200 bg-white">
-          <tr v-for="project in projects" :key="project.id">
+          <tr v-for="project in projects" :key="project.ID">
             <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900">{{ project.name }}</td>
-            <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{{ project.client }}</td>
-            <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{{ formatDate(project.start_date) }}</td>
-            <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{{ formatDate(project.end_date) }}</td>
-            <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{{ project.status }}</td>
+            <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{{ project.account.name }}</td>
+            <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{{ formatDate(project.active_start) }}</td>
+            <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{{ formatDate(project.active_end) }}</td>
+            <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{{ project.budget_hours }}</td>
           </tr>
         </tbody>
       </table>

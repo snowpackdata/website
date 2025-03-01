@@ -1,17 +1,23 @@
 import axios from 'axios';
 import type { Invoice } from '../types/Invoice';
 
+/**
+ * API service for invoice-related operations
+ */
 export default {
   /**
    * Get all invoices
    * @returns Promise with array of invoices
    */
   async getInvoices(): Promise<Invoice[]> {
-    const token = localStorage.getItem('token');
-    const response = await axios.get('/api/invoices', {
-      headers: { Authorization: `Bearer ${token}` }
+    const token = localStorage.getItem('snowpack_token');
+    const response = await axios.get('/api/invoices/accepted', {
+      headers: { 
+        'Content-Type': 'application/json', 
+        'x-access-token': token 
+      }
     });
-    return response.data.invoices;
+    return response.data;
   },
 
   /**
@@ -20,9 +26,12 @@ export default {
    * @returns Promise with invoice data
    */
   async getInvoice(id: number): Promise<Invoice> {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('snowpack_token');
     const response = await axios.get(`/api/invoices/${id}`, {
-      headers: { Authorization: `Bearer ${token}` }
+      headers: { 
+        'Content-Type': 'application/json', 
+        'x-access-token': token 
+      }
     });
     return response.data.invoice;
   },
@@ -33,9 +42,12 @@ export default {
    * @returns Promise with created invoice
    */
   async createInvoice(invoice: Invoice): Promise<Invoice> {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('snowpack_token');
     const response = await axios.post('/api/invoices', invoice, {
-      headers: { Authorization: `Bearer ${token}` }
+      headers: { 
+        'Content-Type': 'application/json', 
+        'x-access-token': token 
+      }
     });
     return response.data.invoice;
   },
@@ -46,9 +58,12 @@ export default {
    * @returns Promise with updated invoice
    */
   async updateInvoice(invoice: Invoice): Promise<Invoice> {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('snowpack_token');
     const response = await axios.put(`/api/invoices/${invoice.ID}`, invoice, {
-      headers: { Authorization: `Bearer ${token}` }
+      headers: { 
+        'Content-Type': 'application/json', 
+        'x-access-token': token 
+      }
     });
     return response.data.invoice;
   },
@@ -59,9 +74,12 @@ export default {
    * @returns Promise with response data
    */
   async deleteInvoice(id: number): Promise<any> {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('snowpack_token');
     const response = await axios.delete(`/api/invoices/${id}`, {
-      headers: { Authorization: `Bearer ${token}` }
+      headers: { 
+        'Content-Type': 'application/json', 
+        'x-access-token': token 
+      }
     });
     return response.data;
   },
@@ -73,10 +91,15 @@ export default {
    * @returns Promise with updated invoice
    */
   async changeInvoiceState(id: number, state: string): Promise<Invoice> {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('snowpack_token');
     const response = await axios.put(`/api/invoices/${id}/state`, 
       { state },
-      { headers: { Authorization: `Bearer ${token}` } }
+      { 
+        headers: { 
+          'Content-Type': 'application/json', 
+          'x-access-token': token 
+        } 
+      }
     );
     return response.data.invoice;
   }

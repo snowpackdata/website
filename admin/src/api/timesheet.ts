@@ -20,20 +20,7 @@ export default {
     return response.data;
   },
 
-  /**
-   * Fetch timesheet entries for the current week
-   * @returns Promise with weekly timesheet entries
-   */
-  async getWeeklyEntries(): Promise<TimesheetEntry[]> {
-    const token = localStorage.getItem('snowpack_token');
-    const response = await axios.get('/api/entries/week', {
-      headers: { 
-        'Content-Type': 'application/json', 
-        'x-access-token': token 
-      }
-    });
-    return response.data;
-  },
+
 
   /**
    * Create a new timesheet entry

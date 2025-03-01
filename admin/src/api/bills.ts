@@ -1,15 +1,21 @@
 import axios from 'axios';
 import type { Bill } from '../types/Bill';
 
+/**
+ * API service for bill-related operations
+ */
 export default {
   /**
    * Get all bills
    * @returns Promise with array of bills
    */
   async getBills(): Promise<Bill[]> {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('snowpack_token');
     const response = await axios.get('/api/bills', {
-      headers: { Authorization: `Bearer ${token}` }
+      headers: { 
+        'Content-Type': 'application/json', 
+        'x-access-token': token 
+      }
     });
     return response.data.bills;
   },
@@ -20,9 +26,12 @@ export default {
    * @returns Promise with bill data
    */
   async getBill(id: number): Promise<Bill> {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('snowpack_token');
     const response = await axios.get(`/api/bills/${id}`, {
-      headers: { Authorization: `Bearer ${token}` }
+      headers: { 
+        'Content-Type': 'application/json', 
+        'x-access-token': token 
+      }
     });
     return response.data.bill;
   },
@@ -33,9 +42,12 @@ export default {
    * @returns Promise with created bill
    */
   async createBill(bill: Bill): Promise<Bill> {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('snowpack_token');
     const response = await axios.post('/api/bills', bill, {
-      headers: { Authorization: `Bearer ${token}` }
+      headers: { 
+        'Content-Type': 'application/json', 
+        'x-access-token': token 
+      }
     });
     return response.data.bill;
   },
@@ -46,9 +58,12 @@ export default {
    * @returns Promise with updated bill
    */
   async updateBill(bill: Bill): Promise<Bill> {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('snowpack_token');
     const response = await axios.put(`/api/bills/${bill.ID}`, bill, {
-      headers: { Authorization: `Bearer ${token}` }
+      headers: { 
+        'Content-Type': 'application/json', 
+        'x-access-token': token 
+      }
     });
     return response.data.bill;
   },
@@ -59,9 +74,12 @@ export default {
    * @returns Promise with response data
    */
   async deleteBill(id: number): Promise<any> {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('snowpack_token');
     const response = await axios.delete(`/api/bills/${id}`, {
-      headers: { Authorization: `Bearer ${token}` }
+      headers: { 
+        'Content-Type': 'application/json', 
+        'x-access-token': token 
+      }
     });
     return response.data;
   },
@@ -73,10 +91,15 @@ export default {
    * @returns Promise with updated bill
    */
   async changeBillState(id: number, state: string): Promise<Bill> {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('snowpack_token');
     const response = await axios.put(`/api/bills/${id}/state`, 
       { state },
-      { headers: { Authorization: `Bearer ${token}` } }
+      { 
+        headers: { 
+          'Content-Type': 'application/json', 
+          'x-access-token': token 
+        }
+      }
     );
     return response.data.bill;
   }

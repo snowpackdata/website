@@ -14,7 +14,14 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-var JWTSecret = os.Getenv("JWT_SECRET")
+var JWTSecret = func() string {
+	secret := os.Getenv("SNOWPACK_JWT_SECRET")
+	if secret == "" {
+		log.Println("WARNING: JWT_SECRET environment variable not set, using default development secret")
+		return "default_development_secret" // Fallback for development
+	}
+	return secret
+}()
 
 // RegistrationLandingHandler serves the registration page when accessed via GET request
 func (a *App) RegistrationLandingHandler(w http.ResponseWriter, req *http.Request) {

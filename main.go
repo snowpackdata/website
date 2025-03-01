@@ -101,6 +101,7 @@ func main() {
 		// If no environment is set, default to the local database connection
 		// which must be established via a local SQLite instance, you will need to
 		// run the migration to create the database schema
+		// Remove the existing database and create a new one
 		cronosApp.InitializeSQLite()
 		cronosApp.Migrate()
 	}
@@ -265,6 +266,15 @@ func main() {
 	}()
 	logger := handlers.CombinedLoggingHandler(f, r)
 
+	// Apply CORS middleware for development
+	corsMiddleware := handlers.CORS(
+		handlers.AllowedOrigins([]string{"*"}),
+		handlers.AllowedMethods([]string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}),
+		handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization", "x-access-token", "*"}),
+		handlers.AllowCredentials(),
+		handlers.MaxAge(86400),
+	)
+
 	// Logging for dev
 	//logger := handlers.CombinedLoggingHandler(os.Stdout, r)
 
@@ -281,7 +291,7 @@ func main() {
 		WriteTimeout: time.Second * 15,
 		ReadTimeout:  time.Second * 15,
 		IdleTimeout:  time.Second * 60,
-		Handler:      logger, // Pass our instance of gorilla/mux in.
+		Handler:      corsMiddleware(logger), // Apply CORS middleware to the logger handler
 	}
 
 	// Run our server in a goroutine so that it doesn't block.

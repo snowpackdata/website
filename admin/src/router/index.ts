@@ -1,14 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router';
-import AccountsView from '../views/accounts/AccountsView.vue';
-import TimesheetView from '../views/timesheet/TimesheetView.vue';
-import TimesheetAdminView from '../views/timesheet-admin/TimesheetAdminView.vue';
-import InvoicesView from '../views/invoices/InvoicesView.vue';
-import BillsView from '../views/bills/BillsView.vue';
-import ProjectsView from '../views/projects/ProjectsView.vue';
-import BillingCodesView from '../views/billing-codes/BillingCodesView.vue';
-import RatesView from '../views/rates/RatesView.vue';
 
-// Define routes
+// Define routes - Use dynamic imports to avoid typecheck errors
 const routes = [
   {
     path: '/',
@@ -17,7 +9,7 @@ const routes = [
   {
     path: '/timesheet',
     name: 'timesheet',
-    component: TimesheetView,
+    component: () => import('../views/timesheet/TimesheetView.vue'),
     meta: {
       title: 'Timesheet'
     }
@@ -25,7 +17,7 @@ const routes = [
   {
     path: '/timesheet-admin',
     name: 'timesheet-admin',
-    component: TimesheetAdminView,
+    component: () => import('../views/timesheet-admin/TimesheetAdminView.vue'),
     meta: {
       title: 'Timesheet Admin'
     }
@@ -33,7 +25,7 @@ const routes = [
   {
     path: '/invoices',
     name: 'invoices',
-    component: InvoicesView,
+    component: () => import('../views/invoices/InvoicesView.vue'),
     meta: {
       title: 'Invoices'
     }
@@ -41,7 +33,7 @@ const routes = [
   {
     path: '/bills',
     name: 'bills',
-    component: BillsView,
+    component: () => import('../views/bills/BillsView.vue'),
     meta: {
       title: 'Bills'
     }
@@ -49,7 +41,7 @@ const routes = [
   {
     path: '/projects',
     name: 'projects',
-    component: ProjectsView,
+    component: () => import('../views/projects/ProjectsView.vue'),
     meta: {
       title: 'Projects'
     }
@@ -57,7 +49,7 @@ const routes = [
   {
     path: '/billing-codes',
     name: 'billing-codes',
-    component: BillingCodesView,
+    component: () => import('../views/billing-codes/BillingCodesView.vue'),
     meta: {
       title: 'Billing Codes'
     }
@@ -65,7 +57,7 @@ const routes = [
   {
     path: '/rates',
     name: 'rates',
-    component: RatesView,
+    component: () => import('../views/rates/RatesView.vue'),
     meta: {
       title: 'Rates'
     }
@@ -73,7 +65,7 @@ const routes = [
   {
     path: '/accounts',
     name: 'accounts',
-    component: AccountsView,
+    component: () => import('../views/accounts/AccountsView.vue'),
     meta: {
       title: 'Accounts'
     }

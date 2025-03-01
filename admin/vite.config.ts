@@ -11,5 +11,15 @@ export default defineConfig({
     outDir: '../static/admin', // Output to the static directory where Go server can access
     emptyOutDir: true,
     sourcemap: false
+  },
+  server: {
+    proxy: {
+      // Proxy all /api requests to the Go backend
+      '/api': {
+        target: 'http://localhost:8080',
+        changeOrigin: true,
+        secure: false
+      }
+    }
   }
 })

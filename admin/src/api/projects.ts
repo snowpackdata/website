@@ -1,17 +1,22 @@
 import axios from 'axios';
 import type { Project } from '../types/Project';
-
+/**
+ * API service for project-related operations
+ */
 export default {
   /**
    * Get all projects
    * @returns Promise with array of projects
    */
   async getProjects(): Promise<Project[]> {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('snowpack_token');
     const response = await axios.get('/api/projects', {
-      headers: { Authorization: `Bearer ${token}` }
+      headers: { 
+        'Content-Type': 'application/json', 
+        'x-access-token': token 
+      }
     });
-    return response.data.projects;
+    return response.data;
   },
 
   /**
@@ -20,9 +25,12 @@ export default {
    * @returns Promise with project data
    */
   async getProject(id: number): Promise<Project> {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('snowpack_token');
     const response = await axios.get(`/api/projects/${id}`, {
-      headers: { Authorization: `Bearer ${token}` }
+      headers: { 
+        'Content-Type': 'application/json', 
+        'x-access-token': token 
+      }
     });
     return response.data.project;
   },
@@ -33,9 +41,12 @@ export default {
    * @returns Promise with created project
    */
   async createProject(project: Project): Promise<Project> {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('snowpack_token');
     const response = await axios.post('/api/projects', project, {
-      headers: { Authorization: `Bearer ${token}` }
+      headers: { 
+        'Content-Type': 'application/json', 
+        'x-access-token': token 
+      }
     });
     return response.data.project;
   },
@@ -46,9 +57,12 @@ export default {
    * @returns Promise with updated project
    */
   async updateProject(project: Project): Promise<Project> {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('snowpack_token');
     const response = await axios.put(`/api/projects/${project.ID}`, project, {
-      headers: { Authorization: `Bearer ${token}` }
+      headers: { 
+        'Content-Type': 'application/json', 
+        'x-access-token': token 
+      }
     });
     return response.data.project;
   },
@@ -59,9 +73,12 @@ export default {
    * @returns Promise with response data
    */
   async deleteProject(id: number): Promise<any> {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('snowpack_token');
     const response = await axios.delete(`/api/projects/${id}`, {
-      headers: { Authorization: `Bearer ${token}` }
+      headers: { 
+        'Content-Type': 'application/json', 
+        'x-access-token': token 
+      }
     });
     return response.data;
   },
@@ -72,9 +89,12 @@ export default {
    * @returns Promise with billing codes
    */
   async getProjectBillingCodes(id: number): Promise<any[]> {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('snowpack_token');
     const response = await axios.get(`/api/projects/${id}/billing-codes`, {
-      headers: { Authorization: `Bearer ${token}` }
+      headers: { 
+        'Content-Type': 'application/json', 
+        'x-access-token': token 
+      }
     });
     return response.data.billing_codes;
   }
