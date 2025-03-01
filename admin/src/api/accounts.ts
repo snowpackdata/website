@@ -1,6 +1,8 @@
 import axios from 'axios';
 import type { Account } from '../types/Account';
 
+const API_URL = import.meta.env.VITE_API_URL || '';
+
 /**
  * API service for account-related operations
  */
@@ -116,5 +118,80 @@ export default {
     });
     
     return response.data;
+  }
+};
+
+/**
+ * Fetches all accounts
+ * @returns Promise with accounts data
+ */
+export const fetchAccounts = async () => {
+  try {
+    const response = await axios.get(`${API_URL}/api/accounts`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching accounts:', error);
+    throw error;
+  }
+};
+
+/**
+ * Fetches a single account by ID
+ * @param id Account ID
+ * @returns Promise with account data
+ */
+export const fetchAccountById = async (id: number) => {
+  try {
+    const response = await axios.get(`${API_URL}/api/accounts/${id}`);
+    return response.data;
+  } catch (error) {
+    console.error(`Error fetching account ${id}:`, error);
+    throw error;
+  }
+};
+
+/**
+ * Creates a new account
+ * @param accountData Account data to create
+ * @returns Promise with created account data
+ */
+export const createAccount = async (accountData: any) => {
+  try {
+    const response = await axios.post(`${API_URL}/api/accounts`, accountData);
+    return response.data;
+  } catch (error) {
+    console.error('Error creating account:', error);
+    throw error;
+  }
+};
+
+/**
+ * Updates an existing account
+ * @param id Account ID
+ * @param accountData Updated account data
+ * @returns Promise with updated account data
+ */
+export const updateAccount = async (id: number, accountData: any) => {
+  try {
+    const response = await axios.put(`${API_URL}/api/accounts/${id}`, accountData);
+    return response.data;
+  } catch (error) {
+    console.error(`Error updating account ${id}:`, error);
+    throw error;
+  }
+};
+
+/**
+ * Deletes an account
+ * @param id Account ID to delete
+ * @returns Promise with deletion status
+ */
+export const deleteAccount = async (id: number) => {
+  try {
+    const response = await axios.delete(`${API_URL}/api/accounts/${id}`);
+    return response.data;
+  } catch (error) {
+    console.error(`Error deleting account ${id}:`, error);
+    throw error;
   }
 }; 

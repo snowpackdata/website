@@ -1,149 +1,201 @@
-<script setup lang="ts">
-import { ref, onMounted } from 'vue';
-import type { Account } from '../../types/Account';
-import { createEmptyAccount } from '../../types/Account';
-import AccountCard from '../../components/accounts/AccountCard.vue';
-import accountsApi from '../../api/accounts';
-
-// State
-const accounts = ref<Account[]>([]);
-const selectedAccountId = ref<string | number | null>(null);
-const isLoading = ref(true);
-const error = ref<string | null>(null);
-
-// Fetch accounts on component mount
-onMounted(async () => {
-  await fetchAccounts();
-});
-
-// Fetch all accounts
-const fetchAccounts = async () => {
-  isLoading.value = true;
-  error.value = null;
-  
-  try {
-    accounts.value = await accountsApi.getAccounts();
-  } catch (err) {
-    console.error('Error fetching accounts:', err);
-    error.value = 'Failed to load accounts. Please try again.';
-  } finally {
-    isLoading.value = false;
-  }
-};
-
-// Create a new account
-const createNew = () => {
-  const newAccount = createEmptyAccount();
-  accounts.value.unshift(newAccount);
-  selectedAccountId.value = newAccount.ID;
-};
-
-// Toggle account selection (for inline editing)
-const toggleAccountSelection = (account: Account) => {
-  if (selectedAccountId.value === account.ID) {
-    selectedAccountId.value = null;
-  } else {
-    selectedAccountId.value = account.ID;
-  }
-};
-
-// Handle account save
-const handleSave = (account: Account) => {
-  const index = accounts.value.findIndex(a => a.ID === account.ID);
-  if (index !== -1) {
-    accounts.value[index] = account;
-  }
-  selectedAccountId.value = null;
-};
-
-// Handle account delete
-const handleDelete = (account: Account) => {
-  accounts.value = accounts.value.filter(a => a.ID !== account.ID);
-  selectedAccountId.value = null;
-};
-
-// Check if an account is being edited
-const isEditing = (accountId: string | number) => {
-  return selectedAccountId.value === accountId;
-};
-</script>
-
 <template>
-  <div>
-    <div class="sm:flex sm:items-center mb-6">
+  <div class="px-4 py-6 sm:px-6 lg:px-8">
+    <div class="sm:flex sm:items-center">
       <div class="sm:flex-auto">
-        <h1 class="text-xl font-semibold text-blue">Accounts Management</h1>
+        <h1 class="text-base font-semibold leading-6 text-gray-900">Accounts</h1>
+        <p class="mt-2 text-sm text-gray-700">
+          A list of all accounts including their name, type, email, and billing information.
+        </p>
       </div>
       <div class="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
-        <button @click="createNew" type="button" class="btn-primary">
-          <i class="fas fa-plus mr-2"></i> New Account
+        <button
+          type="button"
+          @click="openAccountDrawer()"
+          class="block rounded-md bg-sage px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-sage-dark focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sage"
+        >
+          Create new account
         </button>
       </div>
     </div>
     
-    <!-- Loading state -->
-    <div v-if="isLoading" class="flex flex-col items-center justify-center p-10 bg-white rounded-lg shadow">
-      <i class="fas fa-spinner fa-spin text-4xl text-teal mb-4"></i>
-      <span class="text-gray-dark">Loading accounts...</span>
+    <!-- Account Table -->
+    <div class="mt-8 flow-root">
+      <div class="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
+        <div class="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
+          <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
+            <table class="min-w-full divide-y divide-gray-300">
+              <thead class="bg-gray-50">
+                <tr>
+                  <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">Name</th>
+                  <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Type</th>
+                  <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Email</th>
+                  <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Phone</th>
+                  <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Billing Frequency</th>
+                  <th scope="col" class="relative py-3.5 pl-3 pr-4 sm:pr-6">
+                    <span class="sr-only">Actions</span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-200 bg-white">
+                <tr v-for="account in accounts" :key="account.id" class="hover:bg-gray-50">
+                  <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
+                    {{ account.name }}
+                  </td>
+                  <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                    {{ formatAccountType(account.type) }}
+                  </td>
+                  <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                    {{ account.email }}
+                  </td>
+                  <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                    {{ account.phone }}
+                  </td>
+                  <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                    {{ formatBillingFrequency(account.billingFrequency) }}
+                  </td>
+                  <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
+                    <button
+                      @click="openAccountDrawer(account)"
+                      class="text-sage hover:text-sage-dark mr-4"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      @click="confirmDelete(account)"
+                      class="text-red-600 hover:text-red-900"
+                    >
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+                <tr v-if="accounts.length === 0">
+                  <td colspan="6" class="px-3 py-4 text-sm text-gray-500 text-center">
+                    No accounts found. Click "Create new account" to add one.
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
     </div>
     
-    <!-- Error state -->
-    <div v-else-if="error" class="flex flex-col items-center justify-center p-10 bg-white rounded-lg shadow">
-      <i class="fas fa-exclamation-circle text-4xl text-red mb-4"></i>
-      <span class="text-gray-dark mb-2">{{ error }}</span>
-      <button @click="fetchAccounts" class="btn-secondary mt-4">
-        <i class="fas fa-sync mr-2"></i> Retry
-      </button>
-    </div>
+    <!-- Account Drawer -->
+    <AccountDrawer
+      :is-open="isAccountDrawerOpen"
+      :account-data="selectedAccount"
+      @close="closeAccountDrawer"
+      @save="saveAccount"
+    />
     
-    <!-- Empty state -->
-    <div v-else-if="accounts.length === 0" class="flex flex-col items-center justify-center p-10 bg-white rounded-lg shadow">
-      <i class="fas fa-users-slash text-5xl text-teal mb-4"></i>
-      <p class="text-lg font-medium text-gray-dark">No accounts found</p>
-      <p class="text-gray mb-4">Create a new account to get started</p>
-      <button @click="createNew" class="btn-primary">
-        <i class="fas fa-plus mr-2"></i> Create First Account
-      </button>
-    </div>
-    
-    <!-- Account grid -->
-    <div v-else class="account-grid">
-      <AccountCard 
-        v-for="account in accounts" 
-        :key="account.ID" 
-        :account="account"
-        :is-editing="isEditing(account.ID)"
-        @edit="toggleAccountSelection"
-        @save="handleSave"
-        @delete="handleDelete"
-      />
-    </div>
+    <!-- Delete Confirmation Modal -->
+    <ConfirmationModal
+      :show="showDeleteModal"
+      title="Delete Account"
+      message="Are you sure you want to delete this account? This action cannot be undone and will also remove all projects associated with this account."
+      @confirm="deleteAccount"
+      @cancel="showDeleteModal = false"
+    />
   </div>
 </template>
 
-<style scoped>
-/* Use a grid layout for the accounts with responsive sizing */
-.account-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 1.5rem;
-  width: 100%;
-}
+<script setup>
+import { ref, onMounted } from 'vue';
+import { fetchAccounts, createAccount, updateAccount, deleteAccount as apiDeleteAccount } from '../../api/accounts';
+import AccountDrawer from '../../components/accounts/AccountDrawer.vue';
+import ConfirmationModal from '../../components/ConfirmationModal.vue';
 
-/* Ensure the account cards have a consistent height */
-:deep(.card) {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-}
+// State
+const accounts = ref([]);
+const isAccountDrawerOpen = ref(false);
+const selectedAccount = ref(null);
+const showDeleteModal = ref(false);
+const accountToDelete = ref(null);
 
-:deep(.card > div) {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-}
+// Fetch data
+onMounted(async () => {
+  try {
+    const accountsData = await fetchAccounts();
+    accounts.value = accountsData || [];
+  } catch (error) {
+    console.error('Error loading accounts:', error);
+  }
+});
 
-:deep(.card .p-5) {
-  flex-grow: 1;
-}
-</style> 
+// Helper functions
+const formatAccountType = (type) => {
+  const types = {
+    'ACCOUNT_TYPE_CLIENT': 'Client',
+    'ACCOUNT_TYPE_INTERNAL': 'Internal'
+  };
+  return types[type] || type;
+};
+
+const formatBillingFrequency = (frequency) => {
+  const frequencies = {
+    'BILLING_TYPE_WEEKLY': 'Weekly',
+    'BILLING_TYPE_BIWEEKLY': 'Bi-Weekly',
+    'BILLING_TYPE_MONTHLY': 'Monthly',
+    'BILLING_TYPE_BIMONTHLY': 'Bi-Monthly',
+    'BILLING_TYPE_PROJECT': 'Project-Based'
+  };
+  return frequencies[frequency] || frequency;
+};
+
+// Drawer functions
+const openAccountDrawer = (account = null) => {
+  selectedAccount.value = account;
+  isAccountDrawerOpen.value = true;
+};
+
+const closeAccountDrawer = () => {
+  isAccountDrawerOpen.value = false;
+  selectedAccount.value = null;
+};
+
+// Save account
+const saveAccount = async (accountData) => {
+  try {
+    if (accountData.id) {
+      await updateAccount(accountData.id, accountData);
+    } else {
+      await createAccount(accountData);
+    }
+    
+    // Refresh accounts
+    const updatedAccounts = await fetchAccounts();
+    accounts.value = updatedAccounts;
+    
+    // Close drawer
+    closeAccountDrawer();
+  } catch (error) {
+    console.error('Error saving account:', error);
+    alert('Failed to save account. Please try again.');
+  }
+};
+
+// Delete account
+const confirmDelete = (account) => {
+  accountToDelete.value = account;
+  showDeleteModal.value = true;
+};
+
+const deleteAccount = async () => {
+  if (!accountToDelete.value) return;
+  
+  try {
+    await apiDeleteAccount(accountToDelete.value.id);
+    
+    // Refresh accounts
+    const updatedAccounts = await fetchAccounts();
+    accounts.value = updatedAccounts;
+    
+    // Close modal
+    showDeleteModal.value = false;
+    accountToDelete.value = null;
+  } catch (error) {
+    console.error('Error deleting account:', error);
+    alert('Failed to delete account. Please try again.');
+  }
+};
+</script> 

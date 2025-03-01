@@ -12,7 +12,7 @@
             </button>
           </div>
           <div class="flex-shrink-0 flex items-center px-4">
-            <span class="text-xl font-bold text-white border-b-2 border-[#58837e] pb-1">Snowpack Data</span>
+            <span class="text-xl font-bold text-white border-b-2 border-sage pb-1">Snowpack Data</span>
           </div>
           <div class="mt-5 flex flex-1 flex-col overflow-y-auto px-4">
             <nav class="flex-1 space-y-1">
@@ -22,8 +22,8 @@
                     <li v-for="item in navigationItems" :key="item.path">
                       <router-link :to="item.path" :class="[
                         $route.path === item.path 
-                          ? 'bg-sky-900 text-white shadow-md' 
-                          : 'text-gray-400 hover:bg-sky-800 hover:text-white', 
+                          ? 'bg-sage-dark text-white shadow-md' 
+                          : 'text-gray-400 hover:bg-sage hover:text-white', 
                         'group flex gap-x-3 rounded-md p-2.5 text-sm font-semibold transition-all duration-200'
                       ]">
                         <i :class="['fas', item.icon, 'h-5 w-5 shrink-0']" aria-hidden="true" />
@@ -44,7 +44,7 @@
       <!-- Sidebar component, for desktop -->
       <div class="flex grow flex-col gap-y-5 overflow-y-auto bg-gray-900 shadow-xl px-6 pb-4">
         <div class="flex h-16 shrink-0 items-center">
-          <span class="text-xl font-bold text-white border-b-2 border-[#58837e] pb-1">Snowpack Data</span>
+          <span class="text-xl font-bold text-white border-b-2 border-sage pb-1">Snowpack Data</span>
         </div>
         <nav class="flex flex-1 flex-col">
           <ul role="list" class="flex flex-1 flex-col gap-y-7">
@@ -53,8 +53,8 @@
                 <li v-for="item in navigationItems" :key="item.path">
                   <router-link :to="item.path" :class="[
                     $route.path === item.path 
-                      ? 'bg-sky-900 text-white shadow-md' 
-                      : 'text-gray-400 hover:bg-sky-800 hover:text-white', 
+                      ? 'bg-sage-dark text-white shadow-md' 
+                      : 'text-gray-400 hover:bg-sage hover:text-white', 
                     'group flex gap-x-3 rounded-md p-2.5 text-sm font-semibold transition-all duration-200'
                   ]">
                     <i :class="['fas', item.icon, 'h-5 w-5 shrink-0']" aria-hidden="true" />

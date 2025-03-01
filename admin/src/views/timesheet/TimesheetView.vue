@@ -751,13 +751,13 @@ const updateDateTime = (field: 'start' | 'end', dateStr: string, timeStr: string
 
 <template>
   <div class="timesheet-view">
-    <div class="flex justify-between items-center p-4 bg-[#e6efee] border-b border-gray-200 rounded-xl shadow-sm mb-2">
+    <div class="flex justify-between items-center p-4 bg-sage-pale border-b border-gray-200 rounded-xl shadow-sm mb-2">
       <div class="text-lg font-semibold text-gray-900">
         {{ monthAndYear }}
         <span class="ml-2 text-sm text-gray-500">
           {{ weekRangeText }}
         </span>
-        <span class="ml-4 text-sm font-medium text-[#58837e]">
+        <span class="ml-4 text-sm font-medium text-sage">
           Total: {{ totalWeeklyHours }} hours
         </span>
       </div>
@@ -771,7 +771,7 @@ const updateDateTime = (field: 'start' | 'end', dateStr: string, timeStr: string
         </button>
         <button 
           @click="goToToday"
-          class="inline-flex items-center rounded-md bg-[#58837e] px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-[#476b67] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#58837e]"
+          class="inline-flex items-center rounded-md bg-sage px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-sage-dark focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sage"
         >
           Today
         </button>
@@ -831,7 +831,7 @@ const updateDateTime = (field: 'start' | 'end', dateStr: string, timeStr: string
                     :class="[
                       'mt-1 flex size-8 items-center justify-center font-semibold', 
                       header.isToday 
-                        ? 'rounded-full bg-[#58837e] text-white' 
+                        ? 'rounded-full bg-sage text-white' 
                         : 'text-gray-900'
                     ]"
                   >
@@ -855,7 +855,7 @@ const updateDateTime = (field: 'start' | 'end', dateStr: string, timeStr: string
                     <span 
                       :class="[
                         header.isToday 
-                          ? 'ml-1.5 flex size-8 items-center justify-center rounded-full bg-[#58837e] font-semibold text-white' 
+                          ? 'ml-1.5 flex size-8 items-center justify-center rounded-full bg-sage font-semibold text-white' 
                           : 'items-center justify-center font-semibold text-gray-900'
                       ]"
                     >
@@ -980,8 +980,8 @@ const updateDateTime = (field: 'start' | 'end', dateStr: string, timeStr: string
                                 <Switch
                                   v-model="showImpersonation"
                                   :class="[
-                                    showImpersonation ? 'bg-[#58837e]' : 'bg-gray-200',
-                                    'relative inline-flex h-5 w-10 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-[#58837e] focus:ring-offset-2'
+                                    showImpersonation ? 'bg-sage' : 'bg-gray-200',
+                                    'relative inline-flex h-5 w-10 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-sage focus:ring-offset-2'
                                   ]"
                                 >
                                   <span
@@ -1017,7 +1017,7 @@ const updateDateTime = (field: 'start' | 'end', dateStr: string, timeStr: string
                               <select 
                                 v-model="formEntry.impersonate_as_user_id" 
                                 @change="formEntry.is_being_impersonated = (formEntry.impersonate_as_user_id ?? 0) > 0"
-                                class="mt-1 block w-full rounded-md border-gray-300 py-1.5 pl-3 pr-10 text-xs focus:border-[#58837e] focus:outline-none focus:ring-[#58837e]"
+                                class="mt-1 block w-full rounded-md border-gray-300 py-1.5 pl-3 pr-10 text-xs focus:border-sage focus:outline-none focus:ring-sage"
                               >
                                 <option :value="0">Select a user</option>
                                 <option v-for="user in users" :key="user.id" :value="user.id">
@@ -1031,7 +1031,7 @@ const updateDateTime = (field: 'start' | 'end', dateStr: string, timeStr: string
                               <label class="block text-xs font-medium text-gray-700">Billing Code</label>
                               <select 
                                 v-model="formEntry.billing_code_id"
-                                class="mt-1 block w-full rounded-md border-gray-300 py-1.5 pl-3 pr-10 text-xs focus:border-[#58837e] focus:outline-none focus:ring-[#58837e]"
+                                class="mt-1 block w-full rounded-md border-gray-300 py-1.5 pl-3 pr-10 text-xs focus:border-sage focus:outline-none focus:ring-sage"
                               >
                                 <option :value="0">Select a billing code</option>
                                 <option v-for="code in billingCodes" :key="code.id" :value="Number(code.id)">
@@ -1052,7 +1052,7 @@ const updateDateTime = (field: 'start' | 'end', dateStr: string, timeStr: string
                                       id="start-date"
                                       :value="formEntry.start ? formEntry.start.split('T')[0] : ''"
                                       @input="e => updateDateTime('start', (e.target as HTMLInputElement).value, formEntry.start ? formEntry.start.split('T')[1].split(':').slice(0, 2).join(':') : '00:00')"
-                                      class="bg-gray-50 border h-8 border-gray-300 text-gray-900 text-xs rounded-lg focus:ring-[#58837e] focus:border-[#58837e] block w-full p-1.5 date-input"
+                                      class="bg-gray-50 border h-8 border-gray-300 text-gray-900 text-xs rounded-lg focus:ring-sage focus:border-sage block w-full p-1.5 date-input"
                                       required 
                                     />
                                   </div>
@@ -1065,7 +1065,7 @@ const updateDateTime = (field: 'start' | 'end', dateStr: string, timeStr: string
                                       id="start-time"
                                       :value="formEntry.start ? formEntry.start.split('T')[1].split(':').slice(0, 2).join(':') : ''"
                                       @input="e => updateDateTime('start', formEntry.start ? formEntry.start.split('T')[0] : new Date().toISOString().split('T')[0], (e.target as HTMLInputElement).value)"
-                                      class="bg-gray-50 border h-8 border-gray-300 text-gray-900 text-xs rounded-lg focus:ring-[#58837e] focus:border-[#58837e] block w-full p-1.5"
+                                      class="bg-gray-50 border h-8 border-gray-300 text-gray-900 text-xs rounded-lg focus:ring-sage focus:border-sage block w-full p-1.5"
                                       required 
                                     />
                                   </div>
@@ -1082,7 +1082,7 @@ const updateDateTime = (field: 'start' | 'end', dateStr: string, timeStr: string
                                       id="end-date"
                                       :value="formEntry.end ? formEntry.end.split('T')[0] : ''"
                                       @input="e => updateDateTime('end', (e.target as HTMLInputElement).value, formEntry.end ? formEntry.end.split('T')[1].split(':').slice(0, 2).join(':') : '00:00')"
-                                      class="bg-gray-50 border h-8 border-gray-300 text-gray-900 text-xs rounded-lg focus:ring-[#58837e] focus:border-[#58837e] block w-full p-1.5 date-input"
+                                      class="bg-gray-50 border h-8 border-gray-300 text-gray-900 text-xs rounded-lg focus:ring-sage focus:border-sage block w-full p-1.5 date-input"
                                       required 
                                     />
                                   </div>
@@ -1095,7 +1095,7 @@ const updateDateTime = (field: 'start' | 'end', dateStr: string, timeStr: string
                                       id="end-time"
                                       :value="formEntry.end ? formEntry.end.split('T')[1].split(':').slice(0, 2).join(':') : ''"
                                       @input="e => updateDateTime('end', formEntry.end ? formEntry.end.split('T')[0] : new Date().toISOString().split('T')[0], (e.target as HTMLInputElement).value)"
-                                      class="bg-gray-50 border h-8 border-gray-300 text-gray-900 text-xs rounded-lg focus:ring-[#58837e] focus:border-[#58837e] block w-full p-1.5"
+                                      class="bg-gray-50 border h-8 border-gray-300 text-gray-900 text-xs rounded-lg focus:ring-sage focus:border-sage block w-full p-1.5"
                                       required 
                                     />
                                   </div>
@@ -1109,7 +1109,7 @@ const updateDateTime = (field: 'start' | 'end', dateStr: string, timeStr: string
                               <textarea 
                                 v-model="formEntry.notes"
                                 rows="2"
-                                class="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-[#58837e] focus:outline-none focus:ring-[#58837e] text-xs"
+                                class="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-sage focus:outline-none focus:ring-sage text-xs"
                               ></textarea>
                             </div>
                           </div>
@@ -1120,7 +1120,7 @@ const updateDateTime = (field: 'start' | 'end', dateStr: string, timeStr: string
                     <div class="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
                       <button 
                         type="button" 
-                        class="inline-flex w-full justify-center rounded-md bg-[#58837e] px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-[#476b67] sm:ml-3 sm:w-auto"
+                        class="inline-flex w-full justify-center rounded-md bg-sage px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-sage-dark sm:ml-3 sm:w-auto"
                         @click="saveEntry"
                       >
                         {{ formEntry.entry_id ? 'Update' : 'Create' }}

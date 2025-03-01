@@ -1,3 +1,5 @@
+import type { Rate } from "./Rate";
+
 /**
  * Interface representing a Billing Code in the system
  */
@@ -5,15 +7,17 @@ export interface BillingCode {
   ID: number;
   code: string;
   name: string;
+  type: string;
   description: string;
   account_id: number;
-  account_name: string;
-  project_id: number;
-  project_name: string;
+  rounded_to: number;
+  project: number;
+  active_start: string;
+  active_end: string;
   rate_id: number;
-  rate_description: string;
-  internal: boolean;
-  active: boolean;
+  rate:  Rate;
+  internal_rate_id: number;
+  internal_rate: Rate;
 }
 
 /**
