@@ -2,11 +2,16 @@ package main
 
 import (
 	"context"
+	"embed"
 	"fmt"
+	"io"
+	"io/fs"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
+	"path"
+	"strings"
 	"time"
 
 	"github.com/gorilla/handlers"
@@ -14,11 +19,49 @@ import (
 	"github.com/snowpackdata/cronos"
 )
 
+//go:embed static/admin/assets
+var adminAssets embed.FS
+
 // App holds our information for accessing various applications and methods across modules
 type App struct {
 	cronosApp *cronos.App
 	logger    *log.Logger
 	GitHash   string
+}
+
+// createFileServer creates a file server for embedded assets with proper MIME types
+func createFileServer(embeddedFS embed.FS, fsRoot string) http.Handler {
+	// Get a sub-filesystem at the specified root
+	subFS, err := fs.Sub(embeddedFS, fsRoot)
+	if err != nil {
+		log.Fatal("Failed to create sub-filesystem:", err)
+	}
+
+	// Return a handler that sets the correct MIME type before serving files
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Debug log to see what path is being requested
+		log.Printf("Serving embedded file: %s from root %s", r.URL.Path, fsRoot)
+
+		// Get the file extension and set appropriate Content-Type header
+		ext := path.Ext(r.URL.Path)
+		switch ext {
+		case ".css":
+			w.Header().Set("Content-Type", "text/css; charset=utf-8")
+		case ".js":
+			w.Header().Set("Content-Type", "application/javascript; charset=utf-8")
+		case ".svg":
+			w.Header().Set("Content-Type", "image/svg+xml")
+		case ".woff":
+			w.Header().Set("Content-Type", "font/woff")
+		case ".woff2":
+			w.Header().Set("Content-Type", "font/woff2")
+		case ".ttf":
+			w.Header().Set("Content-Type", "font/ttf")
+		}
+
+		// Serve the file from the embedded filesystem
+		http.FileServer(http.FS(subFS)).ServeHTTP(w, r)
+	})
 }
 
 func main() {
@@ -80,6 +123,82 @@ func main() {
 
 	branding := r.PathPrefix("/branding").Subrouter()
 	branding.Handle("/{*}/{*}", http.StripPrefix("/branding/", http.FileServer(http.Dir("./branding"))))
+
+	// Add a static file server for admin assets using embedded files
+	adminStatic := r.PathPrefix("/admin/assets/").Subrouter()
+	adminStatic.PathPrefix("/").Handler(http.StripPrefix("/admin/assets/", createFileServer(adminAssets, "static/admin/assets")))
+
+	// Add a direct handler that can handle path mismatches by checking all files
+	r.PathPrefix("/admin/assets/").HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Log the requested path
+		requestedPath := r.URL.Path
+		log.Printf("Direct file request: %s", requestedPath)
+
+		// Always set text/css for CSS files regardless of path
+		if strings.HasSuffix(requestedPath, ".css") {
+			w.Header().Set("Content-Type", "text/css; charset=utf-8")
+
+			// If it's a specific CSS file that doesn't exist but we have another one, serve that
+			if strings.Contains(requestedPath, "index-") && strings.HasSuffix(requestedPath, ".css") {
+				// List the files in the embedded directory to find any CSS file
+				entries, err := adminAssets.ReadDir("static/admin/assets")
+				if err != nil {
+					http.Error(w, "Failed to read directory", http.StatusInternalServerError)
+					return
+				}
+
+				// Look for any CSS file to serve instead
+				for _, entry := range entries {
+					if !entry.IsDir() && strings.HasSuffix(entry.Name(), ".css") && strings.HasPrefix(entry.Name(), "index-") {
+						log.Printf("Found substitute CSS file: %s for requested: %s", entry.Name(), requestedPath)
+
+						// Open the found CSS file
+						cssFile, err := adminAssets.Open("static/admin/assets/" + entry.Name())
+						if err != nil {
+							continue // Try the next file
+						}
+						defer cssFile.Close()
+
+						// Get file info
+						stat, err := cssFile.Stat()
+						if err != nil {
+							continue // Try the next file
+						}
+
+						// Serve the CSS file with the proper MIME type
+						http.ServeContent(w, r, stat.Name(), stat.ModTime(), cssFile.(io.ReadSeeker))
+						return
+					}
+				}
+			}
+		}
+
+		// Strip the prefix and try to serve from the embedded filesystem
+		path := strings.TrimPrefix(requestedPath, "/admin/assets/")
+		file, err := adminAssets.Open("static/admin/assets/" + path)
+		if err != nil {
+			http.Error(w, "File not found", http.StatusNotFound)
+			return
+		}
+		defer file.Close()
+
+		// Get file info to check if it's a directory
+		stat, err := file.Stat()
+		if err != nil {
+			http.Error(w, "Failed to get file info", http.StatusInternalServerError)
+			return
+		}
+
+		// If it's a directory, return 404 (or you could implement directory listing)
+		if stat.IsDir() {
+			http.Error(w, "Not found", http.StatusNotFound)
+			return
+		}
+
+		// Copy the file content to the response
+		http.ServeContent(w, r, stat.Name(), stat.ModTime(), file.(io.ReadSeeker))
+	})
+
 	// All requests to the api subrouter will be verified by the JwtVerify middleware
 	api := r.PathPrefix("/api").Subrouter()
 	api.Use(JwtVerify)
@@ -100,6 +219,8 @@ func main() {
 
 	// Cronos Application pages, internal and external
 	r.HandleFunc("/admin", a.AdminLandingHandler).Methods("GET")
+	// Add a catch-all route for the Vue Router's history mode
+	r.HandleFunc("/admin/{any:.*}", a.AdminLandingHandler).Methods("GET")
 	r.HandleFunc("/cronos", a.CronosLandingHandler).Methods("GET")
 	// Our login and registration handlers are not protected by JWT
 	r.HandleFunc("/login", a.LoginLandingHandler).Methods("GET")

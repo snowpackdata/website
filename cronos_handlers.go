@@ -3,14 +3,15 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	jwt "github.com/golang-jwt/jwt/v5"
-	"github.com/snowpackdata/cronos"
-	"golang.org/x/crypto/bcrypt"
 	"log"
 	"net/http"
 	"os"
 	"strconv"
 	"time"
+
+	jwt "github.com/golang-jwt/jwt/v5"
+	"github.com/snowpackdata/cronos"
+	"golang.org/x/crypto/bcrypt"
 )
 
 var JWTSecret = os.Getenv("JWT_SECRET")
@@ -179,7 +180,7 @@ func (a *App) VerifyLogin(w http.ResponseWriter, req *http.Request) {
 
 // AdminLandingHandler serves the admin page when accessed via GET request
 func (a *App) AdminLandingHandler(w http.ResponseWriter, req *http.Request) {
-	http.ServeFile(w, req, "./templates/admin.html")
+	http.ServeFile(w, req, "./static/admin/index.html")
 }
 
 // CronosLandingHandler serves the cronos page when accessed via GET request
