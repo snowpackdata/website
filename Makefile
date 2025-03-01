@@ -29,10 +29,11 @@ run-dev-full:
 	@(cd admin && npm install && npm run dev) & \
 	ENVIRONMENT=local air
 
-# Build everything for production
-build-all: build-admin
-	go build -o cronos-server .
+# Run both Vue and Go with hot reloading 
+run-staging-full:
+	@echo "Installing air for hot reloading if not already installed..."
+	@command -v air > /dev/null 2>&1 || go install github.com/air-verse/air@latest
+	@echo "Starting Vue dev server and Go server with hot reloading in parallel..."
+	@(cd admin && npm install && npm run dev) & \
+	ENVIRONMENT=development air
 
-# Run the server in production mode
-run-prod: build-all
-	ENVIRONMENT=production ./cronos-server 

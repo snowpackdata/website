@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, computed, watch } from 'vue';
 import { ClockIcon, XMarkIcon } from '@heroicons/vue/24/outline';
-import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } from '@headlessui/vue';
+import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot, Switch, SwitchGroup, SwitchLabel } from '@headlessui/vue';
 import type { TimesheetEntry } from '../../types/Timesheet';
 import { createEmptyTimesheetEntry } from '../../types/Timesheet';
 import timesheetApi from '../../api/timesheet';
@@ -19,6 +19,9 @@ const error = ref<string | null>(null);
 const showModal = ref(false);
 const currentDate = ref(new Date());
 const currentWeek = ref<Date[]>([]);
+const billingCodes = ref<any[]>([]);
+const users = ref<any[]>([]);
+const showImpersonation = ref(false);
 
 // Drag state
 const isDragging = ref(false);
@@ -30,10 +33,21 @@ const dragColumnIndex = ref<number | null>(null);
 // Modal form state
 const formEntry = ref<TimesheetEntry>(createEmptyTimesheetEntry());
 
+// Watch for impersonation toggle changes
+watch(showImpersonation, (newValue) => {
+  if (!newValue) {
+    // Reset impersonation data when toggled off
+    formEntry.value.impersonate_as_user_id = 0;
+    formEntry.value.is_being_impersonated = false;
+  }
+});
+
 // Initialize component
 onMounted(async () => {
   initializeCurrentWeek();
   await fetchWeeklyEntries();
+  await fetchBillingCodes();
+  await fetchUsers();
   
   // Set the container scroll position based on the current time
   setTimeout(() => {
@@ -130,9 +144,35 @@ const fetchWeeklyEntries = async () => {
   }
 };
 
+// Fetch billing codes
+const fetchBillingCodes = async () => {
+  try {
+    billingCodes.value = await timesheetApi.getActiveBillingCodes();
+    console.log('Fetched billing codes:', billingCodes.value);
+  } catch (err) {
+    console.error('Error fetching billing codes:', err);
+  }
+};
+
+// Fetch users for impersonation
+const fetchUsers = async () => {
+  try {
+    users.value = await timesheetApi.getUsers();
+    console.log('Fetched users for impersonation:', users.value);
+  } catch (err) {
+    console.error('Error fetching users:', err);
+  }
+};
+
 // Open modal to create a new entry
 const createNewEntry = (day: Date, hour: number) => {
-  formEntry.value = createEmptyTimesheetEntry();
+  // Create a clean, empty entry
+  formEntry.value = {
+    ...createEmptyTimesheetEntry(),
+    billing_code_id: 0 // Explicitly set to numeric zero
+  };
+  
+  console.log('New entry created with billing_code_id:', formEntry.value.billing_code_id, 'type:', typeof formEntry.value.billing_code_id);
   
   // Set up start and end times based on the day and hour clicked
   // We need to carefully handle timezone conversion to avoid time shifts
@@ -297,27 +337,6 @@ const handleMouseMove = (event: MouseEvent) => {
   }
 };
 
-const dragOver = (day: Date, hour: number, event: MouseEvent) => {
-  // This is now a fallback for the mousemove handler
-  if (!isDragging.value || dragColumnIndex.value === null) return;
-  
-  // Get the current element's column index
-  const target = event.currentTarget as HTMLElement;
-  const currentColumnIndex = parseInt(target.getAttribute('data-day') || '-1', 10);
-  
-  // Only process events from the same column where drag started
-  if (dragColumnIndex.value !== currentColumnIndex) return;
-  
-  // Update the end hour - vertical movement only
-  dragEndHour.value = hour;
-  
-  // Update highlighting
-  highlightDragRange();
-  
-  // Prevent default browser behavior
-  event.preventDefault();
-  event.stopPropagation();
-};
 
 const endDrag = (event?: MouseEvent) => {
   if (!isDragging.value || !dragDay.value || dragStartHour.value === null || 
@@ -338,7 +357,12 @@ const endDrag = (event?: MouseEvent) => {
   const endHour = Math.max(dragStartHour.value, dragEndHour.value);
   
   // Create entry from drag selection
-  formEntry.value = createEmptyTimesheetEntry();
+  formEntry.value = {
+    ...createEmptyTimesheetEntry(),
+    billing_code_id: 0 // Explicitly set to numeric zero
+  };
+  
+  console.log('New entry from drag with billing_code_id:', formEntry.value.billing_code_id, 'type:', typeof formEntry.value.billing_code_id);
   
   // Use the day from the stored column index for consistency
   const day = currentWeek.value[dragColumnIndex.value];
@@ -414,7 +438,7 @@ const removeHighlighting = () => {
   // Remove highlight classes from all calendar cells
   const cells = document.querySelectorAll('.calendar-cell');
   cells.forEach(cell => {
-    cell.classList.remove('bg-indigo-100');
+    cell.classList.remove('bg-sage-pale');
   });
 };
 
@@ -452,8 +476,11 @@ const highlightDragRange = () => {
     
     // Check if this cell is in our column and time range
     if (cellDay === dragColumnIndex.value && cellHour >= startHour && cellHour <= endHour) {
-      cell.classList.add('bg-indigo-100');
+      cell.classList.add('bg-sage-pale');
+      // Force a reflow to ensure the style is applied
+      void (cell as HTMLElement).offsetHeight;
       highlightedCount++;
+      console.debug(`Highlighted cell: day=${cellDay}, hour=${cellHour}`);
     }
   });
   
@@ -480,33 +507,109 @@ onMounted(() => {
 
 // Open modal to edit an existing entry
 const editEntry = (entry: TimesheetEntry) => {
-  formEntry.value = { ...entry };
+  // Create a deep copy to avoid reference issues
+  formEntry.value = JSON.parse(JSON.stringify(entry));
+  
+  // Ensure billing_code_id is a number
+  formEntry.value.billing_code_id = Number(formEntry.value.billing_code_id) || 0;
+  
+  // Make sure user can interact immediately with the form
   showModal.value = true;
+  
+  // If the entry has impersonation, show the impersonation UI
+  if (entry.impersonate_as_user_id && entry.impersonate_as_user_id > 0) {
+    showImpersonation.value = true;
+  } else {
+    showImpersonation.value = false;
+  }
+  
+  // Log to help with debugging
+  console.log('Editing entry:', formEntry.value);
+  console.log('Using billing code ID:', formEntry.value.billing_code_id);
 };
 
 // Close the modal
 const closeModal = () => {
   showModal.value = false;
   formEntry.value = createEmptyTimesheetEntry();
+  showImpersonation.value = false; // Reset impersonation flag when closing
 };
 
 // Save an entry (create or update)
 const saveEntry = async () => {
+  error.value = null; // Clear previous errors
+  
+  // Add detailed debugging for the billing code issue
+  console.log('Raw formEntry data:', formEntry.value);
+  console.log('Billing code ID (raw):', formEntry.value.billing_code_id);
+  console.log('Billing code ID type:', typeof formEntry.value.billing_code_id);
+  
   try {
-    if (formEntry.value.entry_id === 0) {
-      // Create new entry
-      await timesheetApi.createEntry(formEntry.value);
+    // Ensure billing_code_id is a number and has a value
+    const billingCodeId = Number(formEntry.value.billing_code_id);
+    console.log('Billing code ID after Number conversion:', billingCodeId, 'isNaN:', isNaN(billingCodeId));
+    formEntry.value.billing_code_id = isNaN(billingCodeId) ? 0 : billingCodeId;
+    
+    // Validate required fields
+    if (!formEntry.value.billing_code_id || formEntry.value.billing_code_id === 0) {
+      error.value = 'Please select a billing code';
+      console.error('Missing billing code');
+      return;
+    }
+    
+    if (!formEntry.value.start || !formEntry.value.end) {
+      error.value = 'Please select both start and end times';
+      console.error('Missing start or end time');
+      return;
+    }
+    
+    // Validate times - end must be after start
+    const startDate = new Date(formEntry.value.start);
+    const endDate = new Date(formEntry.value.end);
+    if (endDate <= startDate) {
+      error.value = 'End time must be after start time';
+      console.error('Invalid time range: end time is before or equal to start time');
+      return;
+    }
+    
+    // Ensure impersonation fields are properly set
+    if (showImpersonation.value && formEntry.value.impersonate_as_user_id) {
+      formEntry.value.is_being_impersonated = true;
+      console.log('Setting impersonation fields:', {
+        impersonate_as_user_id: formEntry.value.impersonate_as_user_id,
+        is_being_impersonated: formEntry.value.is_being_impersonated
+      });
     } else {
-      // Update existing entry
-      await timesheetApi.updateEntry(formEntry.value);
+      formEntry.value.impersonate_as_user_id = 0;
+      formEntry.value.is_being_impersonated = false;
+    }
+    
+    // Make sure notes is always a string
+    formEntry.value.notes = formEntry.value.notes || '';
+    
+    // Create or update entry
+    if (formEntry.value.entry_id === 0) {
+      console.log('Creating new entry');
+      const result = await timesheetApi.createEntry(formEntry.value);
+      console.log('Created entry:', result);
+    } else {
+      console.log('Updating existing entry with ID:', formEntry.value.entry_id);
+      const result = await timesheetApi.updateEntry(formEntry.value);
+      console.log('Updated entry:', result);
     }
     
     // Refresh entries after save
     await fetchWeeklyEntries();
     closeModal();
-  } catch (err) {
+  } catch (err: any) {
     console.error('Error saving timesheet entry:', err);
-    error.value = 'Failed to save entry. Please try again.';
+    
+    // Extract error message for better user feedback
+    if (err.response && err.response.data && err.response.data.error) {
+      error.value = err.response.data.error;
+    } else {
+      error.value = 'Failed to save entry. Please try again.';
+    }
   }
 };
 
@@ -514,13 +617,25 @@ const saveEntry = async () => {
 const deleteEntry = async () => {
   if (!formEntry.value || formEntry.value.entry_id === 0) return;
   
+  error.value = null; // Clear previous errors
+  console.log('Deleting entry with ID:', formEntry.value.entry_id);
+  
   try {
-    await timesheetApi.deleteEntry(formEntry.value.entry_id);
+    const result = await timesheetApi.deleteEntry(formEntry.value.entry_id);
+    console.log('Deleted entry result:', result);
+    
+    // Refresh entries after delete
     await fetchWeeklyEntries();
     closeModal();
-  } catch (err) {
+  } catch (err: any) {
     console.error('Error deleting timesheet entry:', err);
-    error.value = 'Failed to delete entry. Please try again.';
+    
+    // Extract error message for better user feedback
+    if (err.response && err.response.data && err.response.data.error) {
+      error.value = err.response.data.error;
+    } else {
+      error.value = 'Failed to delete entry. Please try again.';
+    }
   }
 };
 
@@ -636,13 +751,13 @@ const updateDateTime = (field: 'start' | 'end', dateStr: string, timeStr: string
 
 <template>
   <div class="timesheet-view">
-    <div class="sticky top-0 z-40 flex justify-between items-center p-4 bg-white border-b border-gray-200">
+    <div class="flex justify-between items-center p-4 bg-white border-b border-gray-200">
       <div class="text-lg font-semibold text-gray-900">
         {{ monthAndYear }}
         <span class="ml-2 text-sm text-gray-500">
           {{ weekRangeText }}
         </span>
-        <span class="ml-4 text-sm font-medium text-indigo-600">
+        <span class="ml-4 text-sm font-medium text-[#58837e]">
           Total: {{ totalWeeklyHours }} hours
         </span>
       </div>
@@ -656,7 +771,7 @@ const updateDateTime = (field: 'start' | 'end', dateStr: string, timeStr: string
         </button>
         <button 
           @click="goToToday"
-          class="inline-flex items-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+          class="inline-flex items-center rounded-md bg-[#58837e] px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-[#476b67] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#58837e]"
         >
           Today
         </button>
@@ -701,7 +816,7 @@ const updateDateTime = (field: 'start' | 'end', dateStr: string, timeStr: string
         <!-- Calendar View -->
         <div v-else ref="container" class="isolate flex flex-auto flex-col overflow-auto bg-white">
           <div style="width: 165%" class="flex max-w-full flex-none flex-col sm:max-w-none md:max-w-full">
-            <div ref="containerNav" class="sticky top-0 z-30 flex-none bg-white shadow ring-1 ring-black/5 sm:pr-8">
+            <div ref="containerNav" class="flex-none bg-white shadow ring-1 ring-black/5 sm:pr-8">
               <!-- Mobile day headers -->
               <div class="grid grid-cols-7 text-sm/6 text-gray-500 sm:hidden">
                 <button 
@@ -716,7 +831,7 @@ const updateDateTime = (field: 'start' | 'end', dateStr: string, timeStr: string
                     :class="[
                       'mt-1 flex size-8 items-center justify-center font-semibold', 
                       header.isToday 
-                        ? 'rounded-full bg-indigo-600 text-white' 
+                        ? 'rounded-full bg-[#58837e] text-white' 
                         : 'text-gray-900'
                     ]"
                   >
@@ -740,7 +855,7 @@ const updateDateTime = (field: 'start' | 'end', dateStr: string, timeStr: string
                     <span 
                       :class="[
                         header.isToday 
-                          ? 'ml-1.5 flex size-8 items-center justify-center rounded-full bg-indigo-600 font-semibold text-white' 
+                          ? 'ml-1.5 flex size-8 items-center justify-center rounded-full bg-[#58837e] font-semibold text-white' 
                           : 'items-center justify-center font-semibold text-gray-900'
                       ]"
                     >
@@ -841,7 +956,7 @@ const updateDateTime = (field: 'start' | 'end', dateStr: string, timeStr: string
               <div class="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
                 <TransitionChild as="template" enter="ease-out duration-300" enter-from="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" enter-to="opacity-100 translate-y-0 sm:scale-100" leave="ease-in duration-200" leave-from="opacity-100 translate-y-0 sm:scale-100" leave-to="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95">
                   <DialogPanel class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg">
-                    <div class="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4">
+                    <div class="bg-white px-6 pb-4 pt-5 sm:p-6 sm:pb-4">
                       <div class="absolute right-0 top-0 hidden pr-4 pt-4 sm:block">
                         <button type="button" class="rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2" @click="closeModal">
                           <span class="sr-only">Close</span>
@@ -849,28 +964,86 @@ const updateDateTime = (field: 'start' | 'end', dateStr: string, timeStr: string
                         </button>
                       </div>
                       
-                      <div class="sm:flex sm:items-start">
-                        <div class="mx-auto flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-indigo-100 sm:mx-0 sm:h-10 sm:w-10">
-                          <ClockIcon class="h-6 w-6 text-indigo-600" aria-hidden="true" />
-                        </div>
-                        <div class="mt-3 w-full text-center sm:ml-4 sm:mt-0 sm:text-left">
-                          <DialogTitle as="h3" class="text-lg font-semibold leading-6 text-gray-900">
+                      <div>
+                        <div class="w-full text-center sm:text-left">
+                          <DialogTitle as="h3" class="text-base font-semibold leading-6 text-gray-900">
                             {{ formEntry.entry_id ? 'Edit Timesheet Entry' : 'New Timesheet Entry' }}
                           </DialogTitle>
                           
-                          <div class="mt-4 space-y-4">
+                          <div class="mt-4 space-y-3">
+                            <!-- Impersonation switch -->
+                            <div class="flex items-center justify-between">
+                              <SwitchGroup as="div" class="flex items-center">
+                                <SwitchLabel as="span" class="mr-3 text-xs">
+                                  <span class="font-medium text-gray-900">Impersonation Mode</span>
+                                </SwitchLabel>
+                                <Switch
+                                  v-model="showImpersonation"
+                                  :class="[
+                                    showImpersonation ? 'bg-[#58837e]' : 'bg-gray-200',
+                                    'relative inline-flex h-5 w-10 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-[#58837e] focus:ring-offset-2'
+                                  ]"
+                                >
+                                  <span
+                                    aria-hidden="true"
+                                    :class="[
+                                      showImpersonation ? 'translate-x-5' : 'translate-x-0',
+                                      'pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out'
+                                    ]"
+                                  />
+                                </Switch>
+                              </SwitchGroup>
+                            </div>
+                            
+                            <!-- Impersonation warning and user selection -->
+                            <div v-if="showImpersonation" class="bg-yellow-50 border-l-4 border-yellow-400 p-2 mb-4">
+                              <div class="flex items-start">
+                                <div class="flex-shrink-0">
+                                  <svg class="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                    <path fill-rule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
+                                  </svg>
+                                </div>
+                                <div class="ml-3">
+                                  <p class="text-xs text-yellow-700">
+                                    <strong>Warning:</strong> You are creating an entry on behalf of another user. This action will be logged.
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                            
+                            <!-- User selection for impersonation -->
+                            <div v-if="showImpersonation">
+                              <label class="block text-xs font-medium text-gray-700">Select User</label>
+                              <select 
+                                v-model="formEntry.impersonate_as_user_id" 
+                                @change="formEntry.is_being_impersonated = (formEntry.impersonate_as_user_id ?? 0) > 0"
+                                class="mt-1 block w-full rounded-md border-gray-300 py-1.5 pl-3 pr-10 text-xs focus:border-[#58837e] focus:outline-none focus:ring-[#58837e]"
+                              >
+                                <option :value="0">Select a user</option>
+                                <option v-for="user in users" :key="user.id" :value="user.id">
+                                  {{ user.name || user.email || `User #${user.id}` }}
+                                </option>
+                              </select>
+                            </div>
+                            
                             <!-- Billing code selector -->
                             <div>
-                              <label class="block text-sm font-medium text-gray-700">Billing Code</label>
-                              <select v-model="formEntry.billing_code_id" class="mt-1 block w-full rounded-md border-gray-300 py-2 pl-3 pr-10 text-base focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm">
-                                <option value="1">Example Billing Code</option>
+                              <label class="block text-xs font-medium text-gray-700">Billing Code</label>
+                              <select 
+                                v-model="formEntry.billing_code_id"
+                                class="mt-1 block w-full rounded-md border-gray-300 py-1.5 pl-3 pr-10 text-xs focus:border-[#58837e] focus:outline-none focus:ring-[#58837e]"
+                              >
+                                <option :value="0">Select a billing code</option>
+                                <option v-for="code in billingCodes" :key="code.id" :value="Number(code.id)">
+                                  {{ code.name }}
+                                </option>
                               </select>
                             </div>
                             
                             <!-- Time inputs - updated to match Tailwind example -->
                             <div class="grid grid-cols-2 gap-4">
                               <div>
-                                <label for="start-time" class="block text-sm font-medium text-gray-700">Start Time</label>
+                                <label for="start-time" class="block text-xs font-medium text-gray-700">Start Time</label>
                                 <div class="mt-1 grid grid-cols-2 gap-2">
                                   <!-- Date input -->
                                   <div class="relative">
@@ -879,23 +1052,20 @@ const updateDateTime = (field: 'start' | 'end', dateStr: string, timeStr: string
                                       id="start-date"
                                       :value="formEntry.start ? formEntry.start.split('T')[0] : ''"
                                       @input="e => updateDateTime('start', (e.target as HTMLInputElement).value, formEntry.start ? formEntry.start.split('T')[1].split(':').slice(0, 2).join(':') : '00:00')"
-                                      class="bg-gray-50 border leading-none border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block w-full p-2.5"
+                                      class="bg-gray-50 border h-8 border-gray-300 text-gray-900 text-xs rounded-lg focus:ring-[#58837e] focus:border-[#58837e] block w-full p-1.5 date-input"
                                       required 
                                     />
                                   </div>
                                   <!-- Time input -->
                                   <div class="relative">
                                     <div class="absolute inset-y-0 end-0 top-0 flex items-center pe-3.5 pointer-events-none">
-                                      <svg class="w-4 h-4 text-gray-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
-                                        <path fill-rule="evenodd" d="M2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10S2 17.523 2 12Zm11-4a1 1 0 1 0-2 0v4a1 1 0 0 0 .293.707l3 3a1 1 0 0 0 1.414-1.414L13 11.586V8Z" clip-rule="evenodd"/>
-                                      </svg>
                                     </div>
                                     <input 
                                       type="time" 
                                       id="start-time"
                                       :value="formEntry.start ? formEntry.start.split('T')[1].split(':').slice(0, 2).join(':') : ''"
                                       @input="e => updateDateTime('start', formEntry.start ? formEntry.start.split('T')[0] : new Date().toISOString().split('T')[0], (e.target as HTMLInputElement).value)"
-                                      class="bg-gray-50 border leading-none border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block w-full p-2.5"
+                                      class="bg-gray-50 border h-8 border-gray-300 text-gray-900 text-xs rounded-lg focus:ring-[#58837e] focus:border-[#58837e] block w-full p-1.5"
                                       required 
                                     />
                                   </div>
@@ -903,7 +1073,7 @@ const updateDateTime = (field: 'start' | 'end', dateStr: string, timeStr: string
                               </div>
                               
                               <div>
-                                <label for="end-time" class="block text-sm font-medium text-gray-700">End Time</label>
+                                <label for="end-time" class="block text-xs font-medium text-gray-700">End Time</label>
                                 <div class="mt-1 grid grid-cols-2 gap-2">
                                   <!-- Date input -->
                                   <div class="relative">
@@ -912,23 +1082,20 @@ const updateDateTime = (field: 'start' | 'end', dateStr: string, timeStr: string
                                       id="end-date"
                                       :value="formEntry.end ? formEntry.end.split('T')[0] : ''"
                                       @input="e => updateDateTime('end', (e.target as HTMLInputElement).value, formEntry.end ? formEntry.end.split('T')[1].split(':').slice(0, 2).join(':') : '00:00')"
-                                      class="bg-gray-50 border leading-none border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block w-full p-2.5"
+                                      class="bg-gray-50 border h-8 border-gray-300 text-gray-900 text-xs rounded-lg focus:ring-[#58837e] focus:border-[#58837e] block w-full p-1.5 date-input"
                                       required 
                                     />
                                   </div>
                                   <!-- Time input -->
                                   <div class="relative">
                                     <div class="absolute inset-y-0 end-0 top-0 flex items-center pe-3.5 pointer-events-none">
-                                      <svg class="w-4 h-4 text-gray-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
-                                        <path fill-rule="evenodd" d="M2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10S2 17.523 2 12Zm11-4a1 1 0 1 0-2 0v4a1 1 0 0 0 .293.707l3 3a1 1 0 0 0 1.414-1.414L13 11.586V8Z" clip-rule="evenodd"/>
-                                      </svg>
                                     </div>
                                     <input 
                                       type="time" 
                                       id="end-time"
                                       :value="formEntry.end ? formEntry.end.split('T')[1].split(':').slice(0, 2).join(':') : ''"
                                       @input="e => updateDateTime('end', formEntry.end ? formEntry.end.split('T')[0] : new Date().toISOString().split('T')[0], (e.target as HTMLInputElement).value)"
-                                      class="bg-gray-50 border leading-none border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block w-full p-2.5"
+                                      class="bg-gray-50 border h-8 border-gray-300 text-gray-900 text-xs rounded-lg focus:ring-[#58837e] focus:border-[#58837e] block w-full p-1.5"
                                       required 
                                     />
                                   </div>
@@ -938,11 +1105,11 @@ const updateDateTime = (field: 'start' | 'end', dateStr: string, timeStr: string
                             
                             <!-- Notes -->
                             <div>
-                              <label class="block text-sm font-medium text-gray-700">Notes</label>
+                              <label class="block text-xs font-medium text-gray-700">Notes</label>
                               <textarea 
                                 v-model="formEntry.notes"
-                                rows="3"
-                                class="mt-1 block w-full rounded-md border border-gray-300 py-2 px-3 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
+                                rows="2"
+                                class="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-[#58837e] focus:outline-none focus:ring-[#58837e] text-xs"
                               ></textarea>
                             </div>
                           </div>
@@ -953,14 +1120,14 @@ const updateDateTime = (field: 'start' | 'end', dateStr: string, timeStr: string
                     <div class="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
                       <button 
                         type="button" 
-                        class="inline-flex w-full justify-center rounded-md bg-indigo-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 sm:ml-3 sm:w-auto"
+                        class="inline-flex w-full justify-center rounded-md bg-[#58837e] px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-[#476b67] sm:ml-3 sm:w-auto"
                         @click="saveEntry"
                       >
                         {{ formEntry.entry_id ? 'Update' : 'Create' }}
                       </button>
                       <button 
                         type="button" 
-                        class="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto"
+                        class="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-1.5 text-xs font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto"
                         @click="closeModal"
                       >
                         Cancel
@@ -969,7 +1136,7 @@ const updateDateTime = (field: 'start' | 'end', dateStr: string, timeStr: string
                       <button 
                         v-if="formEntry.entry_id !== 0"
                         type="button" 
-                        class="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-red-600 shadow-sm ring-1 ring-inset ring-red-300 hover:bg-red-50 sm:mt-0 sm:w-auto"
+                        class="mt-3 inline-flex w-full justify-center rounded-md bg-red-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-red-500 sm:mt-0 sm:w-auto"
                         @click="deleteEntry"
                       >
                         Delete
@@ -1005,13 +1172,24 @@ const updateDateTime = (field: 'start' | 'end', dateStr: string, timeStr: string
 }
 
 .calendar-cell:hover {
-  background-color: rgba(79, 70, 229, 0.05);
+  background-color: rgba(88, 131, 126, 0.05);
 }
 
-.bg-indigo-100 {
-  background-color: rgba(79, 70, 229, 0.3) !important;
+/* Make the highlight class more specific and forceful */
+.calendar-cell.bg-sage-pale,
+div.calendar-cell.bg-sage-pale,
+.timesheet-container .calendar-cell.bg-sage-pale {
+  background-color: rgba(88, 131, 126, 0.3) !important;
   z-index: 15;
   position: relative;
+}
+
+/* Custom color variables for the muted green */
+:root {
+  --sage-green-primary: #58837e;
+  --sage-green-dark: #476b67;
+  --sage-green-light: #76a19c;
+  --sage-green-pale: #e6efee;
 }
 
 /* Fix for calendar container height */
@@ -1020,8 +1198,32 @@ const updateDateTime = (field: 'start' | 'end', dateStr: string, timeStr: string
   overflow: hidden;
 }
 
+@media (min-width: 1024px) {
+  .timesheet-container {
+    height: calc(100vh - 6.5rem); /* Adjusted for the top padding on desktop */
+  }
+}
+
 /* Allow entries to be positioned absolutely within calendar grid */
 .timesheet-container .relative {
   position: relative;
+}
+
+/* Style for date inputs to make text size consistent with time inputs */
+.date-input {
+  font-size: 0.75rem !important;
+}
+
+/* Override browser-specific date picker text size */
+.date-input::-webkit-datetime-edit {
+  font-size: 0.75rem;
+}
+
+.date-input::-webkit-calendar-picker-indicator {
+  font-size: 0.75rem;
+  padding: 0;
+  margin-left: 2px;
+  width: 14px;
+  height: 14px;
 }
 </style> 

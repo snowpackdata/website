@@ -12,7 +12,7 @@
             </button>
           </div>
           <div class="flex-shrink-0 flex items-center px-4">
-            <span class="text-xl font-bold text-white border-b-2 border-sky-600 pb-1">Snowpack Data</span>
+            <span class="text-xl font-bold text-white border-b-2 border-[#58837e] pb-1">Snowpack Data</span>
           </div>
           <div class="mt-5 flex flex-1 flex-col overflow-y-auto px-4">
             <nav class="flex-1 space-y-1">
@@ -44,7 +44,7 @@
       <!-- Sidebar component, for desktop -->
       <div class="flex grow flex-col gap-y-5 overflow-y-auto bg-gray-900 shadow-xl px-6 pb-4">
         <div class="flex h-16 shrink-0 items-center">
-          <span class="text-xl font-bold text-white border-b-2 border-sky-600 pb-1">Snowpack Data</span>
+          <span class="text-xl font-bold text-white border-b-2 border-[#58837e] pb-1">Snowpack Data</span>
         </div>
         <nav class="flex flex-1 flex-col">
           <ul role="list" class="flex flex-1 flex-col gap-y-7">
@@ -69,7 +69,7 @@
     </div>
 
     <div class="lg:pl-64">
-      <div class="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-gray bg-gray-800 px-4 shadow-md sm:gap-x-6 sm:px-6 lg:px-8">
+      <div class="flex h-16 shrink-0 items-center gap-x-4 border-b border-gray bg-gray-800 px-4 shadow-md sm:gap-x-6 sm:px-6 lg:hidden">
         <button type="button" class="-m-2.5 p-2.5 text-gray-400 hover:text-white lg:hidden" @click.prevent="sidebarOpen = true">
           <span class="sr-only">Open sidebar</span>
           <i class="fas fa-bars h-6 w-6" aria-hidden="true" />
@@ -91,7 +91,7 @@
         </div>
       </div>
 
-      <main class="py-10 bg-gray-50 min-h-screen">
+      <main class="py-10 bg-gray-50 min-h-screen lg:py-0 lg:pt-6 lg:min-h-[100vh]">
         <div class="px-4 sm:px-6 lg:px-8">
           <router-view />
         </div>
@@ -201,6 +201,14 @@ setTimeout(testToken, 1000);
 a, button {
   position: relative;
   z-index: 1;
+}
+
+/* Custom color classes for the muted green */
+:root {
+  --sage-green-primary: #58837e;
+  --sage-green-dark: #476b67;
+  --sage-green-light: #76a19c;
+  --sage-green-pale: #e6efee;
 }
 </style>
 

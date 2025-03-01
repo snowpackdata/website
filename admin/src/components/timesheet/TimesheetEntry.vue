@@ -123,7 +123,7 @@ const handleEdit = () => {
 // Calculate a subtle offset for entries based on time to help with overlapping entries
 const entryOffset = computed(() => {
   if (!props.entry || !props.entry.start) {
-    return { right: '0%', top: '0px' };
+    return { right: '0%' };
   }
 
   try {
@@ -136,7 +136,6 @@ const entryOffset = computed(() => {
     
     // Calculate offsets - higher offsetIndex (higher ID) means less offset
     const rightOffset = (4 - offsetIndex) * 6;  // 6% increments for width from right
-    const topOffset = (4 - offsetIndex) * 4;    // 4px increments for top margin
     
     // Z-index calculation - LOWER values for higher IDs so they appear at bottom
     // Keep z-index below 30 to stay under the sticky nav (z-40)
@@ -144,14 +143,13 @@ const entryOffset = computed(() => {
     
     return {
       right: `${rightOffset}%`,
-      top: `${topOffset}px`,
       width: offsetIndex === 4 ? '100%' : `calc(100% - ${rightOffset}%)`, // Full width for highest offsetIndex
       boxShadow: `0 ${(4-offsetIndex) + 1}px ${(4-offsetIndex) * 2 + 2}px rgba(0, 0, 0, 0.0${(4-offsetIndex) + 1})`,
       zIndex: calculatedZIndex
     };
   } catch (error) {
     console.error('Error calculating entry offset:', error);
-    return { right: '0%', top: '0px' };
+    return { right: '0%' };
   }
 });
 
@@ -171,7 +169,7 @@ const gridStyle = computed((): CSSProperties => {
 <template>
   <li 
     v-if="gridRowValues.span > 0"
-    class="relative mt-px flex timesheet-entry"
+    class="relative flex timesheet-entry"
     :style="gridStyle"
   >
     <a 
@@ -196,20 +194,29 @@ a.entry-link {
   transition: all 0.2s ease;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
   z-index: 20; /* Ensure entries appear above the grid */
-  position: relative; /* Create stacking context */
-  border-width: 2px !important; /* Thicker border for better visibility */
-  margin: 2px !important; /* Increased margin for better separation */
+  position: absolute; /* Create stacking context */
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-width: 1px !important;
+  margin: 1px !important; /* Reduced margin for better alignment */
 }
 
 a.entry-link:hover {
   box-shadow: 0 6px 10px -2px rgba(0, 0, 0, 0.2), 0 3px 6px -1px rgba(0, 0, 0, 0.1);
-  transform: translateY(-2px);
+  transform: translateY(-1px);
   z-index: 1000 !important; /* Much higher z-index to ensure it's above all other entries */
   margin: 0 !important; /* Remove margin on hover for full size */
   border-width: 2px !important;
 }
 
 /* Add a class for parent element to make z-index work */
+.timesheet-entry {
+  padding: 0;
+  margin: 0;
+}
+
 .timesheet-entry:hover {
   z-index: 900 !important; /* Apply higher z-index to the parent element when hovering */
 }
