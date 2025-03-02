@@ -1,6 +1,6 @@
 /**
  * Utility functions for handling date and time values consistently across the application.
- * These functions ensure consistent handling of dates regardless of timezone.
+ * These functions ensure consistent handling of dates in UTC to avoid timezone issues.
  */
 
 /**
@@ -16,12 +16,13 @@ export function formatDate(dateValue: string | Date | null | undefined, format: 
     // Convert to Date object if it's a string
     let date: Date;
     if (typeof dateValue === 'string') {
-      // For YYYY-MM-DD strings, ensure we're parsing in local timezone
+      // For YYYY-MM-DD strings, parse in UTC
       if (dateValue.match(/^\d{4}-\d{2}-\d{2}$/)) {
         const [year, month, day] = dateValue.split('-').map(Number);
-        date = new Date(year, month - 1, day);
+        // Create date in UTC
+        date = new Date(Date.UTC(year, month - 1, day));
       } else {
-        // For other date strings, use the default parser
+        // For other date strings, assume they are in UTC
         date = new Date(dateValue);
       }
     } else {
@@ -38,26 +39,28 @@ export function formatDate(dateValue: string | Date | null | undefined, format: 
     switch (format) {
       case 'input':
         // Format for HTML input fields (YYYY-MM-DD)
-        // Use local timezone values to avoid date shifts
-        const year = date.getFullYear();
-        const month = (date.getMonth() + 1).toString().padStart(2, '0');
-        const day = date.getDate().toString().padStart(2, '0');
+        // Use UTC to avoid date shifts
+        const year = date.getUTCFullYear();
+        const month = (date.getUTCMonth() + 1).toString().padStart(2, '0');
+        const day = date.getUTCDate().toString().padStart(2, '0');
         return `${year}-${month}-${day}`;
         
       case 'short':
-        // Format as MM/DD/YYYY using local timezone
-        return `${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getDate().toString().padStart(2, '0')}/${date.getFullYear()}`;
+        // Format as MM/DD/YYYY using UTC
+        return `${(date.getUTCMonth() + 1).toString().padStart(2, '0')}/${date.getUTCDate().toString().padStart(2, '0')}/${date.getUTCFullYear()}`;
         
       case 'long':
-        // Format as Month DD, YYYY
-        return date.toLocaleDateString('en-US', { 
-          year: 'numeric', 
-          month: 'long', 
-          day: 'numeric'
-        });
+        // Format using toLocaleDateString but with explicit UTC conversion
+        const options = { 
+          year: 'numeric' as const, 
+          month: 'long' as const, 
+          day: 'numeric' as const,
+          timeZone: 'UTC'
+        };
+        return date.toLocaleDateString('en-US', options);
       
       default:
-        return date.toLocaleDateString();
+        return date.toLocaleDateString('en-US', { timeZone: 'UTC' });
     }
   } catch (error) {
     console.error('Error formatting date:', error);
@@ -67,7 +70,7 @@ export function formatDate(dateValue: string | Date | null | undefined, format: 
 
 /**
  * Parses a date string from the server into a standard format
- * Ensures dates are handled in local timezone to prevent off-by-one errors
+ * Ensures dates are handled in UTC to prevent timezone issues
  * @param dateString - The date string from the server
  * @returns Normalized date string in YYYY-MM-DD format
  */
@@ -83,13 +86,13 @@ export function parseServerDate(dateString: string | null | undefined): string {
       return dateString;
     }
     
-    // Parse the date and extract components in local timezone
+    // Parse the date in UTC
     const date = new Date(dateString);
     console.log('Parsed date:', date);
-    console.log('Date components:', {
-      year: date.getFullYear(),
-      month: date.getMonth() + 1,
-      day: date.getDate(),
+    console.log('Date components (UTC):', {
+      year: date.getUTCFullYear(),
+      month: date.getUTCMonth() + 1,
+      day: date.getUTCDate(),
       isValid: !isNaN(date.getTime())
     });
     
@@ -99,13 +102,13 @@ export function parseServerDate(dateString: string | null | undefined): string {
       return '';
     }
     
-    // Format in YYYY-MM-DD using local timezone components
-    const year = date.getFullYear();
-    const month = (date.getMonth() + 1).toString().padStart(2, '0');
-    const day = date.getDate().toString().padStart(2, '0');
+    // Format in YYYY-MM-DD using UTC components
+    const year = date.getUTCFullYear();
+    const month = (date.getUTCMonth() + 1).toString().padStart(2, '0');
+    const day = date.getUTCDate().toString().padStart(2, '0');
     
     const formattedDate = `${year}-${month}-${day}`;
-    console.log('Returning formatted date:', formattedDate);
+    console.log('Returning formatted date (UTC):', formattedDate);
     return formattedDate;
   } catch (error) {
     console.error('Error parsing server date:', error);
@@ -116,7 +119,7 @@ export function parseServerDate(dateString: string | null | undefined): string {
 /**
  * Format a date string for the server API
  * @param dateStr Date string in YYYY-MM-DD format
- * @returns Date string in YYYY-MM-DD format (no timezone conversion)
+ * @returns Date string in YYYY-MM-DD format (with UTC conversion)
  */
 export function formatDateForServer(dateStr: string): string {
   console.log('formatDateForServer input:', dateStr);
@@ -128,55 +131,53 @@ export function formatDateForServer(dateStr: string): string {
   
   try {
     // If the input is already in YYYY-MM-DD format from HTML date input
-    // We can just pass it through directly without any timezone conversion
     const dateRegex = /^(\d{4})-(\d{2})-(\d{2})$/;
     const match = dateStr.match(dateRegex);
     
     if (match) {
       console.log('Date is already in YYYY-MM-DD format, using as is:', dateStr);
-      return dateStr; // Return the date string directly to avoid any timezone shifts
+      return dateStr; // The format is already correct for the server
     }
     
-    // For other formats, parse as a local date and format to YYYY-MM-DD
-    // ensuring we use local date components, not UTC
+    // For other formats, parse and format to YYYY-MM-DD in UTC
     const date = new Date(dateStr);
     if (isNaN(date.getTime())) {
       console.error('Invalid date:', dateStr);
-      // Return current date as fallback
+      // Return current date in UTC as fallback
       const today = new Date();
-      return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+      return `${today.getUTCFullYear()}-${String(today.getUTCMonth() + 1).padStart(2, '0')}-${String(today.getUTCDate()).padStart(2, '0')}`;
     }
     
-    // Format as YYYY-MM-DD using local date components (not UTC)
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
+    // Format as YYYY-MM-DD using UTC date components
+    const year = date.getUTCFullYear();
+    const month = String(date.getUTCMonth() + 1).padStart(2, '0');
+    const day = String(date.getUTCDate()).padStart(2, '0');
     
     const formatted = `${year}-${month}-${day}`;
-    console.log('Formatted date for server (local timezone):', formatted);
+    console.log('Formatted date for server (UTC):', formatted);
     return formatted;
   } catch (error) {
     console.error('Error formatting date for server:', error);
-    // Return current date as fallback
+    // Return current date in UTC as fallback
     const today = new Date();
-    return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+    return `${today.getUTCFullYear()}-${String(today.getUTCMonth() + 1).padStart(2, '0')}-${String(today.getUTCDate()).padStart(2, '0')}`;
   }
 }
 
 /**
- * Returns today's date in YYYY-MM-DD format
+ * Returns today's date in YYYY-MM-DD format in UTC
  */
 export function getTodayFormatted(): string {
   const now = new Date();
-  const year = now.getFullYear();
-  const month = (now.getMonth() + 1).toString().padStart(2, '0');
-  const day = now.getDate().toString().padStart(2, '0');
+  const year = now.getUTCFullYear();
+  const month = (now.getUTCMonth() + 1).toString().padStart(2, '0');
+  const day = now.getUTCDate().toString().padStart(2, '0');
   
   return `${year}-${month}-${day}`;
 }
 
 /**
- * Returns the current date in YYYY-MM-DD format
+ * Returns the current date in YYYY-MM-DD format in UTC
  * Alias for getTodayFormatted for better semantic clarity
  */
 export function getCurrentDate(): string {
@@ -184,23 +185,23 @@ export function getCurrentDate(): string {
 }
 
 /**
- * Returns a date that is a certain number of days in the future or past
+ * Returns a date that is a certain number of days in the future or past in UTC
  * @param days - Number of days to add (positive) or subtract (negative)
  * @returns Date string in YYYY-MM-DD format
  */
 export function getRelativeDate(days: number): string {
   const date = new Date();
-  date.setDate(date.getDate() + days);
+  date.setUTCDate(date.getUTCDate() + days);
   
-  const year = date.getFullYear();
-  const month = (date.getMonth() + 1).toString().padStart(2, '0');
-  const day = date.getDate().toString().padStart(2, '0');
+  const year = date.getUTCFullYear();
+  const month = (date.getUTCMonth() + 1).toString().padStart(2, '0');
+  const day = date.getUTCDate().toString().padStart(2, '0');
   
   return `${year}-${month}-${day}`;
 }
 
 /**
- * Determines if a date is in the past
+ * Determines if a date is in the past, using UTC comparison
  * @param dateValue - The date to check
  * @returns Boolean indicating if the date is in the past
  */
@@ -211,10 +212,10 @@ export function isDateInPast(dateValue: string | Date | null | undefined): boole
     let date: Date;
     
     if (typeof dateValue === 'string') {
-      // For YYYY-MM-DD strings, ensure we're parsing in local timezone
+      // For YYYY-MM-DD strings, ensure we're parsing in UTC
       if (dateValue.match(/^\d{4}-\d{2}-\d{2}$/)) {
         const [year, month, day] = dateValue.split('-').map(Number);
-        date = new Date(year, month - 1, day);
+        date = new Date(Date.UTC(year, month - 1, day));
       } else {
         date = new Date(dateValue);
       }
@@ -222,12 +223,12 @@ export function isDateInPast(dateValue: string | Date | null | undefined): boole
       date = dateValue;
     }
     
-    // Set to midnight for comparison
-    date.setHours(0, 0, 0, 0);
+    // Set to midnight UTC for comparison
+    date.setUTCHours(0, 0, 0, 0);
     
-    // Get today at midnight
+    // Get today at midnight UTC
     const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    today.setUTCHours(0, 0, 0, 0);
     
     return date < today;
   } catch (error) {

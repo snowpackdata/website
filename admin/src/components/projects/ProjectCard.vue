@@ -116,7 +116,7 @@
               <div class="min-w-0 flex-1">
                 <div class="flex items-start gap-x-3">
                   <p class="text-sm font-semibold text-gray-900">{{ code.name }}</p>
-                  <p v-if="code.active" class="text-green-700 bg-green-50 ring-green-600/20 mt-0.5 whitespace-nowrap rounded-md px-1.5 py-0.5 text-xs font-medium ring-1 ring-inset">
+                  <p v-if="isBillingCodeActive(code)" class="text-green-700 bg-green-50 ring-green-600/20 mt-0.5 whitespace-nowrap rounded-md px-1.5 py-0.5 text-xs font-medium ring-1 ring-inset">
                     Active
                   </p>
                   <p v-else class="text-red-700 bg-red-50 ring-red-600/20 mt-0.5 whitespace-nowrap rounded-md px-1.5 py-0.5 text-xs font-medium ring-1 ring-inset">
@@ -404,12 +404,17 @@ const formatCurrency = (amount: number) => {
 // Calculate project status
 const getProjectStatus = (project: Project) => {
   const now = new Date();
+  // Parse dates from ISO string to properly handle UTC values
   const startDate = new Date(project.active_start);
   const endDate = new Date(project.active_end);
   
-  if (now < startDate) {
+  // For consistent comparison, ensure we're comparing only dates (not times)
+  // by zeroing out hours in UTC
+  const nowDate = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+  
+  if (nowDate < startDate) {
     return { status: 'upcoming', label: 'Upcoming', color: 'bg-blue-50 text-blue-700 ring-blue-700/10' };
-  } else if (now > endDate) {
+  } else if (nowDate > endDate) {
     return { status: 'completed', label: 'Completed', color: 'bg-gray-100 text-gray-700 ring-gray-700/10' };
   } else {
     return { status: 'active', label: 'Active', color: 'bg-green-50 text-green-700 ring-green-700/10' };
@@ -418,9 +423,15 @@ const getProjectStatus = (project: Project) => {
 
 // Calculate days remaining or days overdue
 const getProjectTimeframe = (project: Project) => {
+  // Get current date in UTC, zeroing out the time portion
   const now = new Date();
+  const nowDate = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+  
+  // Parse end date from ISO string to handle UTC values
   const endDate = new Date(project.active_end);
-  const diffTime = endDate.getTime() - now.getTime();
+  
+  // Calculate difference in milliseconds and convert to days
+  const diffTime = endDate.getTime() - nowDate.getTime();
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   
   if (diffDays > 0) {
@@ -428,7 +439,7 @@ const getProjectTimeframe = (project: Project) => {
   } else if (diffDays < 0) {
     return `${Math.abs(diffDays)} day${Math.abs(diffDays) !== 1 ? 's' : ''} overdue`;
   } else {
-    return 'Ends today';
+    return 'Due today';
   }
 };
 
@@ -465,5 +476,26 @@ const formatProfit = (clientRate: number, internalRate: number) => {
   
   // Format the output with $ amount and percentage
   return `$${Math.abs(margin)} (${formattedPercentage}%)`;
+};
+
+// Helper function to check if a billing code is currently active
+const isBillingCodeActive = (code: any): boolean => {
+  if (!code) return false;
+  
+  // Parse dates from billing code, defaulting to null if not present
+  const startDate = code.active_start ? new Date(code.active_start) : null;
+  const endDate = code.active_end ? new Date(code.active_end) : null;
+  
+  // Get current date (at midnight UTC)
+  const now = new Date();
+  now.setHours(0, 0, 0, 0);
+  
+  // Check if current date is within the active period
+  // If no start date, assume it's active from the beginning of time
+  // If no end date, assume it's active indefinitely
+  const isAfterStart = !startDate || now >= startDate;
+  const isBeforeEnd = !endDate || now <= endDate;
+  
+  return isAfterStart && isBeforeEnd;
 };
 </script> 

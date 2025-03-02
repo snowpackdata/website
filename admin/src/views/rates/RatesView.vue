@@ -150,9 +150,9 @@ const isRateActive = (rate: Rate): boolean => {
   const startDate = rate.active_from ? new Date(rate.active_from) : null;
   const endDate = rate.active_to ? new Date(rate.active_to) : null;
   
-  // Get current date at midnight
+  // Get current date at midnight in UTC
   const now = new Date();
-  now.setHours(0, 0, 0, 0);
+  now.setUTCHours(0, 0, 0, 0);
   
   // Rate is active if: 
   // 1. Current date is after or equal to the start date (if a start date exists)

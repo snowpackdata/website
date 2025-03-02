@@ -57,13 +57,13 @@
             <div class="flex items-start gap-x-3">
               <p class="text-sm/6 font-semibold text-gray-900">{{ billingCode.name }}</p>
               <p :class="[
-                billingCode.active ? 'text-green-700 bg-green-50 ring-green-600/20' : 'text-red-700 bg-red-50 ring-red-600/20',
+                isBillingCodeActive(billingCode) ? 'text-green-700 bg-green-50 ring-green-600/20' : 'text-red-700 bg-red-50 ring-red-600/20',
                 'mt-0.5 whitespace-nowrap rounded-md px-1.5 py-0.5 text-xs font-medium ring-1 ring-inset'
               ]">
-                {{ billingCode.active ? 'Active' : 'Inactive' }}
+                {{ isBillingCodeActive(billingCode) ? 'Active' : 'Inactive' }}
               </p>
               <p class="mt-0.5 whitespace-nowrap rounded-md px-1.5 py-0.5 text-xs font-medium bg-indigo-50 text-indigo-700 ring-1 ring-inset ring-indigo-600/20">
-                {{ formatCategory(billingCode.type) }}
+                {{ formatCategory(billingCode.category) }}
               </p>
             </div>
             <div class="mt-1 flex items-center gap-x-2 text-xs/5 text-gray-500">
@@ -147,7 +147,8 @@ import {
 } from '../../api';
 import BillingCodeDrawer from '../../components/billing-codes/BillingCodeDrawer.vue';
 import ConfirmationModal from '../../components/ConfirmationModal.vue';
-import { formatDate, parseServerDate, getCurrentDate } from '../../utils/dateUtils';
+import { formatDate, parseServerDate, getCurrentDate, formatDateForServer } from '../../utils/dateUtils';
+import { createWithFormData, updateWithFormData } from '../../api/apiUtils';
 
 // State
 const billingCodes = ref([]);
@@ -215,12 +216,37 @@ const formatCurrency = (amount) => {
   }).format(amount);
 };
 
-const formatCategory = (type) => {
-  if (!type) return 'Unknown';
+const formatCategory = (category) => {
+  if (!category) return 'Unknown';
   
-  // Format the category string (convert from enum-like format to human-readable)
-  const formattedType = type.replace('BILLING_CODE_', '').replace(/_/g, ' ').toLowerCase();
-  return formattedType.charAt(0).toUpperCase() + formattedType.slice(1);
+  // Define a mapping for category constants to human-readable names
+  const categoryMap = {
+    'BILLING_CODE_CATEGORY_DEVELOPMENT': 'Development',
+    'BILLING_CODE_CATEGORY_ANALYSIS': 'Analysis',
+    'BILLING_CODE_CATEGORY_AI': 'AI & Machine Learning',
+    'BILLING_CODE_CATEGORY_CONSULTING': 'Consulting',
+    'BILLING_CODE_CATEGORY_OPERATIONS': 'Operations',
+    'BILLING_CODE_CATEGORY_ADMINISTRATIVE': 'Administrative',
+    'BILLING_CODE_CATEGORY_SUPPORT': 'Support',
+    'BILLING_CODE_CATEGORY_DESIGN': 'Design',
+    'BILLING_CODE_CATEGORY_TESTING': 'Testing & QA',
+    'BILLING_CODE_CATEGORY_MANAGEMENT': 'Project Management',
+    'BILLING_CODE_CATEGORY_EXTERNAL_CLIENT': 'External Client',
+  };
+  
+  // Check if we have a direct mapping
+  if (categoryMap[category]) {
+    return categoryMap[category];
+  }
+  
+  // Fall back to converting from enum-like format to human-readable if needed
+  // This handles both legacy data and new format
+  const formattedCategory = category
+    .replace('BILLING_CODE_CATEGORY_', '')
+    .replace(/_/g, ' ')
+    .toLowerCase();
+  
+  return formattedCategory.charAt(0).toUpperCase() + formattedCategory.slice(1);
 };
 
 // Project filter
@@ -236,6 +262,28 @@ const handleProjectChange = async () => {
   }
 };
 
+// Helper function to check if a billing code is currently active
+const isBillingCodeActive = (billingCode) => {
+  // Ensure we have a valid billing code object
+  if (!billingCode) return false;
+  
+  // Parse start and end dates using our utility functions
+  const startDate = billingCode.active_start ? new Date(billingCode.active_start) : null;
+  const endDate = billingCode.active_end ? new Date(billingCode.active_end) : null;
+  
+  // Get current date at midnight in UTC
+  const now = new Date();
+  now.setUTCHours(0, 0, 0, 0);
+  
+  // Billing code is active if: 
+  // 1. Current date is after or equal to the start date (if a start date exists)
+  // 2. Current date is before or equal to the end date (if an end date exists)
+  const isAfterStart = startDate ? now >= startDate : true;
+  const isBeforeEnd = endDate ? now <= endDate : true;
+  
+  return isAfterStart && isBeforeEnd;
+};
+
 // Drawer functions
 const openBillingCodeDrawer = (billingCode = null) => {
   if (billingCode) {
@@ -244,13 +292,11 @@ const openBillingCodeDrawer = (billingCode = null) => {
       ID: billingCode.ID,
       name: billingCode.name,
       code: billingCode.code || '',
-      type: billingCode.type,
+      category: billingCode.category,
       project: billingCode.project,
       projectId: billingCode.project,
       rate_id: billingCode.rate_id,
       rateId: billingCode.rate_id,
-      active: billingCode.active,
-      isActive: billingCode.active,
       active_start: billingCode.active_start || getCurrentDate(),
       active_end: billingCode.active_end || '',
       internal_rate_id: billingCode.internal_rate_id || ''
@@ -272,25 +318,74 @@ const closeBillingCodeDrawer = () => {
 // Save billing code
 const saveBillingCode = async (billingCodeData) => {
   try {
-    // Transform the form data to match the API structure
-    const apiData = {
-      ID: billingCodeData.id || 0,
-      name: billingCodeData.name,
-      code: billingCodeData.code || '',
-      type: billingCodeData.category || '',
-      project: billingCodeData.projectId,
-      rate_id: billingCodeData.rateId,
-      active: billingCodeData.isActive,
-      active_start: billingCodeData.active_start,
-      active_end: billingCodeData.active_end,
-      internal_rate_id: billingCodeData.internal_rate_id
-    };
+    // Check if the code already exists (for uniqueness)
+    const codeExists = billingCodes.value.some(code => 
+      code.code === billingCodeData.code && 
+      code.ID !== billingCodeData.id // Skip checking against the current billing code when editing
+    );
     
-    if (apiData.ID) {
-      await updateBillingCode(apiData);
-    } else {
-      await createBillingCode(apiData);
+    if (codeExists) {
+      alert('This billing code ID already exists. Please choose a different ID.');
+      return;
     }
+    
+    console.log('Saving billing code with data:', billingCodeData);
+    
+    // Ensure rateId is a valid number, default to 0 if undefined/null
+    const rateId = billingCodeData.rateId !== undefined ? Number(billingCodeData.rateId) : 
+                   billingCodeData.rate_id !== undefined ? Number(billingCodeData.rate_id) : 0;
+    
+    // Ensure internal_rate_id is a valid number, default to 0 if undefined/null
+    const internalRateId = billingCodeData.internal_rate_id !== undefined ? Number(billingCodeData.internal_rate_id) : 0;
+    
+    console.log('Rate values being used:', { rateId, internalRateId });
+    
+    // Create a FormData object directly with all required fields
+    const formData = new FormData();
+    formData.append('name', billingCodeData.name || '');
+    formData.append('code', billingCodeData.code || '');
+    formData.append('type', rateId === internalRateId ? 'RATE_TYPE_INTERNAL_PROJECT' : 'RATE_TYPE_EXTERNAL_CLIENT_BILLABLE');
+    formData.append('category', billingCodeData.category || '');
+    
+    // Project ID - ensure it's a string and valid
+    if (billingCodeData.projectId) {
+      formData.append('project_id', String(billingCodeData.projectId));
+    }
+    
+    // Always include both rate IDs as strings
+    formData.append('rate_id', String(rateId));
+    formData.append('internal_rate_id', String(internalRateId));
+    
+    // Dates
+    if (billingCodeData.active_start) {
+      formData.append('active_start', billingCodeData.active_start);
+    }
+    
+    if (billingCodeData.active_end) {
+      formData.append('active_end', billingCodeData.active_end);
+    }
+    
+    // Default rounded_to to 15 minutes
+    formData.append('rounded_to', '15');
+    
+    // Log the form data for debugging
+    console.log('Form data prepared for submission:');
+    for (const [key, value] of formData.entries()) {
+      console.log(`${key}: ${value}`);
+    }
+    
+    let newBillingCode;
+    if (billingCodeData.id) {
+      // Update existing billing code
+      console.log(`Updating billing code with ID: ${billingCodeData.id}`);
+      newBillingCode = await updateWithFormData('billing_codes', billingCodeData.id, formData);
+    } else {
+      // Create new billing code
+      console.log('Creating new billing code');
+      newBillingCode = await createWithFormData('billing_codes', formData);
+    }
+    
+    console.log('API response:', newBillingCode);
     
     // Refresh billing codes
     await fetchBillingCodesData();
@@ -305,7 +400,19 @@ const saveBillingCode = async (billingCodeData) => {
 
 // Delete billing code
 const confirmDelete = (billingCode) => {
-  billingCodeToDelete.value = billingCode;
+  if (!billingCode) {
+    console.error('No billing code provided for deletion');
+    return;
+  }
+  
+  // Ensure the billing code has a proper ID for deletion
+  billingCodeToDelete.value = {
+    ID: billingCode.ID || billingCode.id,
+    id: billingCode.id || billingCode.ID,
+    name: billingCode.name
+  };
+  
+  console.log('Preparing to delete billing code:', billingCodeToDelete.value);
   showDeleteModal.value = true;
   // Close the drawer when confirming delete
   isBillingCodeDrawerOpen.value = false;
@@ -315,7 +422,17 @@ const deleteBillingCode = async () => {
   if (!billingCodeToDelete.value) return;
   
   try {
-    await deleteBillingCodeAPI(billingCodeToDelete.value.ID);
+    // Use either ID or id property, whichever exists
+    const billingCodeId = billingCodeToDelete.value.ID || billingCodeToDelete.value.id;
+    
+    if (!billingCodeId) {
+      console.error('Invalid billing code ID for deletion:', billingCodeToDelete.value);
+      alert('Failed to delete billing code: Invalid ID');
+      return;
+    }
+    
+    console.log('Deleting billing code with ID:', billingCodeId);
+    await deleteBillingCodeAPI(billingCodeId);
     
     // Refresh billing codes
     await fetchBillingCodesData();

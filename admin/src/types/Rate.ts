@@ -44,16 +44,23 @@ export const RATE_TYPE_NAMES = {
  * Creates a new empty rate with default values
  */
 export function createEmptyRate(): Rate {
-  const today = new Date().toISOString().split('T')[0]; // Get current date in YYYY-MM-DD format
+  // Use UTC date functions to ensure consistent date handling
+  const today = new Date();
   const futureDate = new Date();
-  futureDate.setFullYear(futureDate.getFullYear() + 1); // Default end date is 1 year in the future
+  
+  // Default end date is 1 year in the future, use UTC functions
+  futureDate.setUTCFullYear(futureDate.getUTCFullYear() + 1);
+  
+  // Format the dates as YYYY-MM-DD strings in UTC
+  const todayFormatted = `${today.getUTCFullYear()}-${String(today.getUTCMonth() + 1).padStart(2, '0')}-${String(today.getUTCDate()).padStart(2, '0')}`;
+  const futureFormatted = `${futureDate.getUTCFullYear()}-${String(futureDate.getUTCMonth() + 1).padStart(2, '0')}-${String(futureDate.getUTCDate()).padStart(2, '0')}`;
   
   return {
     ID: 0,
     name: '',
     amount: 0,
-    active_from: today,
-    active_to: futureDate.toISOString().split('T')[0],
+    active_from: todayFormatted,
+    active_to: futureFormatted,
     internal_only: false
   };
 } 

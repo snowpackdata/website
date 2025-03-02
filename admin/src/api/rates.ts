@@ -53,7 +53,8 @@ function prepareRateForApi(rate: Rate): FormData {
   if (!rate.active_from) {
     console.error('Missing required active_from date');
     const today = new Date();
-    const formattedDate = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+    // Use UTC date for consistency
+    const formattedDate = `${today.getUTCFullYear()}-${String(today.getUTCMonth() + 1).padStart(2, '0')}-${String(today.getUTCDate()).padStart(2, '0')}`;
     formData.set("active_from", formattedDate);
   } else {
     console.log('Setting active_from date:', rate.active_from);

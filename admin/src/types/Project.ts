@@ -48,17 +48,25 @@ export const BILLING_FREQUENCIES = [
  * Creates a new empty project with default values
  */
 export function createEmptyProject(): Project {
+  // Use UTC date functions to ensure consistent date handling
   const today = new Date();
   const endDate = new Date();
-  endDate.setMonth(today.getMonth() + 6); // Default end date is 6 months from now
+  
+  // Default end date is 6 months from now, use UTC functions
+  endDate.setUTCMonth(today.getUTCMonth() + 6);
+  
+  // Format the dates as YYYY-MM-DD strings in UTC
+  const todayFormatted = `${today.getUTCFullYear()}-${String(today.getUTCMonth() + 1).padStart(2, '0')}-${String(today.getUTCDate()).padStart(2, '0')}`;
+  const endDateFormatted = `${endDate.getUTCFullYear()}-${String(endDate.getUTCMonth() + 1).padStart(2, '0')}-${String(endDate.getUTCDate()).padStart(2, '0')}`;
+  
   const account = createEmptyAccount();
   return {
     ID: 0,
     name: '',
     account_id: 0,
     account: account,
-    active_start: today.toISOString().split('T')[0],
-    active_end: endDate.toISOString().split('T')[0],
+    active_start: todayFormatted,
+    active_end: endDateFormatted,
     budget_hours: 0,
     budget_dollars: 0,
     internal: false,

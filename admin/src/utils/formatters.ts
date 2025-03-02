@@ -19,14 +19,20 @@ export function formatDate(dateString: string, style: 'default' | 'short' | 'ful
     
     switch(style) {
       case 'short':
-        options = { month: 'numeric', day: 'numeric', year: 'numeric' };
+        options = { 
+          month: 'numeric', 
+          day: 'numeric', 
+          year: 'numeric', 
+          timeZone: 'UTC' 
+        };
         break;
       case 'full':
         options = { 
           weekday: 'long',
           year: 'numeric', 
           month: 'long', 
-          day: 'numeric'
+          day: 'numeric',
+          timeZone: 'UTC'
         };
         break;
       case 'default':
@@ -34,7 +40,8 @@ export function formatDate(dateString: string, style: 'default' | 'short' | 'ful
         options = { 
           year: 'numeric', 
           month: 'short', 
-          day: 'numeric'
+          day: 'numeric',
+          timeZone: 'UTC'
         };
     }
     

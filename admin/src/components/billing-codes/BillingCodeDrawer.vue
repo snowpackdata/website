@@ -58,9 +58,10 @@
                             name="billing-code-code" 
                             id="billing-code-code" 
                             v-model="billingCode.code"
-                            placeholder="Enter billing code identifier"
+                            placeholder="TEXT_0001 (uppercase letters, underscore, numbers)"
                             class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-sage sm:text-sm/6" 
                           />
+                          <p class="mt-1 text-xs text-gray-500">Format: TEXT_0001 (uppercase text, underscore, numbers with leading zeros). Must be globally unique.</p>
                         </div>
                       </div>
 
@@ -95,37 +96,38 @@
                             name="billing-code-rate" 
                             v-model="billingCode.rateId"
                             class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-sage sm:text-sm/6"
+                            @change="val => console.log('Rate selected:', billingCode.rateId)"
                           >
-                            <option value="">Select a rate</option>
-                            <option v-for="rate in rates" :key="rate.ID" :value="rate.ID">
+                            <option :value="0">Select a rate</option>
+                            <option v-for="rate in rates" :key="rate.ID" :value="Number(rate.ID)">
+                              {{ rate.name }} ({{ formatCurrency(rate.amount) }})
+                            </option>
+                          </select>
+                        </div>
+                      </div>
+                      
+                      <!-- Internal Rate selection -->
+                      <div class="space-y-2 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-5">
+                        <div>
+                          <label for="billing-code-internal-rate" class="block text-sm/6 font-medium text-gray-900 sm:mt-1.5">Internal Rate</label>
+                        </div>
+                        <div class="sm:col-span-2">
+                          <select 
+                            id="billing-code-internal-rate" 
+                            name="billing-code-internal-rate" 
+                            v-model="billingCode.internal_rate_id"
+                            class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-sage sm:text-sm/6"
+                            @change="val => console.log('Internal rate selected:', billingCode.internal_rate_id)"
+                          >
+                            <option :value="0">Select an internal rate (optional)</option>
+                            <option v-for="rate in rates.filter(r => r.internal_only)" :key="rate.ID" :value="Number(rate.ID)">
                               {{ rate.name }} ({{ formatCurrency(rate.amount) }})
                             </option>
                           </select>
                         </div>
                       </div>
 
-                      <!-- Is Active -->
-                      <div class="space-y-2 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-5">
-                        <div>
-                          <label for="billing-code-active" class="block text-sm/6 font-medium text-gray-900 sm:mt-1.5">Status</label>
-                        </div>
-                        <div class="sm:col-span-2 flex items-center">
-                          <div class="flex items-center">
-                            <input 
-                              type="checkbox" 
-                              id="billing-code-active" 
-                              name="billing-code-active" 
-                              v-model="billingCode.isActive"
-                              class="h-4 w-4 text-sage focus:ring-sage border-gray-300 rounded"
-                            />
-                            <label for="billing-code-active" class="ml-2 block text-sm text-gray-900">
-                              Active
-                            </label>
-                          </div>
-                        </div>
-                      </div>
-
-                      <!-- Billing Code Category -->
+                      <!-- Billing Code Category (updated to match expected values) -->
                       <div class="space-y-2 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-5">
                         <div>
                           <label for="billing-code-description" class="block text-sm/6 font-medium text-gray-900 sm:mt-1.5">Category</label>
@@ -176,26 +178,6 @@
                           />
                         </div>
                       </div>
-                      
-                      <!-- Internal Rate selection -->
-                      <div class="space-y-2 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-5">
-                        <div>
-                          <label for="billing-code-internal-rate" class="block text-sm/6 font-medium text-gray-900 sm:mt-1.5">Internal Rate</label>
-                        </div>
-                        <div class="sm:col-span-2">
-                          <select 
-                            id="billing-code-internal-rate" 
-                            name="billing-code-internal-rate" 
-                            v-model="billingCode.internal_rate_id"
-                            class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-sage sm:text-sm/6"
-                          >
-                            <option value="">Select an internal rate (optional)</option>
-                            <option v-for="rate in rates.filter(r => r.internal_only)" :key="rate.ID" :value="rate.ID">
-                              {{ rate.name }} ({{ formatCurrency(rate.amount) }})
-                            </option>
-                          </select>
-                        </div>
-                      </div>
                     </div>
                   </div>
 
@@ -241,7 +223,7 @@ import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } fro
 import { XMarkIcon } from '@heroicons/vue/24/outline';
 import { fetchProjects } from '../../api/projects';
 import { fetchRates } from '../../api/rates';
-import { formatDate, parseServerDate, getTodayFormatted } from '../../utils/dateUtils';
+import { formatDate, parseServerDate, getTodayFormatted, formatDateForServer } from '../../utils/dateUtils';
 
 const props = defineProps({
   isOpen: {
@@ -268,14 +250,19 @@ const handleDelete = () => {
   }
 };
 
-// Billing code categories
+// Billing code categories (updated to match the system's expected values)
 const billingCodeCategories = [
-  { id: 'BILLABLE', name: 'Billable' },
-  { id: 'NON_BILLABLE', name: 'Non-Billable' },
-  { id: 'LEAVE', name: 'Leave' },
-  { id: 'HOLIDAY', name: 'Holiday' },
-  { id: 'ADMINISTRATIVE', name: 'Administrative' },
-  { id: 'DEVELOPMENT', name: 'Development' },
+  { id: 'BILLING_CODE_CATEGORY_DEVELOPMENT', name: 'Development' },
+  { id: 'BILLING_CODE_CATEGORY_ANALYSIS', name: 'Analysis' },
+  { id: 'BILLING_CODE_CATEGORY_AI', name: 'AI & Machine Learning' },
+  { id: 'BILLING_CODE_CATEGORY_CONSULTING', name: 'Consulting' },
+  { id: 'BILLING_CODE_CATEGORY_OPERATIONS', name: 'Operations' },
+  { id: 'BILLING_CODE_CATEGORY_ADMINISTRATIVE', name: 'Administrative' },
+  { id: 'BILLING_CODE_CATEGORY_SUPPORT', name: 'Support' },
+  { id: 'BILLING_CODE_CATEGORY_DESIGN', name: 'Design' },
+  { id: 'BILLING_CODE_CATEGORY_TESTING', name: 'Testing & QA' },
+  { id: 'BILLING_CODE_CATEGORY_MANAGEMENT', name: 'Project Management' },
+  { id: 'BILLING_CODE_CATEGORY_EXTERNAL_CLIENT', name: 'External Client' },
 ];
 
 // Determine if editing or creating new
@@ -286,13 +273,15 @@ const billingCode = ref({
   id: props.billingCodeData?.id || props.billingCodeData?.ID || null,
   name: props.billingCodeData?.name || '',
   code: props.billingCodeData?.code || '',
-  category: props.billingCodeData?.type || '',
+  category: props.billingCodeData?.category || 'BILLING_CODE_CATEGORY_EXTERNAL_CLIENT',
   projectId: props.billingCodeData?.projectId || props.billingCodeData?.project || '',
-  rateId: props.billingCodeData?.rateId || props.billingCodeData?.rate_id || '',
-  isActive: props.billingCodeData?.isActive !== undefined ? props.billingCodeData.isActive : (props.billingCodeData?.active !== undefined ? props.billingCodeData.active : true),
+  // Ensure rateId is always a number (default to 0 if not provided)
+  rateId: props.billingCodeData?.rateId ? Number(props.billingCodeData?.rateId) : 
+         props.billingCodeData?.rate_id ? Number(props.billingCodeData?.rate_id) : 0,
   active_start: parseServerDate(props.billingCodeData?.active_start) || getTodayFormatted(),
   active_end: parseServerDate(props.billingCodeData?.active_end) || '',
-  internal_rate_id: props.billingCodeData?.internal_rate_id || ''
+  // Ensure internal_rate_id is always a number (default to 0 if not provided)
+  internal_rate_id: props.billingCodeData?.internal_rate_id ? Number(props.billingCodeData?.internal_rate_id) : 0
 });
 
 // Update billing code data when billingCodeData prop changes
@@ -302,14 +291,17 @@ watch(() => props.billingCodeData, (newVal) => {
       id: newVal.ID || newVal.id || null,
       name: newVal.name || '',
       code: newVal.code || '',
-      category: newVal.type || '',
+      category: newVal.category || 'BILLING_CODE_CATEGORY_EXTERNAL_CLIENT',
       projectId: newVal.project || newVal.projectId || '',
-      rateId: newVal.rate_id || newVal.rateId || '',
-      isActive: newVal.active !== undefined ? newVal.active : (newVal.isActive !== undefined ? newVal.isActive : true),
+      // Ensure rateId is always a number (default to 0 if not provided)
+      rateId: newVal.rate_id ? Number(newVal.rate_id) : 
+             newVal.rateId ? Number(newVal.rateId) : 0,
       active_start: parseServerDate(newVal.active_start) || getTodayFormatted(),
       active_end: parseServerDate(newVal.active_end) || '',
-      internal_rate_id: newVal.internal_rate_id || ''
+      // Ensure internal_rate_id is always a number (default to 0 if not provided)
+      internal_rate_id: newVal.internal_rate_id ? Number(newVal.internal_rate_id) : 0
     };
+    console.log('Updated billing code form with data:', billingCode.value);
   }
 }, { deep: true });
 
@@ -321,9 +313,14 @@ onMounted(async () => {
   try {
     const projectsData = await fetchProjects();
     projects.value = projectsData || [];
+    console.log('Loaded projects:', projects.value);
     
     const ratesData = await fetchRates();
     rates.value = ratesData || [];
+    console.log('Loaded rates:', rates.value);
+    
+    // Log the current billing code data for debugging
+    console.log('Current billing code data:', billingCode.value);
   } catch (error) {
     console.error('Failed to fetch data:', error);
   }
@@ -350,6 +347,13 @@ const handleSubmit = () => {
     return;
   }
   
+  // Validate billing code format (TEXT_####)
+  const codeRegex = /^[A-Z]+_\d+$/;
+  if (!codeRegex.test(billingCode.value.code)) {
+    alert('Billing code format must be TEXT_0001 (uppercase letters, underscore, followed by numbers)');
+    return;
+  }
+  
   if (!billingCode.value.category) {
     alert('Please select a category');
     return;
@@ -365,8 +369,23 @@ const handleSubmit = () => {
     return;
   }
 
+  // Format dates for API in YYYY-MM-DD format
+  const formattedBillingCode = {
+    ...billingCode.value,
+    active_start: formatDateForServer(billingCode.value.active_start),
+    active_end: formatDateForServer(billingCode.value.active_end),
+    // Explicitly convert rate IDs to numbers
+    rateId: Number(billingCode.value.rateId),
+    // Convert internal rate ID to number (defaults to 0 if not present)
+    internal_rate_id: Number(billingCode.value.internal_rate_id || 0)
+  };
+
+  console.log('Submitting billing code with data:', formattedBillingCode);
+  console.log('Rate ID:', formattedBillingCode.rateId, 'type:', typeof formattedBillingCode.rateId);
+  console.log('Internal Rate ID:', formattedBillingCode.internal_rate_id, 'type:', typeof formattedBillingCode.internal_rate_id);
+
   // Emit save event with billing code data
-  emit('save', billingCode.value);
+  emit('save', formattedBillingCode);
   
   // Close the drawer
   handleClose();
