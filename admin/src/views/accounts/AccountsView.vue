@@ -18,66 +18,60 @@
       </div>
     </div>
     
-    <!-- Account Table -->
+    <!-- Account Cards -->
     <div class="mt-8 flow-root">
-      <div class="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
-        <div class="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
-          <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
-            <table class="min-w-full divide-y divide-gray-300">
-              <thead class="bg-gray-50">
-                <tr>
-                  <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">Name</th>
-                  <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Type</th>
-                  <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Email</th>
-                  <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Phone</th>
-                  <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Billing Frequency</th>
-                  <th scope="col" class="relative py-3.5 pl-3 pr-4 sm:pr-6">
-                    <span class="sr-only">Actions</span>
-                  </th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-gray-200 bg-white">
-                <tr v-for="account in accounts" :key="account.id" class="hover:bg-gray-50">
-                  <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
-                    {{ account.name }}
-                  </td>
-                  <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                    {{ formatAccountType(account.type) }}
-                  </td>
-                  <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                    {{ account.email }}
-                  </td>
-                  <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                    {{ account.phone }}
-                  </td>
-                  <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                    {{ formatBillingFrequency(account.billingFrequency) }}
-                  </td>
-                  <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                    <button
-                      @click="openAccountDrawer(account)"
-                      class="text-sage hover:text-sage-dark mr-4"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      @click="confirmDelete(account)"
-                      class="text-red-600 hover:text-red-900"
-                    >
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-                <tr v-if="accounts.length === 0">
-                  <td colspan="6" class="px-3 py-4 text-sm text-gray-500 text-center">
-                    No accounts found. Click "Create new account" to add one.
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+      <ul role="list" class="divide-y divide-gray-200">
+        <li v-for="account in accounts" :key="account.id" class="py-5">
+          <div class="overflow-hidden bg-white shadow sm:rounded-lg">
+            <div class="px-4 py-4 sm:px-6 flex justify-between items-start">
+              <div>
+                <h3 class="text-lg font-semibold text-gray-900">{{ account.name }}</h3>
+                <p class="mt-1 max-w-2xl text-sm text-gray-500">{{ formatAccountType(account.type) }}</p>
+              </div>
+              <button
+                @click="openAccountDrawer(account)"
+                class="text-sage hover:text-sage-dark rounded-full p-2 hover:bg-gray-100 transition-colors"
+                title="Edit Account"
+              >
+                <i class="fas fa-pencil-alt"></i>
+              </button>
+            </div>
+            <div class="border-t border-gray-100">
+              <dl class="divide-y divide-gray-100">
+                <div class="px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                  <dt class="text-sm font-medium text-gray-900">Email</dt>
+                  <dd class="mt-1 text-sm text-gray-700 sm:col-span-2 sm:mt-0">{{ account.email || 'Not specified' }}</dd>
+                </div>
+                <div class="px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                  <dt class="text-sm font-medium text-gray-900">Phone</dt>
+                  <dd class="mt-1 text-sm text-gray-700 sm:col-span-2 sm:mt-0">{{ account.phone || 'Not specified' }}</dd>
+                </div>
+                <div class="px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                  <dt class="text-sm font-medium text-gray-900">Address</dt>
+                  <dd class="mt-1 text-sm text-gray-700 sm:col-span-2 sm:mt-0 whitespace-pre-line">{{ account.address || 'Not specified' }}</dd>
+                </div>
+                <div class="px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                  <dt class="text-sm font-medium text-gray-900">Billing Frequency</dt>
+                  <dd class="mt-1 text-sm text-gray-700 sm:col-span-2 sm:mt-0">{{ formatBillingFrequency(account.billingFrequency) }}</dd>
+                </div>
+                <div class="px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                  <dt class="text-sm font-medium text-gray-900">Invoice Type</dt>
+                  <dd class="mt-1 text-sm text-gray-700 sm:col-span-2 sm:mt-0">
+                    {{ account.projectsSingleInvoice ? 'Combined (all projects in one invoice)' : 'Separate (one invoice per project)' }}
+                  </dd>
+                </div>
+              </dl>
+            </div>
           </div>
-        </div>
-      </div>
+        </li>
+        <li v-if="accounts.length === 0" class="py-5">
+          <div class="flex flex-col items-center justify-center p-10 bg-white rounded-lg shadow">
+            <i class="fas fa-building text-5xl text-teal mb-4"></i>
+            <p class="text-lg font-medium text-gray-dark">No accounts found</p>
+            <p class="text-gray mb-4">Click "Create new account" to add one</p>
+          </div>
+        </li>
+      </ul>
     </div>
     
     <!-- Account Drawer -->
@@ -86,6 +80,7 @@
       :account-data="selectedAccount"
       @close="closeAccountDrawer"
       @save="saveAccount"
+      @delete="handleDeleteFromDrawer"
     />
     
     <!-- Delete Confirmation Modal -->
@@ -197,5 +192,9 @@ const deleteAccount = async () => {
     console.error('Error deleting account:', error);
     alert('Failed to delete account. Please try again.');
   }
+};
+
+const handleDeleteFromDrawer = (account) => {
+  confirmDelete(account);
 };
 </script> 

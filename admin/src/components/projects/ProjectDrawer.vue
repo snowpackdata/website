@@ -167,7 +167,7 @@
 import { ref, computed, onMounted, watch } from 'vue';
 import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } from '@headlessui/vue';
 import { XMarkIcon } from '@heroicons/vue/24/outline';
-import { fetchAccounts } from '../api/accounts';
+import { fetchAccounts } from '../../api/accounts';
 
 const props = defineProps({
   isOpen: {

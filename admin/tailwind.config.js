@@ -5,6 +5,25 @@ export default {
     "./src/style.css",
     "./src/**/*.{vue,js,ts,jsx,tsx,css}",
   ],
+  safelist: [
+    'bg-sage',
+    'bg-sage-dark',
+    'bg-sage-light',
+    'bg-sage-pale',
+    'text-sage',
+    'text-sage-dark',
+    'text-sage-light',
+    'text-sage-pale',
+    'hover:bg-sage',
+    'hover:bg-sage-dark',
+    'hover:bg-sage-light',
+    'hover:bg-sage-pale',
+    'hover:text-sage',
+    'hover:text-sage-dark',
+    'hover:text-sage-light',
+    'hover:text-sage-pale',
+    'focus-visible:outline-sage'
+  ],
   theme: {
     extend: {
       colors: {

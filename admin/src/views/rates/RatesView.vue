@@ -169,6 +169,24 @@ const closeRateDrawer = () => {
   isRateDrawerOpen.value = false;
   selectedRate.value = null;
 };
+
+const handleDeleteFromDrawer = async (rate) => {
+  if (!rate) return;
+  
+  try {
+    // Convert string ID to number before passing to API
+    await apiDeleteRate(Number(rate.ID));
+    
+    // Refresh rates
+    await fetchRatesData();
+    
+    // Close drawer
+    closeRateDrawer();
+  } catch (error) {
+    console.error('Error deleting rate:', error);
+    alert('Failed to delete rate. Please try again.');
+  }
+};
 </script>
 
 <template>
@@ -246,15 +264,10 @@ const closeRateDrawer = () => {
                   <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
                     <button
                       @click="openRateDrawer(rate)"
-                      class="text-sage hover:text-sage-dark mr-4"
+                      class="text-sage hover:text-sage-dark rounded-full p-1 hover:bg-gray-100 transition-colors"
+                      title="Edit Rate"
                     >
-                      Edit
-                    </button>
-                    <button
-                      @click="confirmDelete(rate)"
-                      class="text-red-600 hover:text-red-900"
-                    >
-                      Delete
+                      <i class="fas fa-pencil-alt"></i>
                     </button>
                   </td>
                 </tr>
@@ -276,6 +289,7 @@ const closeRateDrawer = () => {
       :rate-data="selectedRate"
       @close="closeRateDrawer"
       @save="saveRate"
+      @delete="handleDeleteFromDrawer"
     />
     
     <!-- Delete Confirmation Modal -->

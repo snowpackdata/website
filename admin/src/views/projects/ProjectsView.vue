@@ -2,11 +2,15 @@
 import { ref, onMounted } from 'vue';
 import projectsApi from '../../api/projects';
 import type { Project } from '../../types/Project';
+// @ts-ignore - Ignore type issues with Vue components for now
+import ProjectDrawer from '../../components/projects/ProjectDrawer.vue';
 
 // State
 const projects = ref<Project[]>([]);
 const isLoading = ref(true);
 const error = ref<string | null>(null);
+const isProjectDrawerOpen = ref(false);
+const selectedProject = ref<Project | null>(null);
 
 // Fetch projects function
 const fetchProjects = async () => {
@@ -34,6 +38,34 @@ const formatDate = (dateString: string): string => {
   const date = new Date(dateString);
   return date.toLocaleDateString();
 };
+
+// Project drawer functions
+const openProjectDrawer = (project: Project | null = null) => {
+  selectedProject.value = project;
+  isProjectDrawerOpen.value = true;
+};
+
+const closeProjectDrawer = () => {
+  isProjectDrawerOpen.value = false;
+  selectedProject.value = null;
+};
+
+// Function to edit a project
+const editProject = (project: Project) => {
+  openProjectDrawer(project);
+};
+
+// Function to save project
+const saveProject = async (projectData: any) => {
+  try {
+    // Implementation would be added here for saving project
+    // For now, just refresh the list
+    await fetchProjects();
+    closeProjectDrawer();
+  } catch (error) {
+    console.error('Error saving project:', error);
+  }
+};
 </script>
 
 <template>
@@ -42,6 +74,15 @@ const formatDate = (dateString: string): string => {
       <div class="sm:flex-auto">
         <h1 class="text-xl font-semibold text-blue">Projects</h1>
         <p class="mt-2 text-sm text-gray">A list of all projects including their status, client, and dates.</p>
+      </div>
+      <div class="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
+        <button
+          type="button"
+          @click="openProjectDrawer()"
+          class="block rounded-md bg-sage px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-sage-dark focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sage"
+        >
+          Create new project
+        </button>
       </div>
     </div>
 
@@ -67,29 +108,66 @@ const formatDate = (dateString: string): string => {
       <p class="text-gray mb-4">Projects will appear here once they are created</p>
     </div>
     
-    <!-- Projects list placeholder -->
-    <div v-else class="mt-6 bg-white shadow overflow-hidden sm:rounded-md">
-      <table class="min-w-full divide-y divide-gray-300">
-        <thead>
-          <tr>
-            <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-medium text-gray-900">Name</th>
-            <th scope="col" class="px-3 py-3.5 text-left text-sm font-medium text-gray-900">Account</th>
-            <th scope="col" class="px-3 py-3.5 text-left text-sm font-medium text-gray-900">Start Date</th>
-            <th scope="col" class="px-3 py-3.5 text-left text-sm font-medium text-gray-900">End Date</th>
-            <th scope="col" class="px-3 py-3.5 text-left text-sm font-medium text-gray-900">Status</th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-gray-200 bg-white">
-          <tr v-for="project in projects" :key="project.ID">
-            <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900">{{ project.name }}</td>
-            <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{{ project.account.name }}</td>
-            <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{{ formatDate(project.active_start) }}</td>
-            <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{{ formatDate(project.active_end) }}</td>
-            <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{{ project.budget_hours }}</td>
-          </tr>
-        </tbody>
-      </table>
+    <!-- Projects Cards -->
+    <div v-else class="mt-6">
+      <ul role="list" class="divide-y divide-gray-200">
+        <li v-for="project in projects" :key="project.ID" class="py-5">
+          <div class="overflow-hidden bg-white shadow sm:rounded-lg">
+            <div class="px-4 py-4 sm:px-6 flex justify-between items-start">
+              <div>
+                <h3 class="text-lg font-semibold text-gray-900">{{ project.name }}</h3>
+                <p class="mt-1 max-w-2xl text-sm text-gray-500">{{ project.account.name }}</p>
+              </div>
+              <button
+                @click="editProject(project)"
+                class="text-teal hover:text-teal-dark rounded-full p-2 hover:bg-gray-100 transition-colors"
+                title="Edit Project"
+              >
+                <i class="fas fa-pencil-alt"></i>
+              </button>
+            </div>
+            <div class="border-t border-gray-100">
+              <dl class="divide-y divide-gray-100">
+                <div class="px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                  <dt class="text-sm font-medium text-gray-900">Start Date</dt>
+                  <dd class="mt-1 text-sm text-gray-700 sm:col-span-2 sm:mt-0">
+                    {{ formatDate(project.active_start) ? formatDate(project.active_start) : 'Not specified' }}
+                  </dd>
+                </div>
+                <div class="px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                  <dt class="text-sm font-medium text-gray-900">End Date</dt>
+                  <dd class="mt-1 text-sm text-gray-700 sm:col-span-2 sm:mt-0">
+                    {{ formatDate(project.active_end) ? formatDate(project.active_end) : 'Not specified' }}
+                  </dd>
+                </div>
+                <div class="px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                  <dt class="text-sm font-medium text-gray-900">Budget Hours</dt>
+                  <dd class="mt-1 text-sm text-gray-700 sm:col-span-2 sm:mt-0">
+                    {{ project.budget_hours !== null && project.budget_hours !== undefined ? project.budget_hours : 'Not specified' }}
+                  </dd>
+                </div>
+                <div class="px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6" v-if="project.description && project.description.length > 0">
+                  <dt class="text-sm font-medium text-gray-900">Description</dt>
+                  <dd class="mt-1 text-sm text-gray-700 sm:col-span-2 sm:mt-0 whitespace-pre-line">{{ project.description }}</dd>
+                </div>
+                <div class="px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6" v-if="project.type && project.type.length > 0">
+                  <dt class="text-sm font-medium text-gray-900">Type</dt>
+                  <dd class="mt-1 text-sm text-gray-700 sm:col-span-2 sm:mt-0">{{ project.type }}</dd>
+                </div>
+              </dl>
+            </div>
+          </div>
+        </li>
+      </ul>
     </div>
+    
+    <!-- Project Drawer -->
+    <ProjectDrawer
+      :is-open="isProjectDrawerOpen"
+      :project-data="selectedProject"
+      @close="closeProjectDrawer"
+      @save="saveProject"
+    />
   </div>
 </template>
 

@@ -167,6 +167,15 @@
                       >
                         Cancel
                       </button>
+                      <!-- Add delete button only when editing existing account -->
+                      <button 
+                        v-if="isEditing"
+                        type="button" 
+                        class="rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600"
+                        @click="handleDelete"
+                      >
+                        Delete
+                      </button>
                       <button 
                         type="submit" 
                         class="inline-flex justify-center rounded-md bg-sage px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-sage-dark focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sage"
@@ -201,11 +210,18 @@ const props = defineProps({
   }
 });
 
-const emit = defineEmits(['close', 'save']);
+const emit = defineEmits(['close', 'save', 'delete']);
 
 // Handle close events
 const handleClose = () => {
   emit('close');
+};
+
+// Handle delete functionality
+const handleDelete = () => {
+  if (window.confirm('Are you sure you want to delete this account? This action cannot be undone and will also remove all projects associated with this account.')) {
+    emit('delete', props.accountData);
+  }
 };
 
 // Determine if editing or creating new
