@@ -1,0 +1,42 @@
+# Config file for Air hot reloading
+# https://github.com/air-verse/air
+
+root = "."
+tmp_dir = "tmp"
+
+[build]
+# Binary file yielded from `go build -o` command
+bin = "./tmp/main"
+# Command to build the binary
+cmd = "go build -o ./tmp/main ."
+# Watch these directories for changes
+include_dir = [".", "handlers", "models", "routes", "middleware", "utils"]
+# Ignore these directories/files
+exclude_dir = ["admin/node_modules", "admin/dist", "tmp", "vendor", "assets"]
+exclude_file = []
+# Exclude unchanged files
+exclude_unchanged = true
+# Follow symlinks
+follow_symlink = true
+# Delay before rebuilding after changes (ms)
+delay = 1000
+# Kill and restart on exit
+kill_delay = "0s"
+log = "build-errors.log"
+# Stop builds on error
+stop_on_error = true
+
+[color]
+# Customize the colors for the terminal output
+main = "magenta"
+watcher = "cyan"
+build = "yellow"
+runner = "green"
+
+[log]
+# Log level: debug, info, warn, error, fatal
+level = "info"
+
+[screen]
+# Clear terminal screen on rebuild
+clear_on_rebuild = true 

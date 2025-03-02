@@ -1,0 +1,88 @@
+import { createRouter, createWebHistory } from 'vue-router';
+
+// Define routes - Use dynamic imports to avoid typecheck errors
+const routes = [
+  {
+    path: '/',
+    redirect: '/timesheet'
+  },
+  {
+    path: '/timesheet',
+    name: 'timesheet',
+    component: () => import('../views/timesheet/TimesheetView.vue'),
+    meta: {
+      title: 'Timesheet'
+    }
+  },
+  {
+    path: '/timesheet-admin',
+    name: 'timesheet-admin',
+    component: () => import('../views/timesheet-admin/TimesheetAdminView.vue'),
+    meta: {
+      title: 'Timesheet Admin'
+    }
+  },
+  {
+    path: '/invoices',
+    name: 'invoices',
+    component: () => import('../views/invoices/InvoicesView.vue'),
+    meta: {
+      title: 'Invoices'
+    }
+  },
+  {
+    path: '/bills',
+    name: 'bills',
+    component: () => import('../views/bills/BillsView.vue'),
+    meta: {
+      title: 'Bills'
+    }
+  },
+  {
+    path: '/projects',
+    name: 'projects',
+    component: () => import('../views/projects/ProjectsView.vue'),
+    meta: {
+      title: 'Projects'
+    }
+  },
+  {
+    path: '/billing-codes',
+    name: 'billing-codes',
+    // @ts-ignore - Vue component type declaration
+    component: () => import('../views/billing-codes/BillingCodesView.vue'),
+    meta: {
+      title: 'Billing Codes'
+    }
+  },
+  {
+    path: '/rates',
+    name: 'rates',
+    component: () => import('../views/rates/RatesView.vue'),
+    meta: {
+      title: 'Rates'
+    }
+  },
+  {
+    path: '/accounts',
+    name: 'accounts',
+    // @ts-ignore - Vue component type declaration
+    component: () => import('../views/accounts/AccountsView.vue'),
+    meta: {
+      title: 'Accounts'
+    }
+  }
+];
+
+const router = createRouter({
+  history: createWebHistory('/admin/'),
+  routes
+});
+
+// Update page title based on route meta
+router.beforeEach((to, _from, next) => {
+  document.title = `${to.meta.title || 'Admin'} | Cronos`;
+  next();
+});
+
+export default router; 
