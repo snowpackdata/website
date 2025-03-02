@@ -20,7 +20,35 @@ export default {
     return response.data;
   },
 
+  /**
+   * Fetch users who can be impersonated for timesheet entries
+   * @returns Promise with users data
+   */
+  async getUsers(): Promise<any[]> {
+    const token = localStorage.getItem('snowpack_token');
+    const response = await axios.get('/api/users', {
+      headers: { 
+        'Content-Type': 'application/json', 
+        'x-access-token': token 
+      }
+    });
+    return response.data;
+  },
 
+  /**
+   * Fetch active billing codes for timesheet entries
+   * @returns Promise with billing codes data
+   */
+  async getActiveBillingCodes(): Promise<any[]> {
+    const token = localStorage.getItem('snowpack_token');
+    const response = await axios.get('/api/billing-codes/active', {
+      headers: { 
+        'Content-Type': 'application/json', 
+        'x-access-token': token 
+      }
+    });
+    return response.data;
+  },
 
   /**
    * Create a new timesheet entry

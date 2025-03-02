@@ -11,16 +11,16 @@
                 <form class="flex h-full flex-col overflow-y-scroll bg-white shadow-xl" @submit.prevent="handleSubmit">
                   <div class="flex-1">
                     <!-- Header -->
-                    <div class="bg-gray-50 px-4 py-6 sm:px-6">
+                    <div class="bg-sage-dark px-4 py-6 sm:px-6">
                       <div class="flex items-start justify-between space-x-3">
                         <div class="space-y-1">
-                          <DialogTitle class="text-base font-semibold text-gray-900">{{ isEditing ? 'Edit Billing Code' : 'New Billing Code' }}</DialogTitle>
-                          <p class="text-sm text-gray-500">
+                          <DialogTitle class="text-base font-semibold text-white">{{ isEditing ? 'Edit Billing Code' : 'New Billing Code' }}</DialogTitle>
+                          <p class="text-sm text-gray-100">
                             {{ isEditing ? 'Update the billing code details below.' : 'Get started by filling in the information below to create a new billing code.' }}
                           </p>
                         </div>
                         <div class="flex h-7 items-center">
-                          <button type="button" class="relative text-gray-400 hover:text-gray-500" @click="handleClose">
+                          <button type="button" class="relative text-white hover:text-gray-200" @click="handleClose">
                             <span class="absolute -inset-2.5" />
                             <span class="sr-only">Close panel</span>
                             <XMarkIcon class="h-6 w-6" aria-hidden="true" />

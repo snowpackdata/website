@@ -1,65 +1,34 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import type { Rate } from '../../types/Rate';
-import { createEmptyRate, RATE_TYPES, RATE_TYPE_NAMES } from '../../types/Rate';
 import { fetchRates as apiFetchRates, createRate, updateRate, deleteRate as apiDeleteRate } from '../../api';
 // @ts-ignore - Ignore type issues with Vue components for now
 import RateDrawer from '../../components/rates/RateDrawer.vue';
 // @ts-ignore - Ignore type issues with Vue components for now
 import ConfirmationModal from '../../components/ConfirmationModal.vue';
+import { formatDate } from '../../utils/formatters';
 
 // State
 const rates = ref<Rate[]>([]);
 const isLoading = ref(true);
 const error = ref<string | null>(null);
-const showModal = ref(false);
-const editingRate = ref<Rate | null>(null);
-const isRateDrawerOpen = ref(false);
+const showDrawer = ref(false);
 const selectedRate = ref<Rate | null>(null);
-const showDeleteModal = ref(false);
-const rateToDelete = ref<Rate | null>(null);
+const showDeleteConfirm = ref(false);
 
 // Mock API - This would be replaced with actual API calls
+// Commented out as it's not being used
+/*
 const ratesApi = {
   async getRates(): Promise<Rate[]> {
     // Simulate API delay
     await new Promise(resolve => setTimeout(resolve, 1000));
     return [
-      {
-        ID: 1,
-        type: 'RATE_TYPE_EXTERNAL_CLIENT_BILLABLE',
-        name: 'Standard Rate',
-        description: 'Standard hourly rate for most client work',
-        amount: 150,
-        internal: false,
-        active: true
-      },
-      {
-        ID: 2,
-        type: 'RATE_TYPE_INTERNAL_PROJECT',
-        name: 'Internal Project Rate',
-        description: 'Rate for internal projects',
-        amount: 75,
-        internal: true,
-        active: true
-      }
+      // ... mock data ...
     ];
-  },
-  async createRate(rate: Rate): Promise<Rate> {
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    return { ...rate, ID: Date.now() };
-  },
-  async updateRate(rate: Rate): Promise<Rate> {
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    return { ...rate };
-  },
-  async deleteRate(id: number): Promise<void> {
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
   }
 };
+*/
 
 // Fetch rates on component mount
 onMounted(async () => {
@@ -83,6 +52,7 @@ const fetchRatesData = async () => {
 };
 
 // Create a new rate
+/*
 const createNew = () => {
   editingRate.value = createEmptyRate();
   showModal.value = true;
@@ -99,6 +69,7 @@ const closeModal = () => {
   editingRate.value = null;
   showModal.value = false;
 };
+*/
 
 // Save rate
 const saveRate = async (rateData: Rate) => {
@@ -114,7 +85,7 @@ const saveRate = async (rateData: Rate) => {
     await fetchRatesData();
     
     // Close drawer
-    closeRateDrawer();
+    closeDrawer();
   } catch (error) {
     console.error('Error saving rate:', error);
     alert('Failed to save rate. Please try again.');
@@ -122,29 +93,12 @@ const saveRate = async (rateData: Rate) => {
 };
 
 // Delete rate
+/*
 const confirmDelete = (rate: Rate) => {
   rateToDelete.value = rate;
-  showDeleteModal.value = true;
+  showDeleteConfirm.value = true;
 };
-
-const handleDeleteRate = async () => {
-  if (!rateToDelete.value) return;
-  
-  try {
-    // Convert string ID to number before passing to API
-    await apiDeleteRate(Number(rateToDelete.value.ID));
-    
-    // Refresh rates
-    await fetchRatesData();
-    
-    // Close modal
-    showDeleteModal.value = false;
-    rateToDelete.value = null;
-  } catch (error) {
-    console.error('Error deleting rate:', error);
-    alert('Failed to delete rate. Please try again.');
-  }
-};
+*/
 
 // Format currency
 const formatCurrency = (amount: number) => {
@@ -154,23 +108,18 @@ const formatCurrency = (amount: number) => {
   }).format(amount);
 };
 
-// Get type display name
-const getTypeDisplayName = (type: string) => {
-  return RATE_TYPE_NAMES[type as keyof typeof RATE_TYPE_NAMES] || type;
-};
-
 // Drawer functions
-const openRateDrawer = (rate: Rate | null = null) => {
+const openDrawer = (rate: Rate | null = null) => {
   selectedRate.value = rate;
-  isRateDrawerOpen.value = true;
+  showDrawer.value = true;
 };
 
-const closeRateDrawer = () => {
-  isRateDrawerOpen.value = false;
+const closeDrawer = () => {
+  showDrawer.value = false;
   selectedRate.value = null;
 };
 
-const handleDeleteFromDrawer = async (rate) => {
+const handleDeleteFromDrawer = async (rate: Rate) => {
   if (!rate) return;
   
   try {
@@ -181,11 +130,20 @@ const handleDeleteFromDrawer = async (rate) => {
     await fetchRatesData();
     
     // Close drawer
-    closeRateDrawer();
+    closeDrawer();
   } catch (error) {
     console.error('Error deleting rate:', error);
     alert('Failed to delete rate. Please try again.');
   }
+};
+
+// Check if a rate is currently active
+const isRateActive = (rate: Rate) => {
+  const now = new Date();
+  const activeFrom = new Date(rate.active_from);
+  const activeTo = rate.active_to ? new Date(rate.active_to) : null;
+  
+  return now >= activeFrom && (!activeTo || now <= activeTo);
 };
 </script>
 
@@ -201,7 +159,7 @@ const handleDeleteFromDrawer = async (rate) => {
       <div class="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
         <button
           type="button"
-          @click="openRateDrawer()"
+          @click="openDrawer()"
           class="block rounded-md bg-sage px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-sage-dark focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sage"
         >
           Create new rate
@@ -233,8 +191,9 @@ const handleDeleteFromDrawer = async (rate) => {
               <thead class="bg-gray-50">
                 <tr>
                   <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">Name</th>
-                  <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Type</th>
                   <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Amount</th>
+                  <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Start Date</th>
+                  <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">End Date</th>
                   <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Status</th>
                   <th scope="col" class="relative py-3.5 pl-3 pr-4 sm:pr-6">
                     <span class="sr-only">Actions</span>
@@ -245,25 +204,27 @@ const handleDeleteFromDrawer = async (rate) => {
                 <tr v-for="rate in rates" :key="rate.ID" class="hover:bg-gray-50">
                   <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
                     {{ rate.name }}
-                    <div class="text-xs text-gray-500">{{ rate.description }}</div>
-                  </td>
-                  <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                    {{ getTypeDisplayName(rate.type) }}
                   </td>
                   <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-900">
                     {{ formatCurrency(rate.amount) }}
                   </td>
+                  <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                    {{ formatDate(rate.active_from) }}
+                  </td>
+                  <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                    {{ formatDate(rate.active_to) }}
+                  </td>
                   <td class="whitespace-nowrap px-3 py-4 text-sm">
                     <span :class="[
-                      rate.active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800',
+                      isRateActive(rate) ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800',
                       'px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full'
                     ]">
-                      {{ rate.active ? 'Active' : 'Inactive' }}
+                      {{ isRateActive(rate) ? 'Active' : 'Inactive' }}
                     </span>
                   </td>
                   <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
                     <button
-                      @click="openRateDrawer(rate)"
+                      @click="openDrawer(rate)"
                       class="text-sage hover:text-sage-dark rounded-full p-1 hover:bg-gray-100 transition-colors"
                       title="Edit Rate"
                     >
@@ -285,20 +246,20 @@ const handleDeleteFromDrawer = async (rate) => {
     
     <!-- Rate Drawer -->
     <RateDrawer
-      :is-open="isRateDrawerOpen"
+      :is-open="showDrawer"
       :rate-data="selectedRate"
-      @close="closeRateDrawer"
+      @close="closeDrawer"
       @save="saveRate"
       @delete="handleDeleteFromDrawer"
     />
     
     <!-- Delete Confirmation Modal -->
     <ConfirmationModal
-      :show="showDeleteModal"
+      :show="showDeleteConfirm"
       title="Delete Rate"
       message="Are you sure you want to delete this rate? This action cannot be undone and may affect billing codes that use this rate."
-      @confirm="handleDeleteRate"
-      @cancel="showDeleteModal = false"
+      @confirm="selectedRate && handleDeleteFromDrawer(selectedRate)"
+      @cancel="showDeleteConfirm = false"
     />
   </div>
 </template>

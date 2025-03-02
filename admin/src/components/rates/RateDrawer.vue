@@ -11,16 +11,16 @@
                 <form class="flex h-full flex-col overflow-y-scroll bg-white shadow-xl" @submit.prevent="handleSubmit">
                   <div class="flex-1">
                     <!-- Header -->
-                    <div class="bg-gray-50 px-4 py-6 sm:px-6">
+                    <div class="bg-sage-dark px-4 py-6 sm:px-6">
                       <div class="flex items-start justify-between space-x-3">
                         <div class="space-y-1">
-                          <DialogTitle class="text-base font-semibold text-gray-900">{{ isEditing ? 'Edit Rate' : 'New Rate' }}</DialogTitle>
-                          <p class="text-sm text-gray-500">
+                          <DialogTitle class="text-base font-semibold text-white">{{ isEditing ? 'Edit Rate' : 'New Rate' }}</DialogTitle>
+                          <p class="text-sm text-gray-100">
                             {{ isEditing ? 'Update the rate details below.' : 'Get started by filling in the information below to create a new rate.' }}
                           </p>
                         </div>
                         <div class="flex h-7 items-center">
-                          <button type="button" class="relative text-gray-400 hover:text-gray-500" @click="handleClose">
+                          <button type="button" class="relative text-white hover:text-gray-200" @click="handleClose">
                             <span class="absolute -inset-2.5" />
                             <span class="sr-only">Close panel</span>
                             <XMarkIcon class="h-6 w-6" aria-hidden="true" />
@@ -120,19 +120,22 @@
                         </div>
                       </div>
 
-                      <!-- Description -->
+                      <!-- Internal Only -->
                       <div class="space-y-2 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-5">
                         <div>
-                          <label for="rate-description" class="block text-sm/6 font-medium text-gray-900 sm:mt-1.5">Description</label>
+                          <label for="internal-only" class="block text-sm/6 font-medium text-gray-900 sm:mt-1.5">Internal Only</label>
                         </div>
-                        <div class="sm:col-span-2">
-                          <textarea 
-                            rows="3" 
-                            name="rate-description" 
-                            id="rate-description" 
-                            v-model="rate.description"
-                            class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-sage sm:text-sm/6" 
+                        <div class="sm:col-span-2 flex items-center">
+                          <input 
+                            type="checkbox" 
+                            name="internal-only" 
+                            id="internal-only" 
+                            v-model="rate.internal_only"
+                            class="h-4 w-4 rounded border-gray-300 text-sage focus:ring-sage" 
                           />
+                          <label for="internal-only" class="ml-2 text-sm text-gray-600">
+                            Mark this rate as internal only
+                          </label>
                         </div>
                       </div>
                     </div>
@@ -221,9 +224,9 @@ const rate = ref({
   name: props.rateData?.name || '',
   type: props.rateData?.type || 'RATE_TYPE_EXTERNAL_CLIENT_BILLABLE',
   amount: props.rateData?.amount || 0,
-  description: props.rateData?.description || '',
-  startDate: formatDateForInput(props.rateData?.startDate),
-  endDate: formatDateForInput(props.rateData?.endDate)
+  startDate: formatDateForInput(props.rateData?.active_from),
+  endDate: formatDateForInput(props.rateData?.active_to),
+  internal_only: props.rateData?.internal_only || false
 });
 
 // Update rate data when rateData prop changes
@@ -234,9 +237,9 @@ watch(() => props.rateData, (newVal) => {
       name: newVal.name || '',
       type: newVal.type || 'RATE_TYPE_EXTERNAL_CLIENT_BILLABLE',
       amount: newVal.amount || 0,
-      description: newVal.description || '',
-      startDate: formatDateForInput(newVal.startDate),
-      endDate: formatDateForInput(newVal.endDate)
+      startDate: formatDateForInput(newVal.active_from),
+      endDate: formatDateForInput(newVal.active_to),
+      internal_only: newVal.internal_only || false
     };
   } else {
     // Reset form when no data is provided (for new rates)
@@ -245,9 +248,9 @@ watch(() => props.rateData, (newVal) => {
       name: '',
       type: 'RATE_TYPE_EXTERNAL_CLIENT_BILLABLE',
       amount: 0,
-      description: '',
       startDate: '',
-      endDate: ''
+      endDate: '',
+      internal_only: false
     };
   }
 }, { deep: true });
@@ -264,9 +267,14 @@ const handleSubmit = () => {
   const formattedRate = {
     ...rate.value,
     amount: parseFloat(rate.value.amount),
-    startDate: rate.value.startDate ? new Date(rate.value.startDate).toISOString() : null,
-    endDate: rate.value.endDate ? new Date(rate.value.endDate).toISOString() : null
+    active_from: rate.value.startDate,
+    active_to: rate.value.endDate,
+    internal_only: rate.value.internal_only
   };
+
+  // Remove temporary date fields
+  delete formattedRate.startDate;
+  delete formattedRate.endDate;
 
   emit('save', formattedRate);
 };

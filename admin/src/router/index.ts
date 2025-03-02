@@ -49,6 +49,7 @@ const routes = [
   {
     path: '/billing-codes',
     name: 'billing-codes',
+    // @ts-ignore - Vue component type declaration
     component: () => import('../views/billing-codes/BillingCodesView.vue'),
     meta: {
       title: 'Billing Codes'
@@ -65,6 +66,7 @@ const routes = [
   {
     path: '/accounts',
     name: 'accounts',
+    // @ts-ignore - Vue component type declaration
     component: () => import('../views/accounts/AccountsView.vue'),
     meta: {
       title: 'Accounts'

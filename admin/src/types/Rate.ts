@@ -3,12 +3,11 @@
  */
 export interface Rate {
   ID: number;
-  type: string;
   name: string;
-  description: string;
   amount: number;
-  internal: boolean;
-  active: boolean;
+  active_from: string;
+  active_to: string;
+  internal_only: boolean;
 }
 
 /**
@@ -41,13 +40,16 @@ export const RATE_TYPE_NAMES = {
  * Creates a new empty rate with default values
  */
 export function createEmptyRate(): Rate {
+  const today = new Date().toISOString().split('T')[0]; // Get current date in YYYY-MM-DD format
+  const futureDate = new Date();
+  futureDate.setFullYear(futureDate.getFullYear() + 1); // Default end date is 1 year in the future
+  
   return {
     ID: 0,
-    type: 'RATE_TYPE_EXTERNAL_CLIENT_BILLABLE',
     name: '',
-    description: '',
     amount: 0,
-    internal: false,
-    active: true
+    active_from: today,
+    active_to: futureDate.toISOString().split('T')[0],
+    internal_only: false
   };
 } 

@@ -19,7 +19,7 @@
     </div>
     
     <!-- Project Filter -->
-    <div class="mt-4">
+    <!-- <div class="mt-4">
       <label for="project-filter" class="block text-sm font-medium text-gray-700">Filter by Project</label>
       <select
         id="project-filter"
@@ -32,7 +32,7 @@
           {{ project.name }}
         </option>
       </select>
-    </div>
+    </div> -->
     
     <!-- Billing Codes Table -->
     <div class="mt-8 flow-root">

@@ -6,23 +6,11 @@ build-admin:
 
 # Run the Go server in development mode with pre-built admin
 run-dev: build-admin
-	ENVIRONMENT=local go run .
+	ENVIRONMENT=local go run ./
 
-# Run the Go server in development mode with Vue in watch mode
-run-dev-watch:
-	@echo "Starting Vue dev server and Go server in parallel..."
-	@(cd admin && npm install && npm run dev) & \
-	ENVIRONMENT=local go run .
 
 # Run the Go server with hot reloading enabled
-run-dev-hot: build-admin
-	@echo "Installing air for hot reloading if not already installed..."
-	@command -v air > /dev/null 2>&1 || go install github.com/air-verse/air@latest
-	@echo "Starting Go server with hot reloading..."
-	@ENVIRONMENT=local air
-
-# Run both Vue and Go with hot reloading 
-run-dev-full:
+run-dev-hot:
 	@echo "Installing air for hot reloading if not already installed..."
 	@command -v air > /dev/null 2>&1 || go install github.com/air-verse/air@latest
 	@echo "Starting Vue dev server and Go server with hot reloading in parallel..."
@@ -30,7 +18,7 @@ run-dev-full:
 	ENVIRONMENT=local air
 
 # Run both Vue and Go with hot reloading 
-run-staging-full:
+run-staging-hot:
 	@echo "Installing air for hot reloading if not already installed..."
 	@command -v air > /dev/null 2>&1 || go install github.com/air-verse/air@latest
 	@echo "Starting Vue dev server and Go server with hot reloading in parallel..."

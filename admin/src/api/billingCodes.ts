@@ -108,12 +108,9 @@ export default {
  * @param projectId Optional project ID to filter billing codes
  * @returns Promise with billing codes data
  */
-export const fetchBillingCodes = async (projectId?: number) => {
+export const fetchBillingCodes = async () => {
   try {
-    const url = projectId 
-      ? `${API_URL}/api/billing-codes?project_id=${projectId}`
-      : `${API_URL}/api/billing-codes`;
-      
+    const url = `${API_URL}/api/billing-codes` 
     const response = await axios.get(url);
     return response.data;
   } catch (error) {
