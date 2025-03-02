@@ -4,7 +4,7 @@ import { XMarkIcon } from '@heroicons/vue/24/outline';
 import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot, Switch, SwitchGroup, SwitchLabel } from '@headlessui/vue';
 import type { TimesheetEntry } from '../../types/Timesheet';
 import { createEmptyTimesheetEntry } from '../../types/Timesheet';
-import { timesheetAPI, getEntries, getTimesheetActiveBillingCodes, getUsers, createEntry, updateEntry, deleteEntry as deleteEntryAPI } from '../../api';
+import { getEntries, getTimesheetActiveBillingCodes, getUsers, createEntry, updateEntry, deleteEntry as deleteEntryAPI } from '../../api';
 import TimesheetEntryComponent from '../../components/timesheet/TimesheetEntry.vue';
 
 // DOM refs for calendar positioning

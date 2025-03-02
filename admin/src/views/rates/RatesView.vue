@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import type { Rate } from '../../types/Rate';
-import { ratesAPI, fetchRates, updateRate, createRate, deleteRate } from '../../api/rates';
+import { fetchRates, updateRate, createRate, deleteRate } from '../../api/rates';
 // @ts-ignore - Ignore type issues with Vue components for now
 import RateDrawer from '../../components/rates/RateDrawer.vue';
 // @ts-ignore - Ignore type issues with Vue components for now

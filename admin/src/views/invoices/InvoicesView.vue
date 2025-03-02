@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { type Invoice } from '../../types/Invoice';
-import { invoicesAPI, getInvoices } from '../../api';
+import { getInvoices } from '../../api';
 
 // State
 const invoices = ref<Invoice[]>([]);

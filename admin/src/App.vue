@@ -104,6 +104,18 @@
 import { ref, computed, watch } from 'vue';
 import { useRoute } from 'vue-router';
 
+// Add TypeScript declaration for import.meta.env
+declare interface ImportMeta {
+  readonly env: {
+    readonly MODE: string
+    readonly BASE_URL: string
+    readonly DEV: boolean 
+    readonly PROD: boolean
+    // Add any other environment variables used in your app
+    readonly [key: string]: string | boolean | undefined
+  }
+}
+
 const route = useRoute();
 
 // Define navigation items with paths and icons

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import { fetchProjects, fetchProjectById, createProject, updateProject, deleteProject } from '../../api/projects';
+import { fetchProjects, createProject, updateProject } from '../../api/projects';
 import type { Project } from '../../types/Project';
 // @ts-ignore - Ignore type issues with Vue components for now
 import ProjectDrawer from '../../components/projects/ProjectDrawer.vue';
@@ -101,59 +101,38 @@ const saveProject = async (projectData: Project) => {
 };
 
 // Delete project
-const handleDeleteProject = async (projectId: number) => {
-  try {
-    // Use exported deleteProject function
-    await deleteProject(projectId);
-    
-    // Refresh projects
-    await fetchProjectsData();
-  } catch (error) {
-    console.error('Error deleting project:', error);
-    alert('Failed to delete project. Please try again.');
-  }
-};
+// const handleDeleteProject = async (projectId: number) => {
+//   try {
+//     // Use exported deleteProject function
+//     await deleteProject(projectId);
+//     
+//     // Refresh projects
+//     await fetchProjectsData();
+//   } catch (error) {
+//     console.error('Error deleting project:', error);
+//     alert('Failed to delete project. Please try again.');
+//   }
+// };
 
 /**
  * Prepares project data for the API
  * @param project - Project data to transform
  * @returns Formatted data for API requests
  */
-const prepareProjectData = (project: Project): FormData => {
-  const formData = new FormData();
-  
-  // Set required fields
-  formData.set("name", project.name);
-  
-  // Get the account ID from either direct ID or account object
-  const accountId = project.account_id || (project.account ? project.account.ID : 0);
-  formData.set("account_id", accountId.toString());
-  
-  formData.set("budget_hours", project.budget_hours.toString());
-  formData.set("budget_dollars", project.budget_dollars.toString());
-  formData.set("active_start", project.active_start);
-  formData.set("active_end", project.active_end);
-  formData.set("internal", project.internal.toString());
-  
-  if (project.project_type) {
-    formData.set("project_type", project.project_type);
-  }
-  
-  if (project.billing_frequency) {
-    formData.set("billing_frequency", project.billing_frequency);
-  }
-  
-  // Only add optional fields if they have values
-  if (project.ae_id) {
-    formData.set("ae_id", project.ae_id.toString());
-  }
-  
-  if (project.sdr_id) {
-    formData.set("sdr_id", project.sdr_id.toString());
-  }
-  
-  return formData;
-};
+// const prepareProjectData = (project: Project): FormData => {
+//   const formData = new FormData();
+//   
+//   // Set required fields
+//   formData.set("name", project.name);
+//   
+//   // Get the account ID from either direct ID or account object
+//   const accountId = project.account_id || (project.account ? project.account.ID : 0);
+//   formData.set("account_id", accountId.toString());
+//   
+//   // Add other fields as needed
+//   
+//   return formData;
+// };
 </script>
 
 <template>

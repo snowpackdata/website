@@ -2,7 +2,7 @@
  * Interface representing a Project in the system
  */
 
-import { createEmptyAccount, type Account } from './Account';
+import { createEmptyAccount } from './Account';
 
 export interface Project {
   ID: number;

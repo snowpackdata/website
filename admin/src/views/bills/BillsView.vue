@@ -2,7 +2,7 @@
 import { ref, onMounted, computed } from 'vue';
 import type { Bill } from '../../types/Bill';
 import { createEmptyBill, BILL_STATES } from '../../types/Bill';
-import { billsAPI, getBills, createBill, updateBill, deleteBill as deleteBillAPI } from '../../api';
+import { getBills, createBill, updateBill, deleteBill as deleteBillAPI } from '../../api';
 
 // State
 const bills = ref<Bill[]>([]);

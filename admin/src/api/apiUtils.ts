@@ -1,4 +1,5 @@
 import axios from 'axios';
+import type { InternalAxiosRequestConfig, AxiosResponse } from 'axios';
 
 /**
  * Utility functions for API requests
@@ -19,36 +20,49 @@ export interface EntityWithId {
 }
 
 // Simple development mode detection
-// This avoids the ImportMeta type issues by only checking hostname
 const isDevelopmentMode = 
   window.location.hostname === 'localhost' || 
   window.location.hostname === '127.0.0.1';
 
-// Configuration for API requests
-const API_BASE_URL = '/api'; // Use an absolute path to ensure it works correctly with the proxy
+/**
+ * Normalize API URLs to ensure they always include the /api prefix
+ * @param endpoint The API endpoint to normalize
+ * @returns Normalized endpoint URL with /api prefix
+ */
+function normalizeApiUrl(endpoint: string): string {
+  // Remove any leading slash
+  const cleanEndpoint = endpoint.startsWith('/') ? endpoint.substring(1) : endpoint;
+  return `/api/${cleanEndpoint}`;
+}
 
 // Get authentication token from local storage
 export const getToken = (): string => {
   return localStorage.getItem('snowpack_token') || '';
 };
 
-// Configure axios instance with defaults
+// Configure axios instance with defaults - explicitly DON'T use baseURL
+// We'll manually construct URLs for each request to avoid inconsistencies
 const api = axios.create({
-  baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json'
   }
 });
 
 // Add request interceptor to add authentication token to all requests
-api.interceptors.request.use(config => {
+api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
+  // Ensure URL starts with /api regardless of how it was configured
+  if (config.url && !config.url.startsWith('/api')) {
+    const cleanUrl = config.url.startsWith('/') ? config.url.substring(1) : config.url;
+    config.url = `/api/${cleanUrl}`;
+  }
+
   // Log request details in development
   if (isDevelopmentMode) {
-    console.log(`Making ${config.method?.toUpperCase() || 'GET'} request to ${config.baseURL}/${config.url}`);
+    console.log(`Request: ${config.method?.toUpperCase() || 'GET'} ${config.url}`);
   }
   
   const token = getToken();
-  if (token) {
+  if (token && config.headers) {
     config.headers['x-access-token'] = token;
   }
   return config;
@@ -61,7 +75,7 @@ api.interceptors.request.use(config => {
 
 // Add response interceptor for better error handling
 api.interceptors.response.use(
-  response => {
+  (response: AxiosResponse) => {
     // Log successful responses in development
     if (isDevelopmentMode) {
       console.log(`Response from ${response.config.url}: Status ${response.status}`);
@@ -71,34 +85,18 @@ api.interceptors.response.use(
   error => {
     // Log errors in development
     if (isDevelopmentMode) {
-      console.error(`API Error for ${error.config?.url}:`, error.message);
+      console.error(`Error for ${error.config?.url}:`, error.message);
       
-      // Check if it's a non-JSON response
-      if (error.response) {
-        const contentType = error.response.headers?.['content-type'];
-        console.error(`Status: ${error.response.status}, Content-Type: ${contentType}`);
-        
-        // For HTML responses (likely indicating a redirect or server error page)
-        if (contentType && contentType.includes('text/html')) {
-          console.error('Server returned HTML instead of JSON (possible authentication issue or server error)');
-          
-          // If in development mode, get the first part of the HTML response for debugging
-          if (error.response.data && typeof error.response.data === 'string') {
-            console.error('HTML response preview:', error.response.data.substring(0, 200));
-          }
-        } else if (error.response.data) {
-          console.error('Response data:', error.response.data);
-        }
+      if (error.response?.data) {
+        console.error('Response data:', error.response.data);
       }
     }
     
     // Check for authentication errors (401, 403) and redirect to login if needed
     if (error.response && (error.response.status === 401 || error.response.status === 403)) {
       console.error('Authentication error - redirecting to login');
-      // Clear existing token if there's an auth error
       localStorage.removeItem('snowpack_token');
       
-      // Only redirect if we're not already on the login page
       if (!window.location.pathname.includes('/login')) {
         window.location.href = '/login';
       }
@@ -110,106 +108,44 @@ api.interceptors.response.use(
 
 // Generic fetch all items of a resource
 export async function fetchAll<T>(endpoint: string): Promise<T[]> {
-  // Ensure endpoint doesn't start with a slash since baseURL already has a trailing slash
-  const cleanEndpoint = endpoint.startsWith('/') ? endpoint.substring(1) : endpoint;
-  
-  // Special case handling for problematic endpoints (rates and projects)
-  // Add workaround to avoid the 404 redirect issue
-  if (cleanEndpoint === 'rates' || cleanEndpoint === 'projects') {
-    console.log(`Using special handling for problematic endpoint: ${cleanEndpoint}`);
-    
-    // Try multiple approaches to work around potential redirect/routing issues
-    const approaches = [
-      // Approach 1: Use axios with query param and special headers
-      async () => {
-        const timestamp = new Date().getTime();
-        const response = await api.get(`${cleanEndpoint}?t=${timestamp}`, {
-          headers: {
-            'Accept': 'application/json',
-            'Cache-Control': 'no-cache',
-            'Pragma': 'no-cache'
-          }
-        });
-        return response.data;
-      },
-      
-      // Approach 2: Use fetch API with absolute URL to bypass potential axios/proxy issues
-      async () => {
-        const token = getToken();
-        const response = await fetch(`/api/${cleanEndpoint}`, {
-          headers: {
-            'Content-Type': 'application/json',
-            'x-access-token': token,
-            'Accept': 'application/json'
-          }
-        });
-        if (!response.ok) {
-          throw new Error(`Fetch failed: ${response.status} ${response.statusText}`);
-        }
-        return response.json();
-      },
-      
-      // Approach 3: Try double-encoding the URL to handle potential URL parsing issues
-      async () => {
-        const encoded = encodeURIComponent(cleanEndpoint);
-        const response = await api.get(`${encoded}`);
-        return response.data;
-      },
-      
-      // Approach 4: Use a POST request as a fallback (some servers handle POST differently than GET)
-      async () => {
-        const response = await api.post(`${cleanEndpoint}/query`, {});
-        return response.data;
-      }
-    ];
-    
-    // Try each approach in sequence
-    let lastError: Error | null = null;
-    for (const tryApproach of approaches) {
-      try {
-        return await tryApproach();
-      } catch (error: any) {
-        console.error(`Approach failed for ${cleanEndpoint}:`, error.message || error);
-        lastError = error;
-        // Continue to next approach
-      }
-    }
-    
-    // If we've exhausted all approaches, log detailed error and rethrow
-    console.error(`All approaches failed for ${cleanEndpoint}. Last error:`, lastError);
-    throw lastError || new Error(`Failed to fetch ${cleanEndpoint} after trying multiple approaches`);
-  }
-  
-  // Normal handling for other endpoints
-  const response = await api.get(cleanEndpoint);
+  const normalizedUrl = normalizeApiUrl(endpoint);
+  const response = await api.get<T[]>(normalizedUrl);
   return response.data;
 }
 
 // Generic fetch item by ID
 export async function fetchById<T>(endpoint: string, id: number): Promise<T> {
-  const response = await api.get(`${endpoint}/${id}`);
+  const normalizedUrl = normalizeApiUrl(`${endpoint}/${id}`);
+  const response = await api.get<T>(normalizedUrl);
   return response.data;
 }
 
 // Generic create
 export async function create<T>(endpoint: string, data: any): Promise<T> {
-  const response = await api.post(`${endpoint}`, data);
+  const normalizedUrl = normalizeApiUrl(endpoint);
+  const response = await api.post<T>(normalizedUrl, data);
   return response.data;
 }
 
 // Generic update
 export async function update<T>(endpoint: string, id: number, data: any): Promise<T> {
-  const response = await api.put(`${endpoint}/${id}`, data);
+  const normalizedUrl = normalizeApiUrl(`${endpoint}/${id}`);
+  const response = await api.put<T>(normalizedUrl, data);
   return response.data;
 }
 
 // Generic delete
 export async function remove(endpoint: string, id: number): Promise<void> {
-  await api.delete(`${endpoint}/${id}`);
+  const normalizedUrl = normalizeApiUrl(`${endpoint}/${id}`);
+  await api.delete(normalizedUrl);
 }
+
+// Helper type for form data values
+type FormDataValue = string | Blob | File;
 
 // Create with FormData
 export async function createWithFormData<T>(endpoint: string, data: FormData | Record<string, any>): Promise<T> {
+  const normalizedUrl = normalizeApiUrl(endpoint);
   let formData: FormData;
   
   // If data is already FormData, use it directly
@@ -220,15 +156,20 @@ export async function createWithFormData<T>(endpoint: string, data: FormData | R
     formData = new FormData();
     Object.entries(data).forEach(([key, value]) => {
       if (value !== undefined && value !== null) {
-        formData.append(key, value);
+        // Convert value to string if it's not a valid FormData value type
+        if (typeof value === 'object' && !(value instanceof Blob) && !(value instanceof File)) {
+          formData.append(key, JSON.stringify(value));
+        } else {
+          formData.append(key, value as FormDataValue);
+        }
       }
     });
   }
-  
-  // Send the request with FormData
-  const response = await api.post(`${endpoint}`, formData, {
+
+  // When using FormData, let the browser set the Content-Type to include the boundary
+  const response = await api.post<T>(normalizedUrl, formData, {
     headers: {
-      'Content-Type': 'multipart/form-data'
+      'Content-Type': undefined // Let browser set this with the proper boundary
     }
   });
   
@@ -237,6 +178,7 @@ export async function createWithFormData<T>(endpoint: string, data: FormData | R
 
 // Update with FormData
 export async function updateWithFormData<T>(endpoint: string, id: number, data: FormData | Record<string, any>): Promise<T> {
+  const normalizedUrl = normalizeApiUrl(`${endpoint}/${id}`);
   let formData: FormData;
   
   // If data is already FormData, use it directly
@@ -247,15 +189,20 @@ export async function updateWithFormData<T>(endpoint: string, id: number, data: 
     formData = new FormData();
     Object.entries(data).forEach(([key, value]) => {
       if (value !== undefined && value !== null) {
-        formData.append(key, value);
+        // Convert value to string if it's not a valid FormData value type
+        if (typeof value === 'object' && !(value instanceof Blob) && !(value instanceof File)) {
+          formData.append(key, JSON.stringify(value));
+        } else {
+          formData.append(key, value as FormDataValue);
+        }
       }
     });
   }
   
-  // Send the request with FormData
-  const response = await api.put(`${endpoint}/${id}`, formData, {
+  // When using FormData, let the browser set the Content-Type to include the boundary
+  const response = await api.put<T>(normalizedUrl, formData, {
     headers: {
-      'Content-Type': 'multipart/form-data'
+      'Content-Type': undefined // Let browser set this with the proper boundary
     }
   });
   
@@ -284,6 +231,9 @@ function createFormDataFromObject(data: Record<string, any>): FormData {
       formData.set(key, value);
     } else if (value instanceof Date) {
       formData.set(key, value.toISOString());
+    } else if (typeof value === 'object') {
+      // For other objects, convert to JSON string
+      formData.set(key, JSON.stringify(value));
     }
   });
   
@@ -298,10 +248,6 @@ function createFormDataFromObject(data: Record<string, any>): FormData {
 export function createDefaultFormData<T extends Record<string, any>>(data: T): FormData {
   return createFormDataFromObject(data);
 }
-
-/**
- * New enhanced API utilities with validation and error handling
- */
 
 /**
  * Creates an entity with validation and form data conversion
@@ -323,18 +269,12 @@ export async function createEntityWithValidation<T extends EntityWithId>(
     throw new Error(`Validation failed: ${validation.errors.join(', ')}`);
   }
   
-  try {
-    // Use form data transformer if provided, otherwise use default
-    const formData = formDataTransformer ? 
-      formDataTransformer(data) : 
-      createDefaultFormData(data);
-    
-    const response = await api.post(`${endpoint}`, formData);
-    return response.data;
-  } catch (error) {
-    console.error(`Failed to create ${endpoint}:`, error);
-    throw error;
-  }
+  // Use form data transformer if provided, otherwise use default
+  const formData = formDataTransformer ? 
+    formDataTransformer(data) : 
+    createDefaultFormData(data);
+  
+  return create<T>(endpoint, formData);
 }
 
 /**
@@ -359,18 +299,12 @@ export async function updateEntityWithValidation<T extends EntityWithId>(
     throw new Error(`Validation failed: ${validation.errors.join(', ')}`);
   }
   
-  try {
-    // Use form data transformer if provided, otherwise use default
-    const formData = formDataTransformer ? 
-      formDataTransformer(data) : 
-      createDefaultFormData(data);
-    
-    const response = await api.put(`${endpoint}/${id}`, formData);
-    return response.data;
-  } catch (error) {
-    console.error(`Failed to update ${endpoint}:`, error);
-    throw error;
-  }
+  // Use form data transformer if provided, otherwise use default
+  const formData = formDataTransformer ? 
+    formDataTransformer(data) : 
+    createDefaultFormData(data);
+  
+  return update<T>(endpoint, id, formData);
 }
 
 /**
@@ -380,10 +314,5 @@ export async function updateEntityWithValidation<T extends EntityWithId>(
  * @returns Deletion result
  */
 export async function deleteEntityWithErrorHandling(endpoint: string, id: number): Promise<any> {
-  try {
-    return await remove(endpoint, id);
-  } catch (error) {
-    console.error(`Failed to delete ${endpoint}:`, error);
-    throw error;
-  }
+  return remove(endpoint, id);
 }
