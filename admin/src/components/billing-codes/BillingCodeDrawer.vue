@@ -196,12 +196,12 @@ const billingCode = ref({
 watch(() => props.billingCodeData, (newVal) => {
   if (newVal) {
     billingCode.value = {
-      id: newVal.id || null,
+      id: newVal.ID || null,
       name: newVal.name || '',
       description: newVal.description || '',
-      projectId: newVal.projectId || '',
-      rateId: newVal.rateId || '',
-      isActive: newVal.isActive !== undefined ? newVal.isActive : true
+      projectId: newVal.project || '',
+      rateId: newVal.rate_id || '',
+      isActive: newVal.active !== undefined ? newVal.active : true
     };
   }
 }, { deep: true });

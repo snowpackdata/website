@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import type { Rate } from '../../types/Rate';
-import { ratesAPI, fetchRates, createRate, updateRate, deleteRate } from '../../api';
+import { fetchAll, fetchById, createWithFormData, updateWithFormData, remove } from '../../api/apiUtils';
 // @ts-ignore - Ignore type issues with Vue components for now
 import RateDrawer from '../../components/rates/RateDrawer.vue';
 // @ts-ignore - Ignore type issues with Vue components for now
@@ -41,11 +41,34 @@ const fetchRatesData = async () => {
   error.value = null;
   
   try {
-    const ratesData = await fetchRates();
-    rates.value = ratesData || [];
+    console.log('Fetching rates from API...');
+    // Direct API call using fetchAll
+    const response = await fetchAll<Rate>('rates');
+    console.log('Raw API response:', response);
+    
+    if (!response || !Array.isArray(response)) {
+      console.error('Invalid response format - expected array but got:', typeof response);
+      error.value = 'Invalid response format from API';
+      rates.value = [];
+      return;
+    }
+    
+    // Map the response to ensure it has the expected structure
+    rates.value = response.map(rate => ({
+      ID: rate.ID,
+      name: rate.name || '',
+      amount: Number(rate.amount) || 0,
+      active_from: rate.active_from || new Date().toISOString().split('T')[0],
+      active_to: rate.active_to || '',
+      internal_only: !!rate.internal_only,
+      // We don't need to map CreatedAt, UpdatedAt, DeletedAt as they're optional
+    }));
+    
+    console.log('Processed rates:', rates.value);
   } catch (err) {
     console.error('Error fetching rates:', err);
     error.value = 'Failed to load rates. Please try again.';
+    rates.value = [];
   } finally {
     isLoading.value = false;
   }
@@ -76,9 +99,11 @@ const saveRate = async (rateData: Rate) => {
   try {
     if (rateData.ID && rateData.ID > 0) {
       // Convert string ID to number before passing to API
-      await updateRate(Number(rateData.ID), rateData);
+      const preparedData = prepareRateData(rateData);
+      await updateWithFormData<Rate>('rates', Number(rateData.ID), preparedData);
     } else {
-      await createRate(rateData);
+      const preparedData = prepareRateData(rateData);
+      await createWithFormData<Rate>('rates', preparedData);
     }
     
     // Refresh rates
@@ -90,6 +115,31 @@ const saveRate = async (rateData: Rate) => {
     console.error('Error saving rate:', error);
     alert('Failed to save rate. Please try again.');
   }
+};
+
+/**
+ * Prepares rate data for the API
+ * @param rate - Rate data to transform
+ * @returns Formatted data for API requests
+ */
+const prepareRateData = (rate: Rate): FormData => {
+  const formData = new FormData();
+  
+  // Set required fields
+  formData.set("name", rate.name);
+  formData.set("amount", rate.amount.toString());
+  formData.set("active_from", rate.active_from);
+  
+  // Add optional fields
+  if (rate.active_to) {
+    formData.set("active_to", rate.active_to);
+  }
+  
+  if (rate.internal_only !== undefined) {
+    formData.set("internal_only", rate.internal_only ? "true" : "false");
+  }
+  
+  return formData;
 };
 
 // Delete rate
@@ -124,11 +174,10 @@ const handleDeleteFromDrawer = async (rate: Rate) => {
   
   try {
     // Convert string ID to number before passing to API
-    await deleteRate(Number(rate.ID));
+    await remove('rates', Number(rate.ID));
     
     // Refresh rates
     await fetchRatesData();
-    
     // Close drawer
     closeDrawer();
   } catch (error) {

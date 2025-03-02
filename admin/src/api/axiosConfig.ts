@@ -46,9 +46,21 @@ axios.interceptors.request.use(config => {
   return Promise.reject(error);
 });
 
-// Add detailed logging for debugging
+// Add response interceptor for better error handling
 axios.interceptors.response.use(response => {
   console.log(`Response from ${response.config.url}:`, response.status);
+  
+  // Check if the response is JSON when expected
+  const contentType = response.headers['content-type'];
+  if (contentType && contentType.includes('application/json')) {
+    return response;
+  } else if (response.config.url && !response.config.url.includes('html') && !response.config.url.includes('css')) {
+    // Only warn for endpoints that should return JSON
+    console.warn(`Response from ${response.config.url} is not JSON (${contentType})`);
+    // Still return the response so the app can handle it
+    return response;
+  }
+  
   return response;
 }, error => {
   console.error('Response error:', error.message);
@@ -56,6 +68,13 @@ axios.interceptors.response.use(response => {
     console.error('Status:', error.response.status);
     console.error('URL:', error.config?.url);
     console.error('Response data:', error.response.data);
+    console.error('Content-Type:', error.response.headers['content-type']);
+  } else if (error.request) {
+    // Request was made but no response received
+    console.error('No response received:', error.request);
+  } else {
+    // Something else caused the error
+    console.error('Error setting up request:', error.message);
   }
   return Promise.reject(error);
 });

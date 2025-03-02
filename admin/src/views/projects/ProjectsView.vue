@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import { projectsAPI, fetchProjects as getProjectsAPI, createProject, updateProject } from '../../api';
+import { fetchAll, fetchById, createWithFormData, updateWithFormData, remove } from '../../api/apiUtils';
 import type { Project } from '../../types/Project';
 // @ts-ignore - Ignore type issues with Vue components for now
 import ProjectDrawer from '../../components/projects/ProjectDrawer.vue';
@@ -17,10 +17,41 @@ const fetchProjects = async () => {
   isLoading.value = true;
   error.value = null;
   try {
-    projects.value = await getProjectsAPI();
+    console.log('Fetching projects from API...');
+    // Direct API call using fetchAll
+    const response = await fetchAll<Project>('projects');
+    console.log('Raw API response:', response);
+    
+    if (!response || !Array.isArray(response)) {
+      console.error('Invalid response format - expected array but got:', typeof response);
+      error.value = 'Invalid response format from API';
+      projects.value = [];
+      return;
+    }
+    
+    // Map the response to ensure it has the expected structure
+    projects.value = response.map(project => ({
+      ID: project.ID,
+      name: project.name || '',
+      account_id: project.account_id || 0,
+      account: project.account || { ID: 0, name: 'Unknown' },
+      active_start: project.active_start || new Date().toISOString().split('T')[0],
+      active_end: project.active_end || '',
+      budget_hours: Number(project.budget_hours) || 0,
+      budget_dollars: Number(project.budget_dollars) || 0,
+      internal: !!project.internal,
+      billing_frequency: project.billing_frequency || '',
+      project_type: project.project_type || '',
+      ae_id: project.ae_id !== undefined ? Number(project.ae_id) : undefined,
+      sdr_id: project.sdr_id !== undefined ? Number(project.sdr_id) : undefined
+      // We don't need to map CreatedAt, UpdatedAt, DeletedAt as they're optional
+    }));
+    
+    console.log('Processed projects:', projects.value);
   } catch (err) {
     console.error('Error fetching projects:', err);
     error.value = 'Failed to load projects. Please try again.';
+    projects.value = [];
   } finally {
     isLoading.value = false;
   }
@@ -52,10 +83,12 @@ const saveProject = async (projectData: Project) => {
   try {
     if (projectData.ID) {
       // Update existing project
-      await updateProject(projectData.ID, projectData);
+      const preparedData = prepareProjectData(projectData);
+      await updateWithFormData<Project>('projects', projectData.ID, preparedData);
     } else {
       // Create new project
-      await createProject(projectData);
+      const preparedData = prepareProjectData(projectData);
+      await createWithFormData<Project>('projects', preparedData);
     }
     // Refresh the list
     await fetchProjects();
@@ -63,6 +96,47 @@ const saveProject = async (projectData: Project) => {
   } catch (error) {
     console.error('Error saving project:', error);
   }
+};
+
+/**
+ * Prepares project data for the API
+ * @param project - Project data to transform
+ * @returns Formatted data for API requests
+ */
+const prepareProjectData = (project: Project): FormData => {
+  const formData = new FormData();
+  
+  // Set required fields
+  formData.set("name", project.name);
+  
+  // Get the account ID from either direct ID or account object
+  const accountId = project.account_id || (project.account ? project.account.ID : 0);
+  formData.set("account_id", accountId.toString());
+  
+  formData.set("budget_hours", project.budget_hours.toString());
+  formData.set("budget_dollars", project.budget_dollars.toString());
+  formData.set("active_start", project.active_start);
+  formData.set("active_end", project.active_end);
+  formData.set("internal", project.internal.toString());
+  
+  if (project.project_type) {
+    formData.set("project_type", project.project_type);
+  }
+  
+  if (project.billing_frequency) {
+    formData.set("billing_frequency", project.billing_frequency);
+  }
+  
+  // Only add optional fields if they have values
+  if (project.ae_id) {
+    formData.set("ae_id", project.ae_id.toString());
+  }
+  
+  if (project.sdr_id) {
+    formData.set("sdr_id", project.sdr_id.toString());
+  }
+  
+  return formData;
 };
 </script>
 
@@ -114,7 +188,7 @@ const saveProject = async (projectData: Project) => {
             <div class="px-4 py-4 sm:px-6 flex justify-between items-start">
               <div>
                 <h3 class="text-lg font-semibold text-gray-900">{{ project.name }}</h3>
-                <p class="mt-1 max-w-2xl text-sm text-gray-500">{{ project.account.name }}</p>
+                <p class="mt-1 max-w-2xl text-sm text-gray-500">{{ project.account ? project.account.name : 'No Account' }}</p>
               </div>
               <button
                 @click="editProject(project)"

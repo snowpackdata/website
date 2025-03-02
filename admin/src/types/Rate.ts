@@ -8,6 +8,10 @@ export interface Rate {
   active_from: string;
   active_to: string;
   internal_only: boolean;
+  CreatedAt?: string;
+  UpdatedAt?: string;
+  DeletedAt?: string | null;
+  BillingCodes?: any[];
 }
 
 /**

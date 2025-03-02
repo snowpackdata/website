@@ -1,5 +1,66 @@
 import type { Rate } from '../types/Rate';
-import { fetchAll, fetchById, create, update, remove } from './apiUtils';
+import { 
+  fetchAll, 
+  fetchById, 
+  remove,
+  createWithFormData,
+  updateWithFormData
+} from './apiUtils';
+
+/**
+ * Validates rate data before sending to the API
+ * @param rate - Rate data to validate
+ * @returns Object with validation result and any error messages
+ */
+function validateRate(rate: Partial<Rate>): { isValid: boolean; errors: string[] } {
+  const errors: string[] = [];
+  
+  // Check required fields
+  if (!rate.name) errors.push('Rate name is required');
+  if (rate.amount === undefined || rate.amount === null) errors.push('Amount is required');
+  if (!rate.active_from) errors.push('Start date is required');
+  
+  // Validate date range
+  if (rate.active_from && rate.active_to) {
+    const startDate = new Date(rate.active_from);
+    const endDate = new Date(rate.active_to);
+    if (endDate < startDate) {
+      errors.push('End date must be after start date');
+    }
+  }
+  
+  return { 
+    isValid: errors.length === 0,
+    errors 
+  };
+}
+
+/**
+ * Prepares rate data for the backend by transforming it to the expected format
+ * @param rate - Rate data to transform
+ * @returns Prepared rate data as FormData
+ */
+function prepareRateForApi(rate: Rate): FormData {
+  const formData = new FormData();
+  
+  // Set required fields
+  formData.set("name", rate.name);
+  formData.set("amount", rate.amount.toString());
+  formData.set("active_from", rate.active_from);
+  
+  // Add optional fields
+  if (rate.active_to) {
+    formData.set("active_to", rate.active_to);
+  }
+  
+  if (rate.internal_only !== undefined) {
+    formData.set("internal_only", rate.internal_only ? "true" : "false");
+  }
+  
+  // Note: type field is intentionally omitted as it's not supported by the backend
+  
+  return formData;
+}
 
 /**
  * API service for rate-related operations
@@ -23,21 +84,47 @@ const ratesAPI = {
   },
 
   /**
-   * Create a new rate
+   * Create a new rate with validation
    * @param rate - Rate data
    * @returns Promise with created rate
    */
   async createRate(rate: Rate): Promise<Rate> {
-    return create<Rate>('rates', rate);
+    // Validate rate data
+    const validation = validateRate(rate);
+    if (!validation.isValid) {
+      throw new Error(`Validation failed: ${validation.errors.join(', ')}`);
+    }
+    
+    try {
+      // Prepare data and use the existing createWithFormData utility
+      const formData = prepareRateForApi(rate);
+      return createWithFormData<Rate>('rates', formData);
+    } catch (error) {
+      console.error('Failed to create rate:', error);
+      throw error;
+    }
   },
 
   /**
-   * Update an existing rate
+   * Update an existing rate with validation
    * @param rate - Rate data to update
    * @returns Promise with updated rate
    */
   async updateRate(rate: Rate): Promise<Rate> {
-    return update<Rate>('rates', rate.ID, rate);
+    // Validate rate data
+    const validation = validateRate(rate);
+    if (!validation.isValid) {
+      throw new Error(`Validation failed: ${validation.errors.join(', ')}`);
+    }
+    
+    try {
+      // Prepare data and use the existing updateWithFormData utility
+      const formData = prepareRateForApi(rate);
+      return updateWithFormData<Rate>('rates', rate.ID, formData);
+    } catch (error) {
+      console.error('Failed to update rate:', error);
+      throw error;
+    }
   },
 
   /**
@@ -46,31 +133,46 @@ const ratesAPI = {
    * @returns Promise with deletion result
    */
   async deleteRate(id: number): Promise<any> {
-    return remove('rates', id);
+    try {
+      return remove('rates', id);
+    } catch (error) {
+      console.error('Failed to delete rate:', error);
+      throw error;
+    }
   }
 };
 
-// For backward compatibility, maintain these exported functions
-// that delegate to the API methods
+// Exported API functions
+
 /**
- * Fetches all rates
- * @returns Promise with rates data
+ * Fetches all rates from the API
+ * @returns Promise with array of rates
  */
 export const fetchRates = async () => {
-  return await ratesAPI.getRates();
+  try {
+    return await fetchAll<Rate>('rates');
+  } catch (error) {
+    console.error('Error fetching rates:', error);
+    throw error;
+  }
 };
 
 /**
- * Fetches a single rate by ID
- * @param id Rate ID
+ * Fetches a single rate by ID from the API
+ * @param id - Rate ID
  * @returns Promise with rate data
  */
 export const fetchRateById = async (id: number) => {
-  return await ratesAPI.getRate(id);
+  try {
+    return await fetchById<Rate>('rates', id);
+  } catch (error) {
+    console.error(`Error fetching rate with ID ${id}:`, error);
+    throw error;
+  }
 };
 
 /**
- * Creates a new rate
+ * Creates a new rate with validation
  * @param rateData Rate data to create
  * @returns Promise with created rate data
  */
@@ -79,7 +181,7 @@ export const createRate = async (rateData: any) => {
 };
 
 /**
- * Updates an existing rate
+ * Updates an existing rate with validation
  * @param id Rate ID
  * @param rateData Updated rate data
  * @returns Promise with updated rate data

@@ -8,7 +8,7 @@ export interface Project {
   ID: number;
   name: string;
   account_id: number;
-  account: Account;
+  account?: any; // Account reference object
   active_start: string; // Project start date
   active_end: string; // Project end date
   budget_hours: number;
@@ -18,6 +18,11 @@ export interface Project {
   project_type: string;
   ae_id?: number; // Optional to match Go's *uint
   sdr_id?: number; // Optional to match Go's *uint
+  // Include optional server fields to avoid mapping errors
+  CreatedAt?: string;
+  UpdatedAt?: string;
+  DeletedAt?: string | null;
+  BillingCodes?: any[]; // The server may include associated billing codes
 }
 
 /**

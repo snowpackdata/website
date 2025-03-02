@@ -137,55 +137,80 @@ watch(() => route.name, () => {
 // Simple function to test the authentication token
 const testToken = () => {
   const token = localStorage.getItem('snowpack_token');
+  
   if (token) {
     console.log('Found token in local storage');
     
-    // Try both approaches: direct API call and proxied API call
-    console.log('Trying direct API call...');
-    fetch('http://localhost:8080/api/projects', {
+    // Log the full URL to see exactly what's being requested
+    const apiUrl = '/api/projects';
+    console.log('Making API request to:', window.location.origin + apiUrl);
+    
+    // Use the standard API pattern with proxy
+    console.log('Verifying API connection...');
+    fetch(apiUrl, {
       headers: {
         'x-access-token': token
       }
     })
     .then(response => {
-      console.log('Direct API Response Status:', response.status);
+      console.log('API Response Status:', response.status);
+      console.log('API Response URL:', response.url);
+      console.log('API Response Type:', response.headers.get('content-type'));
+      
       if (response.ok) {
-        console.log('Direct API call successful!');
-        return response.json();
+        console.log('API call successful!');
+        // Check if the response is JSON before trying to parse it
+        const contentType = response.headers.get('content-type');
+        if (contentType && contentType.includes('application/json')) {
+          return response.json();
+        } else {
+          console.error('Response is not JSON:', contentType);
+          // If in development, just continue with an empty object
+          if (import.meta.env.DEV) {
+            return response.text().then(text => {
+              console.log('First 100 chars of response:', text.substring(0, 100));
+              console.warn('API returned non-JSON response in development - using empty object');
+              
+              // For HTML responses (common when server returns a login page)
+              if (contentType && contentType.includes('text/html')) {
+                console.warn('HTML response detected - likely server authentication issue or redirect');
+                
+                // Clear token if it appears invalid and it's a login page
+                if (text.includes('<title>Login') || text.includes('login') || 
+                    text.includes('Login') || text.includes('authentication')) {
+                  console.warn('Login page detected - clearing invalid token');
+                  localStorage.removeItem('snowpack_token');
+                  // Don't redirect here to avoid reload loops
+                }
+              }
+              
+              return {};
+            });
+          } else {
+            // In production, treat non-JSON as an error
+            throw new Error(`Expected JSON response but got ${contentType}`);
+          }
+        }
       } else {
-        console.error('Direct API call failed with status:', response.status);
-        throw new Error('Direct API call failed');
+        console.error('API call failed with status:', response.status);
+        
+        // Clear token on authentication errors
+        if (response.status === 401 || response.status === 403) {
+          localStorage.removeItem('snowpack_token');
+        }
+        
+        return response.text().then(text => {
+          console.log('Error response body (first 100 chars):', text.substring(0, 100));
+          throw new Error(`API call failed with status ${response.status}`);
+        });
       }
     })
     .then(data => {
-      console.log('Direct API Data:', data);
+      console.log('API Data:', data);
     })
     .catch(error => {
-      console.error('Direct API call error:', error);
-      
-      // Now try the proxied approach
-      console.log('Trying proxied API call...');
-      fetch('/api/projects', {
-        headers: {
-          'x-access-token': token
-        }
-      })
-      .then(response => {
-        console.log('Proxied API Response Status:', response.status);
-        if (response.ok) {
-          console.log('Proxied API call successful!');
-          return response.json();
-        } else {
-          console.error('Proxied API call failed with status:', response.status);
-          throw new Error('Both API call methods failed');
-        }
-      })
-      .then(data => {
-        console.log('Proxied API Data:', data);
-      })
-      .catch(proxyError => {
-        console.error('All API call methods failed:', proxyError);
-      });
+      console.error('API call error:', error);
+      console.log('Token validation failed, please check server connection');
     });
   } else {
     console.error('No token found in localStorage!');

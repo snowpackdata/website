@@ -1,5 +1,74 @@
 import type { Project } from '../types/Project';
-import { fetchAll, fetchById, create, update, remove } from './apiUtils';
+import { 
+  fetchAll, 
+  fetchById, 
+  remove, 
+  createWithFormData, 
+  updateWithFormData
+} from './apiUtils';
+
+/**
+ * Validates project data before sending to the API
+ * @param project - Project data to validate
+ * @returns Object with validation result and any error messages
+ */
+function validateProject(project: Partial<Project>): { isValid: boolean; errors: string[] } {
+  const errors: string[] = [];
+  
+  // Check required fields
+  if (!project.name) errors.push('Project name is required');
+  if (!project.account_id && (!project.account || !project.account.ID)) errors.push('Account is required');
+  if (!project.active_start) errors.push('Start date is required');
+  if (!project.active_end) errors.push('End date is required');
+  
+  // Validate date range
+  if (project.active_start && project.active_end) {
+    const startDate = new Date(project.active_start);
+    const endDate = new Date(project.active_end);
+    if (endDate < startDate) {
+      errors.push('End date must be after start date');
+    }
+  }
+  
+  return { 
+    isValid: errors.length === 0,
+    errors 
+  };
+}
+
+/**
+ * Prepares project data for the backend by transforming it to the expected format
+ * @param project - Project data to transform
+ * @returns Prepared project data as FormData
+ */
+function prepareProjectForApi(project: Project): FormData {
+  const formData = new FormData();
+  
+  // Set required fields
+  formData.set("name", project.name);
+  
+  // Get the account ID from either direct ID or account object
+  const accountId = project.account_id || (project.account ? project.account.ID : 0);
+  formData.set("account_id", accountId.toString());
+  
+  formData.set("budget_hours", project.budget_hours.toString());
+  formData.set("budget_dollars", project.budget_dollars.toString());
+  formData.set("active_start", project.active_start);
+  formData.set("active_end", project.active_end);
+  formData.set("internal", project.internal.toString());
+  formData.set("project_type", project.project_type);
+  
+  // Only add optional fields if they have values
+  if (project.ae_id) {
+    formData.set("ae_id", project.ae_id.toString());
+  }
+  
+  if (project.sdr_id) {
+    formData.set("sdr_id", project.sdr_id.toString());
+  }
+  
+  return formData;
+}
 
 /**
  * API service for project-related operations
@@ -23,21 +92,49 @@ const projectsAPI = {
   },
 
   /**
-   * Create a new project
+   * Create a new project with validation
    * @param project - Project data
    * @returns Promise with created project
+   * @throws Error if validation fails
    */
   async createProject(project: Project): Promise<Project> {
-    return create<Project>('projects', project);
+    // Validate project data
+    const validation = validateProject(project);
+    if (!validation.isValid) {
+      throw new Error(`Validation failed: ${validation.errors.join(', ')}`);
+    }
+    
+    try {
+      // Prepare data and use the createWithFormData utility
+      const formData = prepareProjectForApi(project);
+      return createWithFormData<Project>('projects', formData);
+    } catch (error) {
+      console.error('Failed to create project:', error);
+      throw error;
+    }
   },
 
   /**
-   * Update an existing project
+   * Update an existing project with validation
    * @param project - Project data to update
    * @returns Promise with updated project
+   * @throws Error if validation fails
    */
   async updateProject(project: Project): Promise<Project> {
-    return update<Project>('projects', project.ID, project);
+    // Validate project data
+    const validation = validateProject(project);
+    if (!validation.isValid) {
+      throw new Error(`Validation failed: ${validation.errors.join(', ')}`);
+    }
+    
+    try {
+      // Prepare data and use the updateWithFormData utility
+      const formData = prepareProjectForApi(project);
+      return updateWithFormData<Project>('projects', project.ID, formData);
+    } catch (error) {
+      console.error('Failed to update project:', error);
+      throw error;
+    }
   },
 
   /**
@@ -46,7 +143,12 @@ const projectsAPI = {
    * @returns Promise with deletion result
    */
   async deleteProject(id: number): Promise<any> {
-    return remove('projects', id);
+    try {
+      return remove('projects', id);
+    } catch (error) {
+      console.error('Failed to delete project:', error);
+      throw error;
+    }
   },
   
   /**
@@ -85,40 +187,49 @@ const projectsAPI = {
   }
 };
 
-// For backward compatibility, maintain these exported functions
-// that delegate to the API methods
 /**
- * Fetches all projects or projects for a specific account if accountId is provided
- * @param accountId Optional account ID to filter projects
- * @returns Promise with projects data
+ * Fetches all projects from the API
+ * @returns Promise with array of projects
  */
-export const fetchProjects = async (accountId?: number) => {
-  return accountId ? projectsAPI.getProjectsByAccount(accountId) : projectsAPI.getProjects();
+export const fetchProjects = async () => {
+  try {
+    return await fetchAll<Project>('projects');
+  } catch (error) {
+    console.error('Error fetching projects:', error);
+    throw error;
+  }
 };
 
 /**
- * Fetches a single project by ID
- * @param id Project ID
+ * Fetches a single project by ID from the API
+ * @param id - Project ID
  * @returns Promise with project data
  */
 export const fetchProjectById = async (id: number) => {
-  return projectsAPI.getProject(id);
+  try {
+    return await fetchById<Project>('projects', id);
+  } catch (error) {
+    console.error(`Error fetching project with ID ${id}:`, error);
+    throw error;
+  }
 };
 
 /**
- * Creates a new project
+ * Creates a new project with validation
  * @param projectData Project data to create
  * @returns Promise with created project data
+ * @throws Error if validation fails
  */
 export const createProject = async (projectData: Partial<Project>) => {
   return projectsAPI.createProject(projectData as Project);
 };
 
 /**
- * Updates an existing project
+ * Updates an existing project with validation
  * @param id Project ID
  * @param projectData Updated project data
  * @returns Promise with updated project data
+ * @throws Error if validation fails
  */
 export const updateProject = async (id: number, projectData: Partial<Project>) => {
   const fullProject = { ...projectData, ID: id } as Project;

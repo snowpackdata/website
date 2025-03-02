@@ -53,26 +53,26 @@
                 </tr>
               </thead>
               <tbody class="divide-y divide-gray-200 bg-white">
-                <tr v-for="billingCode in billingCodes" :key="billingCode.id" class="hover:bg-gray-50">
+                <tr v-for="billingCode in billingCodes" :key="billingCode.ID" class="hover:bg-gray-50">
                   <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
                     {{ billingCode.name }}
                   </td>
                   <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                    {{ getProjectName(billingCode.projectId) }}
+                    {{ getProjectName(billingCode.project) }}
                   </td>
                   <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                    {{ getRateName(billingCode.rateId) }}
+                    {{ getRateName(billingCode.rate_id) }}
                   </td>
                   <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
                     <span 
                       :class="[
                         'inline-flex items-center rounded-md px-2 py-1 text-xs font-medium',
-                        billingCode.isActive 
+                        billingCode.active 
                           ? 'bg-green-50 text-green-700 ring-1 ring-inset ring-green-600/20' 
                           : 'bg-red-50 text-red-700 ring-1 ring-inset ring-red-600/20'
                       ]"
                     >
-                      {{ billingCode.isActive ? 'Active' : 'Inactive' }}
+                      {{ billingCode.active ? 'Active' : 'Inactive' }}
                     </span>
                   </td>
                   <td class="px-3 py-4 text-sm text-gray-500 max-w-md truncate">
@@ -168,12 +168,18 @@ onMounted(async () => {
 
 // Helper functions
 const getProjectName = (projectId) => {
-  const project = projects.value.find(p => p.id === projectId);
+  if (!projects.value || !Array.isArray(projects.value)) {
+    return 'Unknown';
+  }
+  const project = projects.value.find(p => p.ID === projectId);
   return project ? project.name : 'Unknown';
 };
 
 const getRateName = (rateId) => {
-  const rate = rates.value.find(r => r.id === rateId);
+  if (!rates.value || !Array.isArray(rates.value)) {
+    return 'Unknown';
+  }
+  const rate = rates.value.find(r => r.ID === rateId);
   if (!rate) return 'Unknown';
   return `${rate.name} (${formatCurrency(rate.amount)})`;
 };
@@ -201,8 +207,22 @@ const openBillingCodeDrawer = (billingCode = null) => {
   // pre-populate the project ID
   if (!billingCode && selectedProjectId.value) {
     selectedBillingCode.value = { projectId: selectedProjectId.value };
+  } else if (billingCode) {
+    // Map API data structure to form fields
+    selectedBillingCode.value = {
+      ID: billingCode.ID,
+      id: billingCode.ID,
+      name: billingCode.name,
+      description: billingCode.description,
+      project: billingCode.project,
+      projectId: billingCode.project,
+      rate_id: billingCode.rate_id,
+      rateId: billingCode.rate_id,
+      active: billingCode.active,
+      isActive: billingCode.active
+    };
   } else {
-    selectedBillingCode.value = billingCode;
+    selectedBillingCode.value = null;
   }
   
   isBillingCodeDrawerOpen.value = true;
@@ -216,10 +236,20 @@ const closeBillingCodeDrawer = () => {
 // Save billing code
 const saveBillingCode = async (billingCodeData) => {
   try {
-    if (billingCodeData.id) {
-      await updateBillingCode(billingCodeData.id, billingCodeData);
+    // Transform the form data to match the API structure
+    const apiData = {
+      ID: billingCodeData.id || 0,
+      name: billingCodeData.name,
+      description: billingCodeData.description,
+      project: parseInt(billingCodeData.projectId, 10),
+      rate_id: parseInt(billingCodeData.rateId, 10),
+      active: billingCodeData.isActive
+    };
+    
+    if (apiData.ID) {
+      await updateBillingCode(apiData.ID, apiData);
     } else {
-      await createBillingCode(billingCodeData);
+      await createBillingCode(apiData);
     }
     
     // Refresh billing codes with current filter
@@ -244,7 +274,7 @@ const deleteBillingCode = async () => {
   if (!billingCodeToDelete.value) return;
   
   try {
-    await deleteBillingCodeAPI(billingCodeToDelete.value.id);
+    await deleteBillingCodeAPI(billingCodeToDelete.value.ID);
     
     // Refresh billing codes with current filter
     const updatedBillingCodes = await getBillingCodes(selectedProjectId.value || undefined);

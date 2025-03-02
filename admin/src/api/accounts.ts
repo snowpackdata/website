@@ -1,12 +1,65 @@
 import type { Account } from '../types/Account';
 import { fetchAll, fetchById, createWithFormData, updateWithFormData, remove } from './apiUtils';
 
-const API_URL = import.meta.env.VITE_API_URL || '/api';
+/**
+ * Validates account data before sending to the API
+ * @param account - Account data to validate
+ * @returns Object with validation result and any error messages
+ */
+function validateAccount(account: Partial<Account>): { isValid: boolean; errors: string[] } {
+  const errors: string[] = [];
+  
+  // Check required fields
+  if (!account.name) errors.push('Account name is required');
+  
+  return { 
+    isValid: errors.length === 0,
+    errors 
+  };
+}
 
-// Simple token getter function
-const getToken = () => {
-  return localStorage.getItem('token') || '';
-};
+/**
+ * Prepares account data for the backend by transforming it to the expected format
+ * @param account - Account data to transform
+ * @returns Prepared account data as FormData
+ */
+function prepareAccountForApi(account: Account): FormData {
+  const formData = new FormData();
+  
+  // Set required fields
+  formData.set("name", account.name);
+  
+  // Add other fields from the Account interface
+  if (account.legal_name) {
+    formData.set("legal_name", account.legal_name);
+  }
+  
+  if (account.address) {
+    formData.set("address", account.address);
+  }
+  
+  if (account.website) {
+    formData.set("website", account.website);
+  }
+  
+  if (account.email) {
+    formData.set("email", account.email);
+  }
+  
+  if (account.type) {
+    formData.set("type", account.type);
+  }
+  
+  if (account.billing_frequency) {
+    formData.set("billing_frequency", account.billing_frequency);
+  }
+  
+  formData.set("budget_hours", account.budget_hours.toString());
+  formData.set("budget_dollars", account.budget_dollars.toString());
+  formData.set("projects_single_invoice", account.projects_single_invoice ? "true" : "false");
+  
+  return formData;
+}
 
 /**
  * API service for account-related operations
@@ -35,7 +88,20 @@ const accountsAPI = {
    * @returns Promise with the created account
    */
   async createAccount(account: Account): Promise<Account> {
-    return createWithFormData<Account>('accounts/0', account);
+    // Validate account data
+    const validation = validateAccount(account);
+    if (!validation.isValid) {
+      throw new Error(`Validation failed: ${validation.errors.join(', ')}`);
+    }
+    
+    try {
+      // Prepare data and use the createWithFormData utility
+      const formData = prepareAccountForApi(account);
+      return createWithFormData<Account>('accounts', formData);
+    } catch (error) {
+      console.error('Failed to create account:', error);
+      throw error;
+    }
   },
 
   /**
@@ -44,7 +110,20 @@ const accountsAPI = {
    * @returns Promise with the updated account
    */
   async updateAccount(account: Account): Promise<Account> {
-    return updateWithFormData<Account>('accounts', account.ID, account);
+    // Validate account data
+    const validation = validateAccount(account);
+    if (!validation.isValid) {
+      throw new Error(`Validation failed: ${validation.errors.join(', ')}`);
+    }
+    
+    try {
+      // Prepare data and use the updateWithFormData utility
+      const formData = prepareAccountForApi(account);
+      return updateWithFormData<Account>('accounts', account.ID, formData);
+    } catch (error) {
+      console.error('Failed to update account:', error);
+      throw error;
+    }
   },
 
   /**
@@ -53,7 +132,12 @@ const accountsAPI = {
    * @returns Promise with the response data
    */
   async deleteAccount(id: number): Promise<any> {
-    return remove('accounts', id);
+    try {
+      return remove('accounts', id);
+    } catch (error) {
+      console.error('Failed to delete account:', error);
+      throw error;
+    }
   },
 
   /**
@@ -63,7 +147,12 @@ const accountsAPI = {
    * @returns Promise with the invited user data
    */
   async inviteUser(accountId: number, email: string): Promise<any> {
-    return createWithFormData('accounts/' + accountId + '/invite', { email });
+    try {
+      return createWithFormData('accounts/' + accountId + '/invite', { email });
+    } catch (error) {
+      console.error('Failed to invite user:', error);
+      throw error;
+    }
   }
 };
 
