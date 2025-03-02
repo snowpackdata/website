@@ -11,7 +11,7 @@
                 <form class="flex h-full flex-col overflow-y-scroll bg-white shadow-xl" @submit.prevent="handleSubmit">
                   <div class="flex-1">
                     <!-- Header -->
-                    <div class="bg-sage-dark px-4 py-6 sm:px-6">
+                    <div class="bg-sage-dark px-4 py-6 sm:px-6" :class="{ 'bg-blue-700': isEditing }">
                       <div class="flex items-start justify-between space-x-3">
                         <div class="space-y-1">
                           <DialogTitle class="text-base font-semibold text-white">{{ isEditing ? 'Edit Project' : 'New Project' }}</DialogTitle>
@@ -60,7 +60,7 @@
                             class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
                           >
                             <option value="">Select an account</option>
-                            <option v-for="account in accounts" :key="account.id" :value="account.id">
+                            <option v-for="account in accounts" :key="account.ID" :value="account.ID">
                               {{ account.name }}
                             </option>
                           </select>
@@ -190,6 +190,46 @@
                           />
                         </div>
                       </div>
+
+                      <!-- Account Executive -->
+                      <div class="space-y-2 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-5">
+                        <div>
+                          <label for="project-ae" class="block text-sm/6 font-medium text-gray-900 sm:mt-1.5">Account Executive</label>
+                        </div>
+                        <div class="sm:col-span-2">
+                          <select 
+                            id="project-ae"
+                            name="project-ae"
+                            v-model="project.ae_id"
+                            class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-sage sm:text-sm/6"
+                          >
+                            <option value="">Select an Account Executive</option>
+                            <option v-for="ae in staffMembers" :key="ae.ID" :value="ae.ID">
+                              {{ ae.first_name }} {{ ae.last_name }}
+                            </option>
+                          </select>
+                        </div>
+                      </div>
+
+                      <!-- Sales Development Representative -->
+                      <div class="space-y-2 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-5">
+                        <div>
+                          <label for="project-sdr" class="block text-sm/6 font-medium text-gray-900 sm:mt-1.5">Sales Development Representative</label>
+                        </div>
+                        <div class="sm:col-span-2">
+                          <select 
+                            id="project-sdr"
+                            name="project-sdr"
+                            v-model="project.sdr_id"
+                            class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-sage sm:text-sm/6"
+                          >
+                            <option value="">Select a Sales Development Representative</option>
+                            <option v-for="sdr in staffMembers" :key="sdr.ID" :value="sdr.ID">
+                              {{ sdr.first_name }} {{ sdr.last_name }}
+                            </option>
+                          </select>
+                        </div>
+                      </div>
                     </div>
                   </div>
 
@@ -205,9 +245,14 @@
                       </button>
                       <button 
                         type="submit" 
-                        class="inline-flex justify-center rounded-md bg-sage px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-sage-dark focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sage"
+                        :class="[
+                          'inline-flex justify-center rounded-md px-3 py-2 text-sm font-semibold text-white shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2',
+                          isEditing 
+                            ? 'bg-blue-600 hover:bg-blue-700 focus-visible:outline-blue-600' 
+                            : 'bg-sage hover:bg-sage-dark focus-visible:outline-sage'
+                        ]"
                       >
-                        {{ isEditing ? 'Update' : 'Create' }}
+                        {{ isEditing ? 'Update Project' : 'Create Project' }}
                       </button>
                     </div>
                   </div>
@@ -226,6 +271,7 @@ import { ref, computed, onMounted, watch } from 'vue';
 import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } from '@headlessui/vue';
 import { XMarkIcon } from '@heroicons/vue/24/outline';
 import { fetchAccounts } from '../../api';
+import { getUsers } from '../../api/timesheet';
 import { formatDate, parseServerDate, formatDateForServer } from '../../utils/dateUtils';
 
 const props = defineProps({
@@ -247,11 +293,20 @@ const handleClose = () => {
 };
 
 // Determine if editing or creating new
-const isEditing = computed(() => !!props.projectData?.id);
+const isEditing = computed(() => {
+  // Check for either lowercase 'id' or uppercase 'ID' property
+  return !!(props.projectData?.id || props.projectData?.ID);
+});
+
+// Watch isEditing for debugging purposes
+watch(isEditing, (newValue) => {
+  console.log('isEditing changed:', newValue);
+  console.log('projectData:', props.projectData);
+});
 
 // Initialize project with default values or provided data
 const project = ref({
-  id: props.projectData?.id || null,
+  id: props.projectData?.id || props.projectData?.ID || null,
   name: props.projectData?.name || '',
   accountId: props.projectData?.account_id || '',
   project_type: props.projectData?.project_type || 'PROJECT_TYPE_NEW',
@@ -260,14 +315,16 @@ const project = ref({
   endDate: parseServerDate(props.projectData?.active_end),
   billing_frequency: props.projectData?.billing_frequency || 'BILLING_TYPE_MONTHLY',
   budget_hours: props.projectData?.budget_hours || 0,
-  budget_dollars: props.projectData?.budget_dollars || 0
+  budget_dollars: props.projectData?.budget_dollars || 0,
+  ae_id: props.projectData?.ae_id || '',
+  sdr_id: props.projectData?.sdr_id || ''
 });
 
 // Update project data when projectData prop changes
 watch(() => props.projectData, (newVal) => {
   if (newVal) {
     project.value = {
-      id: newVal.id || null,
+      id: newVal.id || newVal.ID || null,
       name: newVal.name || '',
       accountId: newVal.account_id || '',
       project_type: newVal.project_type || 'PROJECT_TYPE_NEW',
@@ -276,20 +333,27 @@ watch(() => props.projectData, (newVal) => {
       endDate: parseServerDate(newVal.active_end),
       billing_frequency: newVal.billing_frequency || 'BILLING_TYPE_MONTHLY',
       budget_hours: newVal.budget_hours || 0,
-      budget_dollars: newVal.budget_dollars || 0
+      budget_dollars: newVal.budget_dollars || 0,
+      ae_id: newVal.ae_id || '',
+      sdr_id: newVal.sdr_id || ''
     };
   }
 }, { deep: true });
 
 // Fetch accounts for dropdown
 const accounts = ref([]);
+const staffMembers = ref([]);
 
 onMounted(async () => {
   try {
-    const data = await fetchAccounts();
-    accounts.value = data || [];
+    const [accountsData, staffData] = await Promise.all([
+      fetchAccounts(),
+      getUsers()
+    ]);
+    accounts.value = accountsData || [];
+    staffMembers.value = staffData || [];
   } catch (error) {
-    console.error('Failed to fetch accounts:', error);
+    console.error('Failed to fetch data:', error);
   }
 });
 
@@ -304,6 +368,7 @@ const handleSubmit = () => {
   // Convert dates back to ISO strings and map fields to match API
   const formattedProject = {
     id: project.value.id,
+    ID: project.value.id, // Include both id and ID to ensure compatibility
     name: project.value.name,
     account_id: parseInt(project.value.accountId),
     project_type: project.value.project_type,
@@ -312,7 +377,9 @@ const handleSubmit = () => {
     billing_frequency: project.value.billing_frequency,
     budget_hours: project.value.budget_hours,
     budget_dollars: project.value.budget_dollars,
-    internal: project.value.internal
+    internal: project.value.internal,
+    ae_id: project.value.ae_id ? parseInt(project.value.ae_id) : null,
+    sdr_id: project.value.sdr_id ? parseInt(project.value.sdr_id) : null
   };
 
   emit('save', formattedProject);

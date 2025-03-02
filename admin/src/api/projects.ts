@@ -248,4 +248,19 @@ export const deleteProject = async (id: number) => {
 // Export the API object explicitly to match the accounts pattern
 export { projectsAPI };
 
-export default projectsAPI; 
+export default projectsAPI;
+
+// Add getProjectAnalytics function to fetch analytics data for a specific project
+export const getProjectAnalytics = async (projectId: number) => {
+  try {
+    const response = await fetch(`/api/projects/${projectId}/analytics`);
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(`Failed to fetch project analytics: ${error}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching project analytics:', error);
+    throw error;
+  }
+}; 

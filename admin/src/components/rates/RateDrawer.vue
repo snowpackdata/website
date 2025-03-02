@@ -182,7 +182,7 @@
 import { ref, computed, watch } from 'vue';
 import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } from '@headlessui/vue';
 import { XMarkIcon } from '@heroicons/vue/24/outline';
-import { formatDate, parseServerDate, formatDateForServer } from '../../utils/dateUtils';
+import { formatDate, parseServerDate, formatDateForServer, getCurrentDate } from '../../utils/dateUtils';
 
 const props = defineProps({
   isOpen: {
@@ -212,14 +212,17 @@ const handleDelete = () => {
 // Determine if editing or creating new
 const isEditing = computed(() => !!props.rateData?.ID);
 
+// Log when component is initialized
+console.log('RateDrawer initialized with rateData:', props.rateData);
+
 // Initialize rate with default values or provided data
 const rate = ref({
   ID: props.rateData?.ID || null,
   name: props.rateData?.name || '',
   type: props.rateData?.type || 'RATE_TYPE_EXTERNAL_CLIENT_BILLABLE',
   amount: props.rateData?.amount || 0,
-  startDate: parseServerDate(props.rateData?.active_from),
-  endDate: parseServerDate(props.rateData?.active_to),
+  startDate: props.rateData?.active_from ? parseServerDate(props.rateData.active_from) : getCurrentDate(),
+  endDate: props.rateData?.active_to ? parseServerDate(props.rateData.active_to) : '',
   internal_only: props.rateData?.internal_only || false
 });
 
@@ -236,8 +239,8 @@ watch(() => props.rateData, (newVal) => {
       name: newVal.name || '',
       type: newVal.type || 'RATE_TYPE_EXTERNAL_CLIENT_BILLABLE',
       amount: newVal.amount || 0,
-      startDate: parseServerDate(newVal.active_from),
-      endDate: parseServerDate(newVal.active_to),
+      startDate: newVal.active_from ? parseServerDate(newVal.active_from) : getCurrentDate(),
+      endDate: newVal.active_to ? parseServerDate(newVal.active_to) : '',
       internal_only: newVal.internal_only || false
     };
     
@@ -247,12 +250,15 @@ watch(() => props.rateData, (newVal) => {
     });
   } else {
     // Reset form when no data is provided (for new rates)
+    const today = getCurrentDate();
+    console.log('Setting default date for new rate:', today);
+    
     rate.value = {
       ID: null,
       name: '',
       type: 'RATE_TYPE_EXTERNAL_CLIENT_BILLABLE',
       amount: 0,
-      startDate: '',
+      startDate: today,
       endDate: '',
       internal_only: false
     };
@@ -261,9 +267,16 @@ watch(() => props.rateData, (newVal) => {
 
 // Handle form submission
 const handleSubmit = () => {
+  console.log('Submitting form with rate data:', rate.value);
+  
   // Validate form
   if (!rate.value.name || !rate.value.amount || !rate.value.startDate) {
     alert('Please fill in all required fields');
+    console.error('Validation failed - missing required fields', {
+      name: rate.value.name,
+      amount: rate.value.amount,
+      startDate: rate.value.startDate
+    });
     return;
   }
 
@@ -271,14 +284,37 @@ const handleSubmit = () => {
   const formattedRate = {
     ...rate.value,
     amount: parseFloat(rate.value.amount),
-    active_from: rate.value.startDate ? formatDateForServer(rate.value.startDate) : '',
-    active_to: rate.value.endDate ? formatDateForServer(rate.value.endDate) : '',
-    internal_only: rate.value.internal_only
   };
-
-  console.log('Submitting rate with formatted dates:', {
-    startDate: rate.value.startDate,
-    endDate: rate.value.endDate,
+  
+  // Format dates for API
+  console.log('Formatting dates for API submission:', {
+    startDateInput: rate.value.startDate,
+    endDateInput: rate.value.endDate
+  });
+  
+  // For date inputs (which are already in YYYY-MM-DD format),
+  // we can directly set the values to avoid any timezone issues
+  if (rate.value.startDate) {
+    // Directly set the YYYY-MM-DD string from the date input
+    formattedRate.active_from = rate.value.startDate;
+    console.log('Using startDate directly:', rate.value.startDate);
+  } else {
+    // Fallback to today if somehow missing
+    const today = new Date();
+    formattedRate.active_from = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+    console.log('Using today as fallback for startDate:', formattedRate.active_from);
+  }
+  
+  // Only set endDate if provided
+  if (rate.value.endDate) {
+    // Directly set the YYYY-MM-DD string from the date input
+    formattedRate.active_to = rate.value.endDate;
+    console.log('Using endDate directly:', rate.value.endDate);
+  } else {
+    formattedRate.active_to = '';
+  }
+  
+  console.log('Dates formatted for API:', {
     active_from: formattedRate.active_from,
     active_to: formattedRate.active_to
   });
@@ -286,6 +322,8 @@ const handleSubmit = () => {
   // Remove temporary date fields
   delete formattedRate.startDate;
   delete formattedRate.endDate;
+  
+  console.log('Final rate data being sent to API:', formattedRate);
 
   emit('save', formattedRate);
 };

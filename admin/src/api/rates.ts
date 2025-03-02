@@ -36,20 +36,33 @@ function validateRate(rate: Partial<Rate>): { isValid: boolean; errors: string[]
 }
 
 /**
- * Prepares rate data for the backend by transforming it to the expected format
- * @param rate - Rate data to transform
- * @returns Prepared rate data as FormData
+ * Prepares a Rate object for API submission
+ * @param rate - The rate data to prepare
+ * @returns FormData object ready for API submission
  */
 function prepareRateForApi(rate: Rate): FormData {
+  console.log('Preparing rate for API:', rate);
+  
   const formData = new FormData();
   
   // Set required fields
   formData.set("name", rate.name);
   formData.set("amount", rate.amount.toString());
-  formData.set("active_from", rate.active_from);
+  
+  // Ensure active_from is a valid string in YYYY-MM-DD format
+  if (!rate.active_from) {
+    console.error('Missing required active_from date');
+    const today = new Date();
+    const formattedDate = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+    formData.set("active_from", formattedDate);
+  } else {
+    console.log('Setting active_from date:', rate.active_from);
+    formData.set("active_from", rate.active_from);
+  }
   
   // Add optional fields
   if (rate.active_to) {
+    console.log('Setting active_to date:', rate.active_to);
     formData.set("active_to", rate.active_to);
   }
   
@@ -57,7 +70,11 @@ function prepareRateForApi(rate: Rate): FormData {
     formData.set("internal_only", rate.internal_only ? "true" : "false");
   }
   
-  // Note: type field is intentionally omitted as it's not supported by the backend
+  console.log('FormData entries:');
+  // @ts-ignore - For debug purposes only
+  for (const [key, value] of formData.entries()) {
+    console.log(`${key}: ${value}`);
+  }
   
   return formData;
 }
@@ -182,13 +199,16 @@ export const createRate = async (rateData: any) => {
 
 /**
  * Updates an existing rate with validation
- * @param id Rate ID
  * @param rateData Updated rate data
  * @returns Promise with updated rate data
  */
-export const updateRate = async (id: number, rateData: any) => {
-  const fullRate = { ...rateData, ID: id } as Rate;
-  return await ratesAPI.updateRate(fullRate);
+export const updateRate = async (rateData: any) => {
+  console.log('Updating rate with data:', rateData);
+  // Ensure ID is provided in the rate data
+  if (!rateData.ID) {
+    throw new Error('Rate ID is required for updates');
+  }
+  return await ratesAPI.updateRate(rateData as Rate);
 };
 
 /**

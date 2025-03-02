@@ -203,6 +203,14 @@
                   <div class="shrink-0 border-t border-gray-200 px-4 py-5 sm:px-6">
                     <div class="flex justify-end space-x-3">
                       <button 
+                        v-if="isEditing"
+                        type="button" 
+                        class="rounded-md bg-red-50 px-3 py-2 text-sm font-semibold text-red-700 shadow-sm ring-1 ring-inset ring-red-600/20 hover:bg-red-100" 
+                        @click="handleDelete"
+                      >
+                        Delete
+                      </button>
+                      <button 
                         type="button" 
                         class="rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50" 
                         @click="handleClose"
@@ -246,11 +254,18 @@ const props = defineProps({
   }
 });
 
-const emit = defineEmits(['close', 'save']);
+const emit = defineEmits(['close', 'save', 'delete']);
 
 // Handle close events
 const handleClose = () => {
   emit('close');
+};
+
+// Handle delete button click
+const handleDelete = () => {
+  if (isEditing.value && billingCode.value.id) {
+    emit('delete', billingCode.value);
+  }
 };
 
 // Billing code categories

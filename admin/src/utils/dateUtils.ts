@@ -72,16 +72,26 @@ export function formatDate(dateValue: string | Date | null | undefined, format: 
  * @returns Normalized date string in YYYY-MM-DD format
  */
 export function parseServerDate(dateString: string | null | undefined): string {
+  console.log('parseServerDate input:', dateString);
+  
   if (!dateString) return '';
   
   try {
     // If the string already looks like YYYY-MM-DD, just return it
     if (typeof dateString === 'string' && dateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
+      console.log('Input was already in YYYY-MM-DD format');
       return dateString;
     }
     
     // Parse the date and extract components in local timezone
     const date = new Date(dateString);
+    console.log('Parsed date:', date);
+    console.log('Date components:', {
+      year: date.getFullYear(),
+      month: date.getMonth() + 1,
+      day: date.getDate(),
+      isValid: !isNaN(date.getTime())
+    });
     
     // Check if date is valid
     if (isNaN(date.getTime())) {
@@ -94,7 +104,9 @@ export function parseServerDate(dateString: string | null | undefined): string {
     const month = (date.getMonth() + 1).toString().padStart(2, '0');
     const day = date.getDate().toString().padStart(2, '0');
     
-    return `${year}-${month}-${day}`;
+    const formattedDate = `${year}-${month}-${day}`;
+    console.log('Returning formatted date:', formattedDate);
+    return formattedDate;
   } catch (error) {
     console.error('Error parsing server date:', error);
     return '';
@@ -102,25 +114,52 @@ export function parseServerDate(dateString: string | null | undefined): string {
 }
 
 /**
- * Formats a date for sending to the server
- * Ensures date is normalized to midnight UTC
- * @param dateStr - The date string in YYYY-MM-DD format
- * @returns ISO date string with time set to T00:00:00.000Z
+ * Format a date string for the server API
+ * @param dateStr Date string in YYYY-MM-DD format
+ * @returns Date string in YYYY-MM-DD format (no timezone conversion)
  */
 export function formatDateForServer(dateStr: string): string {
-  if (!dateStr) return '';
+  console.log('formatDateForServer input:', dateStr);
+  
+  if (!dateStr) {
+    console.log('Empty date input, returning empty string');
+    return '';
+  }
   
   try {
-    // Parse the YYYY-MM-DD date in local timezone
-    const [year, month, day] = dateStr.split('-').map(Number);
+    // If the input is already in YYYY-MM-DD format from HTML date input
+    // We can just pass it through directly without any timezone conversion
+    const dateRegex = /^(\d{4})-(\d{2})-(\d{2})$/;
+    const match = dateStr.match(dateRegex);
     
-    // Set time to midnight UTC (which may change the day depending on timezone)
-    const utcDate = new Date(Date.UTC(year, month - 1, day, 0, 0, 0));
+    if (match) {
+      console.log('Date is already in YYYY-MM-DD format, using as is:', dateStr);
+      return dateStr; // Return the date string directly to avoid any timezone shifts
+    }
     
-    return utcDate.toISOString();
+    // For other formats, parse as a local date and format to YYYY-MM-DD
+    // ensuring we use local date components, not UTC
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) {
+      console.error('Invalid date:', dateStr);
+      // Return current date as fallback
+      const today = new Date();
+      return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+    }
+    
+    // Format as YYYY-MM-DD using local date components (not UTC)
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    
+    const formatted = `${year}-${month}-${day}`;
+    console.log('Formatted date for server (local timezone):', formatted);
+    return formatted;
   } catch (error) {
     console.error('Error formatting date for server:', error);
-    return '';
+    // Return current date as fallback
+    const today = new Date();
+    return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
   }
 }
 

@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { fetchProjects, createProject, updateProject } from '../../api/projects';
+import { getUsers } from '../../api/timesheet';
 import type { Project } from '../../types/Project';
 // @ts-ignore - Ignore type issues with Vue components for now
 import ProjectDrawer from '../../components/projects/ProjectDrawer.vue';
-import { formatDate } from '../../utils/dateUtils';
+// @ts-ignore - Ignore type issues with Vue components for now
+import ProjectCard from '../../components/projects/ProjectCard.vue';
 
 // State
 const projects = ref<Project[]>([]);
@@ -12,6 +14,7 @@ const isLoading = ref(true);
 const error = ref<string | null>(null);
 const isProjectDrawerOpen = ref(false);
 const selectedProject = ref<Project | null>(null);
+const staffMembers = ref<any[]>([]);
 
 // Fetch projects function
 const fetchProjectsData = async () => {
@@ -44,7 +47,8 @@ const fetchProjectsData = async () => {
       billing_frequency: project.billing_frequency || '',
       project_type: project.project_type || '',
       ae_id: project.ae_id !== undefined ? Number(project.ae_id) : undefined,
-      sdr_id: project.sdr_id !== undefined ? Number(project.sdr_id) : undefined
+      sdr_id: project.sdr_id !== undefined ? Number(project.sdr_id) : undefined,
+      billing_codes: project.billing_codes || [], // Include billing codes if available
       // We don't need to map CreatedAt, UpdatedAt, DeletedAt as they're optional
     }));
     
@@ -61,6 +65,15 @@ const fetchProjectsData = async () => {
 // Fetch projects on component mount
 onMounted(async () => {
   await fetchProjectsData();
+  
+  // Fetch staff members for AE and SDR mapping
+  try {
+    const staff = await getUsers();
+    staffMembers.value = staff || [];
+    console.log('Fetched staff members:', staffMembers.value);
+  } catch (err) {
+    console.error('Error fetching staff members:', err);
+  }
 });
 
 // Project drawer functions
@@ -100,40 +113,6 @@ const saveProject = async (projectData: Project) => {
     alert('Failed to save project. Please try again.');
   }
 };
-
-// Delete project
-// const handleDeleteProject = async (projectId: number) => {
-//   try {
-//     // Use exported deleteProject function
-//     await deleteProject(projectId);
-//     
-//     // Refresh projects
-//     await fetchProjectsData();
-//   } catch (error) {
-//     console.error('Error deleting project:', error);
-//     alert('Failed to delete project. Please try again.');
-//   }
-// };
-
-/**
- * Prepares project data for the API
- * @param project - Project data to transform
- * @returns Formatted data for API requests
- */
-// const prepareProjectData = (project: Project): FormData => {
-//   const formData = new FormData();
-//   
-//   // Set required fields
-//   formData.set("name", project.name);
-//   
-//   // Get the account ID from either direct ID or account object
-//   const accountId = project.account_id || (project.account ? project.account.ID : 0);
-//   formData.set("account_id", accountId.toString());
-//   
-//   // Add other fields as needed
-//   
-//   return formData;
-// };
 </script>
 
 <template>
@@ -149,7 +128,7 @@ const saveProject = async (projectData: Project) => {
           @click="openProjectDrawer()"
           class="block rounded-md bg-sage px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-sage-dark focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sage"
         >
-          Create new project
+          <i class="fas fa-plus-circle mr-1"></i> Create new project
         </button>
       </div>
     </div>
@@ -176,59 +155,15 @@ const saveProject = async (projectData: Project) => {
       <p class="text-gray mb-4">Projects will appear here once they are created</p>
     </div>
     
-    <!-- Projects Cards -->
-    <div v-else class="mt-6">
-      <ul role="list" class="divide-y divide-gray-200">
-        <li v-for="project in projects" :key="project.ID" class="py-5">
-          <div class="overflow-hidden bg-white shadow sm:rounded-lg">
-            <div class="px-4 py-4 sm:px-6 flex justify-between items-start">
-              <div>
-                <h3 class="text-lg font-semibold text-gray-900">{{ project.name }}</h3>
-                <p class="mt-1 max-w-2xl text-sm text-gray-500">{{ project.account ? project.account.name : 'No Account' }}</p>
-              </div>
-              <button
-                @click="editProject(project)"
-                class="text-teal hover:text-teal-dark rounded-full p-2 hover:bg-gray-100 transition-colors"
-                title="Edit Project"
-              >
-                <i class="fas fa-pencil-alt"></i>
-              </button>
-            </div>
-            <div class="border-t border-gray-100">
-              <dl class="divide-y divide-gray-100">
-                <div class="px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                  <dt class="text-sm font-medium text-gray-900">Start Date</dt>
-                  <dd class="mt-1 text-sm text-gray-700 sm:col-span-2 sm:mt-0">
-                    {{ project.active_start ? formatDate(project.active_start) : 'Not specified' }}
-                  </dd>
-                </div>
-                <div class="px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                  <dt class="text-sm font-medium text-gray-900">End Date</dt>
-                  <dd class="mt-1 text-sm text-gray-700 sm:col-span-2 sm:mt-0">
-                    {{ project.active_end ? formatDate(project.active_end) : 'Not specified' }}
-                  </dd>
-                </div>
-                <div class="px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                  <dt class="text-sm font-medium text-gray-900">Budget Hours</dt>
-                  <dd class="mt-1 text-sm text-gray-700 sm:col-span-2 sm:mt-0">
-                    {{ project.budget_hours !== null && project.budget_hours !== undefined ? project.budget_hours : 'Not specified' }}
-                  </dd>
-                </div>
-                <div class="px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                  <dt class="text-sm font-medium text-gray-900">Project Type</dt>
-                  <dd class="mt-1 text-sm text-gray-700 sm:col-span-2 sm:mt-0">
-                    {{ project.project_type || 'Not specified' }}
-                  </dd>
-                </div>
-                <div class="px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                  <dt class="text-sm font-medium text-gray-900">Internal Project</dt>
-                  <dd class="mt-1 text-sm text-gray-700 sm:col-span-2 sm:mt-0">
-                    {{ project.internal ? 'Yes' : 'No' }}
-                  </dd>
-                </div>
-              </dl>
-            </div>
-          </div>
+    <!-- Projects List - Full Width -->
+    <div v-else class="mt-8 flow-root">
+      <ul role="list" class="grid grid-cols-1 gap-6">
+        <li v-for="project in projects" :key="project.ID">
+          <ProjectCard 
+            :project="project" 
+            :staff-members="staffMembers"
+            @edit="editProject"
+          />
         </li>
       </ul>
     </div>
@@ -248,20 +183,18 @@ const saveProject = async (projectData: Project) => {
   display: inline-flex;
   align-items: center;
   padding: 0.5rem 1rem;
-  border: 1px solid #d1d5db;
   border-radius: 0.375rem;
   font-size: 0.875rem;
   font-weight: 500;
-  color: #374151;
+  color: var(--color-gray-700);
   background-color: white;
+  border: 1px solid var(--color-gray-300);
   box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  cursor: pointer;
+  transition: all 0.2s;
 }
 
 .btn-secondary:hover {
-  background-color: #f9fafb;
-}
-
-.btn-secondary:focus {
-  outline: none;
+  background-color: var(--color-gray-50);
 }
 </style> 

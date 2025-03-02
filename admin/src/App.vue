@@ -124,10 +124,10 @@ const navigationItems = [
   { name: 'Timesheet Admin', path: '/timesheet-admin', icon: 'fa-toolbox' },
   { name: 'Invoices', path: '/invoices', icon: 'fa-file-invoice-dollar' },
   { name: 'Bills', path: '/bills', icon: 'fa-file-invoice-dollar' },
+  { name: 'Accounts', path: '/accounts', icon: 'fa-building' },
   { name: 'Projects', path: '/projects', icon: 'fa-bars-progress' },
   { name: 'Billing Codes', path: '/billing-codes', icon: 'fa-barcode' },
-  { name: 'Rates', path: '/rates', icon: 'fa-percent' },
-  { name: 'Accounts', path: '/accounts', icon: 'fa-building' }
+  { name: 'Rates', path: '/rates', icon: 'fa-percent' }
 ];
 
 // State for mobile sidebar

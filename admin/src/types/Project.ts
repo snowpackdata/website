@@ -22,7 +22,7 @@ export interface Project {
   CreatedAt?: string;
   UpdatedAt?: string;
   DeletedAt?: string | null;
-  BillingCodes?: any[]; // The server may include associated billing codes
+  billing_codes?: any[]; // The server may include associated billing codes
 }
 
 /**

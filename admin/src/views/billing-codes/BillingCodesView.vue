@@ -18,7 +18,7 @@
       </div>
     </div>
     
-    <!-- Project Filter -->
+    <!-- Project Filter (Commented out for now, can be re-enabled if needed) -->
     <!-- <div class="mt-4">
       <label for="project-filter" class="block text-sm font-medium text-gray-700">Filter by Project</label>
       <select
@@ -34,79 +34,84 @@
       </select>
     </div> -->
     
-    <!-- Billing Codes Table -->
-    <div class="mt-8 flow-root">
-      <div class="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
-        <div class="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
-          <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
-            <table class="min-w-full divide-y divide-gray-300">
-              <thead class="bg-gray-50">
-                <tr>
-                  <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">Name</th>
-                  <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Code</th>
-                  <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Project</th>
-                  <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Rate</th>
-                  <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Status</th>
-                  <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Category</th>
-                  <th scope="col" class="relative py-3.5 pl-3 pr-4 sm:pr-6">
-                    <span class="sr-only">Actions</span>
-                  </th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-gray-200 bg-white">
-                <tr v-for="billingCode in billingCodes" :key="billingCode.ID" class="hover:bg-gray-50">
-                  <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
-                    {{ billingCode.name }}
-                  </td>
-                  <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                    {{ billingCode.code }}
-                  </td>
-                  <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                    {{ getProjectName(billingCode.project) }}
-                  </td>
-                  <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                    {{ getRateName(billingCode.rate_id) }}
-                  </td>
-                  <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                    <span 
-                      :class="[
-                        'inline-flex items-center rounded-md px-2 py-1 text-xs font-medium',
-                        billingCode.active 
-                          ? 'bg-green-50 text-green-700 ring-1 ring-inset ring-green-600/20' 
-                          : 'bg-red-50 text-red-700 ring-1 ring-inset ring-red-600/20'
-                      ]"
-                    >
-                      {{ billingCode.active ? 'Active' : 'Inactive' }}
-                    </span>
-                  </td>
-                  <td class="px-3 py-4 text-sm text-gray-500 max-w-md truncate">
-                    {{ formatCategory(billingCode.type) }}
-                  </td>
-                  <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                    <button
-                      @click="openBillingCodeDrawer(billingCode)"
-                      class="text-sage hover:text-sage-dark mr-4"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      @click="confirmDelete(billingCode)"
-                      class="text-red-600 hover:text-red-900"
-                    >
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-                <tr v-if="billingCodes.length === 0">
-                  <td colspan="6" class="px-3 py-4 text-sm text-gray-500 text-center">
-                    No billing codes found. Click "Create new billing code" to add one.
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+    <!-- Loading state -->
+    <div v-if="isLoading" class="flex flex-col items-center justify-center p-10 bg-white rounded-lg shadow mt-6">
+      <i class="fas fa-spinner fa-spin text-4xl text-teal mb-4"></i>
+      <span class="text-gray-dark">Loading billing codes...</span>
+    </div>
+    
+    <!-- Error state -->
+    <div v-else-if="error" class="flex flex-col items-center justify-center p-10 bg-white rounded-lg shadow mt-6">
+      <i class="fas fa-exclamation-circle text-4xl text-red mb-4"></i>
+      <span class="text-gray-dark mb-2">{{ error }}</span>
+      <button @click="fetchBillingCodesData" class="btn-secondary mt-4">
+        <i class="fas fa-sync mr-2"></i> Retry
+      </button>
+    </div>
+    
+    <!-- Billing Codes List (New Design, similar to RatesView) -->
+    <div v-else class="bg-white shadow rounded-lg mt-8">
+      <ul role="list" class="divide-y divide-gray-100">
+        <li v-for="billingCode in billingCodes" :key="billingCode.ID" class="flex items-center justify-between gap-x-6 py-5 px-4 hover:bg-gray-50">
+          <div class="min-w-0 flex-1">
+            <div class="flex items-start gap-x-3">
+              <p class="text-sm/6 font-semibold text-gray-900">{{ billingCode.name }}</p>
+              <p :class="[
+                billingCode.active ? 'text-green-700 bg-green-50 ring-green-600/20' : 'text-red-700 bg-red-50 ring-red-600/20',
+                'mt-0.5 whitespace-nowrap rounded-md px-1.5 py-0.5 text-xs font-medium ring-1 ring-inset'
+              ]">
+                {{ billingCode.active ? 'Active' : 'Inactive' }}
+              </p>
+              <p class="mt-0.5 whitespace-nowrap rounded-md px-1.5 py-0.5 text-xs font-medium bg-indigo-50 text-indigo-700 ring-1 ring-inset ring-indigo-600/20">
+                {{ formatCategory(billingCode.type) }}
+              </p>
+            </div>
+            <div class="mt-1 flex items-center gap-x-2 text-xs/5 text-gray-500">
+              <p class="whitespace-nowrap">
+                <span class="font-medium">Code: {{ billingCode.code }}</span>
+              </p>
+              <svg viewBox="0 0 2 2" class="size-0.5 fill-current">
+                <circle cx="1" cy="1" r="1" />
+              </svg>
+              <p class="whitespace-nowrap">
+                Project: <span class="font-medium">{{ getProjectName(billingCode.project) }}</span>
+              </p>
+              <svg viewBox="0 0 2 2" class="size-0.5 fill-current">
+                <circle cx="1" cy="1" r="1" />
+              </svg>
+              <p class="whitespace-nowrap">
+                Rate: <span class="font-medium">{{ getRateName(billingCode.rate_id) }}</span>
+              </p>
+            </div>
+            <div v-if="billingCode.active_start || billingCode.active_end" class="mt-1 flex items-center gap-x-2 text-xs/5 text-gray-500">
+              <p v-if="billingCode.active_start" class="whitespace-nowrap">
+                Active from <time :datetime="billingCode.active_start">{{ formatDate(billingCode.active_start) }}</time>
+              </p>
+              <svg v-if="billingCode.active_start && billingCode.active_end" viewBox="0 0 2 2" class="size-0.5 fill-current">
+                <circle cx="1" cy="1" r="1" />
+              </svg>
+              <p v-if="billingCode.active_end" class="whitespace-nowrap">
+                to <time :datetime="billingCode.active_end">{{ formatDate(billingCode.active_end) }}</time>
+              </p>
+            </div>
           </div>
-        </div>
-      </div>
+          <div class="flex flex-none items-center gap-x-4">
+            <button
+              @click="openBillingCodeDrawer(billingCode)"
+              class="rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+            >
+              <i class="fas fa-pencil-alt mr-1"></i> Edit
+            </button>
+          </div>
+        </li>
+        <li v-if="billingCodes.length === 0" class="py-5 px-4">
+          <div class="flex flex-col items-center justify-center p-10">
+            <i class="fas fa-tags text-5xl text-gray-300 mb-4"></i>
+            <p class="text-lg font-medium text-gray-dark">No billing codes found</p>
+            <p class="text-gray mb-4">Click "Create new billing code" to add one</p>
+          </div>
+        </li>
+      </ul>
     </div>
     
     <!-- Billing Code Drawer -->
@@ -115,6 +120,7 @@
       :billing-code-data="selectedBillingCode"
       @close="closeBillingCodeDrawer"
       @save="saveBillingCode"
+      @delete="confirmDelete"
     />
     
     <!-- Delete Confirmation Modal -->
@@ -152,9 +158,19 @@ const selectedBillingCode = ref(null);
 const showDeleteModal = ref(false);
 const billingCodeToDelete = ref(null);
 const selectedProjectId = ref('');
+const isLoading = ref(true);
+const error = ref(null);
 
 // Fetch data
 onMounted(async () => {
+  await fetchBillingCodesData();
+});
+
+// Fetch billing codes data
+const fetchBillingCodesData = async () => {
+  isLoading.value = true;
+  error.value = null;
+  
   try {
     // Fetch billing codes, projects, and rates
     const [billingCodesData, projectsData, ratesData] = await Promise.all([
@@ -166,10 +182,13 @@ onMounted(async () => {
     billingCodes.value = billingCodesData || [];
     projects.value = projectsData || [];
     rates.value = ratesData || [];
-  } catch (error) {
-    console.error('Error loading data:', error);
+  } catch (err) {
+    console.error('Error loading data:', err);
+    error.value = 'Failed to load billing codes. Please try again.';
+  } finally {
+    isLoading.value = false;
   }
-});
+};
 
 // Helper functions
 const getProjectName = (projectId) => {
@@ -196,13 +215,24 @@ const formatCurrency = (amount) => {
   }).format(amount);
 };
 
+const formatCategory = (type) => {
+  if (!type) return 'Unknown';
+  
+  // Format the category string (convert from enum-like format to human-readable)
+  const formattedType = type.replace('BILLING_CODE_', '').replace(/_/g, ' ').toLowerCase();
+  return formattedType.charAt(0).toUpperCase() + formattedType.slice(1);
+};
+
 // Project filter
 const handleProjectChange = async () => {
   try {
+    isLoading.value = true;
     const billingCodesData = await getBillingCodes(selectedProjectId.value || undefined);
     billingCodes.value = billingCodesData || [];
   } catch (error) {
     console.error('Error filtering billing codes:', error);
+  } finally {
+    isLoading.value = false;
   }
 };
 
@@ -248,25 +278,22 @@ const saveBillingCode = async (billingCodeData) => {
       name: billingCodeData.name,
       code: billingCodeData.code || '',
       type: billingCodeData.category || '',
-      project: parseInt(billingCodeData.projectId, 10),
-      rate_id: parseInt(billingCodeData.rateId, 10),
+      project: billingCodeData.projectId,
+      rate_id: billingCodeData.rateId,
       active: billingCodeData.isActive,
-      active_start: billingCodeData.active_start || parseServerDate(new Date().toString()),
-      active_end: billingCodeData.active_end || '',
-      internal_rate_id: billingCodeData.internal_rate_id ? parseInt(billingCodeData.internal_rate_id, 10) : 0
+      active_start: billingCodeData.active_start,
+      active_end: billingCodeData.active_end,
+      internal_rate_id: billingCodeData.internal_rate_id
     };
     
-    console.log('Saving billing code with data:', apiData);
-    
     if (apiData.ID) {
-      await updateBillingCode(apiData.ID, apiData);
+      await updateBillingCode(apiData);
     } else {
       await createBillingCode(apiData);
     }
     
     // Refresh billing codes
-    const updatedBillingCodes = await getBillingCodes(selectedProjectId.value || undefined);
-    billingCodes.value = updatedBillingCodes;
+    await fetchBillingCodesData();
     
     // Close drawer
     closeBillingCodeDrawer();
@@ -276,23 +303,12 @@ const saveBillingCode = async (billingCodeData) => {
   }
 };
 
-// Helper function to format category
-const formatCategory = (type) => {
-  const categories = {
-    'BILLABLE': 'Billable',
-    'NON_BILLABLE': 'Non-Billable',
-    'LEAVE': 'Leave',
-    'HOLIDAY': 'Holiday',
-    'ADMINISTRATIVE': 'Administrative',
-    'DEVELOPMENT': 'Development'
-  };
-  return categories[type] || type || 'Unknown';
-};
-
 // Delete billing code
 const confirmDelete = (billingCode) => {
   billingCodeToDelete.value = billingCode;
   showDeleteModal.value = true;
+  // Close the drawer when confirming delete
+  isBillingCodeDrawerOpen.value = false;
 };
 
 const deleteBillingCode = async () => {
@@ -301,9 +317,8 @@ const deleteBillingCode = async () => {
   try {
     await deleteBillingCodeAPI(billingCodeToDelete.value.ID);
     
-    // Refresh billing codes with current filter
-    const updatedBillingCodes = await getBillingCodes(selectedProjectId.value || undefined);
-    billingCodes.value = updatedBillingCodes;
+    // Refresh billing codes
+    await fetchBillingCodesData();
     
     // Close modal
     showDeleteModal.value = false;
@@ -313,4 +328,25 @@ const deleteBillingCode = async () => {
     alert('Failed to delete billing code. Please try again.');
   }
 };
-</script> 
+</script>
+
+<style scoped>
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-gray-700);
+  background-color: white;
+  border: 1px solid var(--color-gray-300);
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-secondary:hover {
+  background-color: var(--color-gray-50);
+}
+</style> 

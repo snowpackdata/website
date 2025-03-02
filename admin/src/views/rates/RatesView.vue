@@ -82,10 +82,11 @@ const fetchRatesData = async () => {
 
 // Save rate
 const saveRate = async (rateData: Rate) => {
+  console.log('RatesView saveRate called with data:', rateData);
   try {
     if (rateData.ID && rateData.ID > 0) {
       // Use the exported updateRate function
-      const response = await updateRate(rateData.ID, rateData);
+      const response = await updateRate(rateData);
       console.log('Updated rate:', response);
     } else {
       // Use the exported createRate function

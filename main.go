@@ -321,6 +321,7 @@ func main() {
 	api.HandleFunc("/invoices/{id:[0-9]+}/{state:(?:approve)|(?:send)|(?:paid)|(?:void)}", a.InvoiceStateHandler).Methods("POST")
 	api.HandleFunc("/projects", a.ProjectsListHandler).Methods("GET")
 	api.HandleFunc("/projects/{id:[0-9]+}", a.ProjectHandler).Methods("GET", "PUT", "POST", "DELETE")
+	api.HandleFunc("/projects/{id:[0-9]+}/analytics", a.ProjectAnalyticsHandler).Methods("GET")
 	api.HandleFunc("/projects/{id:[0-9]+}/backfill", a.BackfillProjectInvoicesHandler).Methods("POST")
 	api.HandleFunc("/entries", a.EntriesListHandler).Methods("GET")
 	api.HandleFunc("/entries/{id:[0-9]+}", a.EntryHandler).Methods("GET", "PUT", "POST", "DELETE")
@@ -347,7 +348,7 @@ func main() {
 	defer func() {
 		_ = f.Close()
 	}()
-	logger := handlers.CombinedLoggingHandler(f, r)
+	// logger := handlers.CombinedLoggingHandler(f, r)
 
 	// Apply CORS middleware for development
 	corsMiddleware := handlers.CORS(
@@ -359,7 +360,7 @@ func main() {
 	)
 
 	// Logging for dev
-	//logger := handlers.CombinedLoggingHandler(os.Stdout, r)
+	logger := handlers.CombinedLoggingHandler(os.Stdout, r)
 
 	port := os.Getenv("PORT")
 	// GCP will set the port for us, but if it is not set, default to 8080

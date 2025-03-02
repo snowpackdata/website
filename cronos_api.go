@@ -254,6 +254,105 @@ func (a *App) ProjectHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// ProjectAnalyticsHandler provides analytics for a given project
+func (a *App) ProjectAnalyticsHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	var project cronos.Project
+	a.cronosApp.DB.First(&project, vars["id"])
+
+	// We want to get both the Total Hours, Total Fees for the lifetime entries of this project
+	// As well as the Total Hours, Total Fees for the current billing period (Weekly, Bi-Weekly, Monthly, Bi-Monthly, Project)
+
+	// Get all non-voided, non-deleted entries for this project
+	var entries []cronos.Entry
+	a.cronosApp.DB.Where("project_id = ? AND state != ? AND deleted_at IS NULL", project.ID, "ENTRY_STATE_VOID").
+		Find(&entries)
+
+	// Calculate total hours based on duration between start and end times
+	var totalHours float64
+	var totalFees float64
+	for _, entry := range entries {
+		// Calculate hours from duration
+		duration := entry.End.Sub(entry.Start)
+		hours := duration.Hours()
+		totalHours += hours
+
+		// Convert fee from cents to dollars
+		totalFees += float64(entry.Fee) / 100.0
+	}
+
+	// Get billing period start based on frequency
+	var periodStart time.Time
+	now := time.Now()
+	switch project.BillingFrequency {
+	case "BILLING_TYPE_WEEKLY":
+		// Start of current week
+		periodStart = now.AddDate(0, 0, -int(now.Weekday()))
+	case "BILLING_TYPE_BIWEEKLY":
+		// Start of current or previous week depending on billing cycle
+		weekNum := (now.YearDay() / 7) + 1
+		if weekNum%2 == 0 {
+			periodStart = now.AddDate(0, 0, -int(now.Weekday())-7)
+		} else {
+			periodStart = now.AddDate(0, 0, -int(now.Weekday()))
+		}
+	case "BILLING_TYPE_MONTHLY":
+		// Start of current month
+		periodStart = time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, now.Location())
+	case "BILLING_TYPE_BIMONTHLY":
+		// Start of current or previous month depending on billing cycle
+		if now.Month()%2 == 0 {
+			periodStart = time.Date(now.Year(), now.Month()-1, 1, 0, 0, 0, 0, now.Location())
+		} else {
+			periodStart = time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, now.Location())
+		}
+	case "BILLING_TYPE_PROJECT":
+		// Use project start date
+		periodStart = project.ActiveStart
+	default:
+		// Default to start of month
+		periodStart = time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, now.Location())
+	}
+
+	// Calculate period totals for non-voided, non-deleted entries
+	var periodHours float64
+	var periodFees float64
+
+	// Get entries for the current period
+	var periodEntries []cronos.Entry
+	a.cronosApp.DB.Where("project_id = ? AND state != ? AND deleted_at IS NULL AND start >= ?",
+		project.ID, "ENTRY_STATE_VOID", periodStart).Find(&periodEntries)
+
+	// Calculate period hours and fees
+	for _, entry := range periodEntries {
+		// Calculate hours from duration
+		duration := entry.End.Sub(entry.Start)
+		hours := duration.Hours()
+		periodHours += hours
+
+		// Convert fee from cents to dollars
+		periodFees += float64(entry.Fee) / 100.0
+	}
+
+	analytics := struct {
+		TotalHours  float64   `json:"total_hours"`
+		TotalFees   float64   `json:"total_fees"`
+		PeriodStart time.Time `json:"period_start"`
+		PeriodHours float64   `json:"period_hours"`
+		PeriodFees  float64   `json:"period_fees"`
+	}{
+		TotalHours:  totalHours,
+		TotalFees:   totalFees,
+		PeriodStart: periodStart,
+		PeriodHours: periodHours,
+		PeriodFees:  periodFees,
+	}
+
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	w.WriteHeader(http.StatusOK)
+	_ = json.NewEncoder(w).Encode(&analytics)
+}
+
 // AccountHandler Provides CRUD interface for the account object
 func (a *App) AccountHandler(w http.ResponseWriter, r *http.Request) {
 	// Account handler is identical to the project handler except with the account model
