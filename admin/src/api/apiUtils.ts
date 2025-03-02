@@ -18,6 +18,12 @@ export interface EntityWithId {
   [key: string]: any;
 }
 
+// Simple development mode detection
+// This avoids the ImportMeta type issues by only checking hostname
+const isDevelopmentMode = 
+  window.location.hostname === 'localhost' || 
+  window.location.hostname === '127.0.0.1';
+
 // Configuration for API requests
 const API_BASE_URL = '/api'; // Use an absolute path to ensure it works correctly with the proxy
 
@@ -37,7 +43,7 @@ const api = axios.create({
 // Add request interceptor to add authentication token to all requests
 api.interceptors.request.use(config => {
   // Log request details in development
-  if (import.meta.env.DEV) {
+  if (isDevelopmentMode) {
     console.log(`Making ${config.method?.toUpperCase() || 'GET'} request to ${config.baseURL}/${config.url}`);
   }
   
@@ -47,7 +53,7 @@ api.interceptors.request.use(config => {
   }
   return config;
 }, error => {
-  if (import.meta.env.DEV) {
+  if (isDevelopmentMode) {
     console.error('Request error:', error);
   }
   return Promise.reject(error);
@@ -57,14 +63,14 @@ api.interceptors.request.use(config => {
 api.interceptors.response.use(
   response => {
     // Log successful responses in development
-    if (import.meta.env.DEV) {
+    if (isDevelopmentMode) {
       console.log(`Response from ${response.config.url}: Status ${response.status}`);
     }
     return response;
   },
   error => {
     // Log errors in development
-    if (import.meta.env.DEV) {
+    if (isDevelopmentMode) {
       console.error(`API Error for ${error.config?.url}:`, error.message);
       
       // Check if it's a non-JSON response
@@ -104,7 +110,78 @@ api.interceptors.response.use(
 
 // Generic fetch all items of a resource
 export async function fetchAll<T>(endpoint: string): Promise<T[]> {
-  const response = await api.get(`${endpoint}`);
+  // Ensure endpoint doesn't start with a slash since baseURL already has a trailing slash
+  const cleanEndpoint = endpoint.startsWith('/') ? endpoint.substring(1) : endpoint;
+  
+  // Special case handling for problematic endpoints (rates and projects)
+  // Add workaround to avoid the 404 redirect issue
+  if (cleanEndpoint === 'rates' || cleanEndpoint === 'projects') {
+    console.log(`Using special handling for problematic endpoint: ${cleanEndpoint}`);
+    
+    // Try multiple approaches to work around potential redirect/routing issues
+    const approaches = [
+      // Approach 1: Use axios with query param and special headers
+      async () => {
+        const timestamp = new Date().getTime();
+        const response = await api.get(`${cleanEndpoint}?t=${timestamp}`, {
+          headers: {
+            'Accept': 'application/json',
+            'Cache-Control': 'no-cache',
+            'Pragma': 'no-cache'
+          }
+        });
+        return response.data;
+      },
+      
+      // Approach 2: Use fetch API with absolute URL to bypass potential axios/proxy issues
+      async () => {
+        const token = getToken();
+        const response = await fetch(`/api/${cleanEndpoint}`, {
+          headers: {
+            'Content-Type': 'application/json',
+            'x-access-token': token,
+            'Accept': 'application/json'
+          }
+        });
+        if (!response.ok) {
+          throw new Error(`Fetch failed: ${response.status} ${response.statusText}`);
+        }
+        return response.json();
+      },
+      
+      // Approach 3: Try double-encoding the URL to handle potential URL parsing issues
+      async () => {
+        const encoded = encodeURIComponent(cleanEndpoint);
+        const response = await api.get(`${encoded}`);
+        return response.data;
+      },
+      
+      // Approach 4: Use a POST request as a fallback (some servers handle POST differently than GET)
+      async () => {
+        const response = await api.post(`${cleanEndpoint}/query`, {});
+        return response.data;
+      }
+    ];
+    
+    // Try each approach in sequence
+    let lastError: Error | null = null;
+    for (const tryApproach of approaches) {
+      try {
+        return await tryApproach();
+      } catch (error: any) {
+        console.error(`Approach failed for ${cleanEndpoint}:`, error.message || error);
+        lastError = error;
+        // Continue to next approach
+      }
+    }
+    
+    // If we've exhausted all approaches, log detailed error and rethrow
+    console.error(`All approaches failed for ${cleanEndpoint}. Last error:`, lastError);
+    throw lastError || new Error(`Failed to fetch ${cleanEndpoint} after trying multiple approaches`);
+  }
+  
+  // Normal handling for other endpoints
+  const response = await api.get(cleanEndpoint);
   return response.data;
 }
 

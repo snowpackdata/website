@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import { fetchAll, fetchById, createWithFormData, updateWithFormData, remove } from '../../api/apiUtils';
+import { fetchProjects, fetchProjectById, createProject, updateProject, deleteProject } from '../../api/projects';
 import type { Project } from '../../types/Project';
 // @ts-ignore - Ignore type issues with Vue components for now
 import ProjectDrawer from '../../components/projects/ProjectDrawer.vue';
@@ -13,13 +13,13 @@ const isProjectDrawerOpen = ref(false);
 const selectedProject = ref<Project | null>(null);
 
 // Fetch projects function
-const fetchProjects = async () => {
+const fetchProjectsData = async () => {
   isLoading.value = true;
   error.value = null;
   try {
     console.log('Fetching projects from API...');
-    // Direct API call using fetchAll
-    const response = await fetchAll<Project>('projects');
+    // Use exported fetchProjects function
+    const response = await fetchProjects();
     console.log('Raw API response:', response);
     
     if (!response || !Array.isArray(response)) {
@@ -59,7 +59,7 @@ const fetchProjects = async () => {
 
 // Fetch projects on component mount
 onMounted(async () => {
-  await fetchProjects();
+  await fetchProjectsData();
 });
 
 // Project drawer functions
@@ -78,23 +78,39 @@ const editProject = (project: Project) => {
   openProjectDrawer(project);
 };
 
-// Function to save project
+// Save project
 const saveProject = async (projectData: Project) => {
   try {
-    if (projectData.ID) {
-      // Update existing project
-      const preparedData = prepareProjectData(projectData);
-      await updateWithFormData<Project>('projects', projectData.ID, preparedData);
+    if (projectData.ID && projectData.ID > 0) {
+      // Use exported updateProject function
+      await updateProject(Number(projectData.ID), projectData);
     } else {
-      // Create new project
-      const preparedData = prepareProjectData(projectData);
-      await createWithFormData<Project>('projects', preparedData);
+      // Use exported createProject function
+      await createProject(projectData);
     }
-    // Refresh the list
-    await fetchProjects();
+    
+    // Refresh projects
+    await fetchProjectsData();
+    
+    // Close drawer
     closeProjectDrawer();
   } catch (error) {
     console.error('Error saving project:', error);
+    alert('Failed to save project. Please try again.');
+  }
+};
+
+// Delete project
+const handleDeleteProject = async (projectId: number) => {
+  try {
+    // Use exported deleteProject function
+    await deleteProject(projectId);
+    
+    // Refresh projects
+    await fetchProjectsData();
+  } catch (error) {
+    console.error('Error deleting project:', error);
+    alert('Failed to delete project. Please try again.');
   }
 };
 
@@ -168,7 +184,7 @@ const prepareProjectData = (project: Project): FormData => {
     <div v-else-if="error" class="flex flex-col items-center justify-center p-10 bg-white rounded-lg shadow mt-6">
       <i class="fas fa-exclamation-circle text-4xl text-red mb-4"></i>
       <span class="text-gray-dark mb-2">{{ error }}</span>
-      <button @click="fetchProjects" class="btn-secondary mt-4">
+      <button @click="fetchProjectsData" class="btn-secondary mt-4">
         <i class="fas fa-sync mr-2"></i> Retry
       </button>
     </div>

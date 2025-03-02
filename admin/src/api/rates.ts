@@ -148,14 +148,14 @@ const ratesAPI = {
  * Fetches all rates from the API
  * @returns Promise with array of rates
  */
-export const fetchRates = async () => {
+export async function fetchRates(): Promise<Rate[]> {
   try {
     return await fetchAll<Rate>('rates');
   } catch (error) {
     console.error('Error fetching rates:', error);
     throw error;
   }
-};
+}
 
 /**
  * Fetches a single rate by ID from the API
@@ -199,5 +199,8 @@ export const updateRate = async (id: number, rateData: any) => {
 export const deleteRate = async (id: number) => {
   return await ratesAPI.deleteRate(id);
 };
+
+// Export the API object explicitly to match the accounts pattern
+export { ratesAPI };
 
 export default ratesAPI; 

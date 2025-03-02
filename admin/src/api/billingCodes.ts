@@ -51,7 +51,12 @@ const billingCodesAPI = {
    * @returns Promise with array of billing codes
    */
   async getBillingCodes(): Promise<BillingCode[]> {
-    return fetchAll<BillingCode>('billing_codes');
+    try {
+      return await fetchAll<BillingCode>('billing_codes');
+    } catch (error) {
+      console.error('Error fetching billing codes:', error);
+      throw error;
+    }
   },
 
   /**

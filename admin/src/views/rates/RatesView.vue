@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import type { Rate } from '../../types/Rate';
-import { fetchAll, fetchById, createWithFormData, updateWithFormData, remove } from '../../api/apiUtils';
+import { ratesAPI, fetchRates, updateRate, createRate, deleteRate } from '../../api/rates';
 // @ts-ignore - Ignore type issues with Vue components for now
 import RateDrawer from '../../components/rates/RateDrawer.vue';
 // @ts-ignore - Ignore type issues with Vue components for now
@@ -42,9 +42,22 @@ const fetchRatesData = async () => {
   
   try {
     console.log('Fetching rates from API...');
-    // Direct API call using fetchAll
-    const response = await fetchAll<Rate>('rates');
-    console.log('Raw API response:', response);
+    
+    // Add direct fetch attempt for debugging
+    try {
+      console.log('Attempting direct fetch with fetch API...');
+      const directResponse = await fetch('/api/rates');
+      console.log('Direct fetch status:', directResponse.status);
+      const directData = await directResponse.json();
+      console.log('Direct fetch data:', directData);
+    } catch (directErr) {
+      console.error('Direct fetch error:', directErr);
+    }
+    
+    // Use the exported fetchRates function
+    console.log('Now trying the fetchRates function...');
+    const response = await fetchRates();
+    console.log('Raw API response from fetchRates:', response);
     
     if (!response || !Array.isArray(response)) {
       console.error('Invalid response format - expected array but got:', typeof response);
@@ -53,20 +66,13 @@ const fetchRatesData = async () => {
       return;
     }
     
-    // Map the response to ensure it has the expected structure
-    rates.value = response.map(rate => ({
-      ID: rate.ID,
-      name: rate.name || '',
-      amount: Number(rate.amount) || 0,
-      active_from: rate.active_from || new Date().toISOString().split('T')[0],
-      active_to: rate.active_to || '',
-      internal_only: !!rate.internal_only,
-      // We don't need to map CreatedAt, UpdatedAt, DeletedAt as they're optional
-    }));
-    
-    console.log('Processed rates:', rates.value);
+    rates.value = response;
   } catch (err) {
     console.error('Error fetching rates:', err);
+    console.error('Error details:', err instanceof Error ? err.message : String(err));
+    if (err instanceof Error && err.stack) {
+      console.error('Stack trace:', err.stack);
+    }
     error.value = 'Failed to load rates. Please try again.';
     rates.value = [];
   } finally {
@@ -74,36 +80,17 @@ const fetchRatesData = async () => {
   }
 };
 
-// Create a new rate
-/*
-const createNew = () => {
-  editingRate.value = createEmptyRate();
-  showModal.value = true;
-};
-
-// Edit rate
-const editRate = (rate: Rate) => {
-  editingRate.value = { ...rate };
-  showModal.value = true;
-};
-
-// Close modal
-const closeModal = () => {
-  editingRate.value = null;
-  showModal.value = false;
-};
-*/
-
 // Save rate
 const saveRate = async (rateData: Rate) => {
   try {
     if (rateData.ID && rateData.ID > 0) {
-      // Convert string ID to number before passing to API
-      const preparedData = prepareRateData(rateData);
-      await updateWithFormData<Rate>('rates', Number(rateData.ID), preparedData);
+      // Use the exported updateRate function
+      const response = await updateRate(rateData.ID, rateData);
+      console.log('Updated rate:', response);
     } else {
-      const preparedData = prepareRateData(rateData);
-      await createWithFormData<Rate>('rates', preparedData);
+      // Use the exported createRate function
+      const response = await createRate(rateData);
+      console.log('Created rate:', response);
     }
     
     // Refresh rates
@@ -116,39 +103,6 @@ const saveRate = async (rateData: Rate) => {
     alert('Failed to save rate. Please try again.');
   }
 };
-
-/**
- * Prepares rate data for the API
- * @param rate - Rate data to transform
- * @returns Formatted data for API requests
- */
-const prepareRateData = (rate: Rate): FormData => {
-  const formData = new FormData();
-  
-  // Set required fields
-  formData.set("name", rate.name);
-  formData.set("amount", rate.amount.toString());
-  formData.set("active_from", rate.active_from);
-  
-  // Add optional fields
-  if (rate.active_to) {
-    formData.set("active_to", rate.active_to);
-  }
-  
-  if (rate.internal_only !== undefined) {
-    formData.set("internal_only", rate.internal_only ? "true" : "false");
-  }
-  
-  return formData;
-};
-
-// Delete rate
-/*
-const confirmDelete = (rate: Rate) => {
-  rateToDelete.value = rate;
-  showDeleteConfirm.value = true;
-};
-*/
 
 // Format currency
 const formatCurrency = (amount: number) => {
@@ -173,8 +127,8 @@ const handleDeleteFromDrawer = async (rate: Rate) => {
   if (!rate) return;
   
   try {
-    // Convert string ID to number before passing to API
-    await remove('rates', Number(rate.ID));
+    // Use the exported deleteRate function
+    await deleteRate(Number(rate.ID));
     
     // Refresh rates
     await fetchRatesData();

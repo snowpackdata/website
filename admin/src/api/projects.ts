@@ -245,4 +245,7 @@ export const deleteProject = async (id: number) => {
   return projectsAPI.deleteProject(id);
 };
 
+// Export the API object explicitly to match the accounts pattern
+export { projectsAPI };
+
 export default projectsAPI; 
