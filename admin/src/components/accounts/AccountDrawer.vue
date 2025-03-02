@@ -47,6 +47,22 @@
                         </div>
                       </div>
 
+                      <!-- Legal name -->
+                      <div class="space-y-2 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-5">
+                        <div>
+                          <label for="account-legal-name" class="block text-sm/6 font-medium text-gray-900 sm:mt-1.5">Legal name</label>
+                        </div>
+                        <div class="sm:col-span-2">
+                          <input 
+                            type="text" 
+                            name="account-legal-name" 
+                            id="account-legal-name" 
+                            v-model="account.legal_name"
+                            class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-sage sm:text-sm/6" 
+                          />
+                        </div>
+                      </div>
+
                       <!-- Account type -->
                       <div class="space-y-2 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-5">
                         <div>
@@ -81,17 +97,17 @@
                         </div>
                       </div>
 
-                      <!-- Phone number -->
+                      <!-- Website -->
                       <div class="space-y-2 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-5">
                         <div>
-                          <label for="account-phone" class="block text-sm/6 font-medium text-gray-900 sm:mt-1.5">Phone Number</label>
+                          <label for="account-website" class="block text-sm/6 font-medium text-gray-900 sm:mt-1.5">Website</label>
                         </div>
                         <div class="sm:col-span-2">
                           <input 
-                            type="tel" 
-                            name="account-phone" 
-                            id="account-phone" 
-                            v-model="account.phone"
+                            type="url" 
+                            name="account-website" 
+                            id="account-website" 
+                            v-model="account.website"
                             class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-sage sm:text-sm/6" 
                           />
                         </div>
@@ -122,7 +138,7 @@
                           <select 
                             id="account-billing-frequency" 
                             name="account-billing-frequency" 
-                            v-model="account.billingFrequency"
+                            v-model="account.billing_frequency"
                             class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-sage sm:text-sm/6"
                           >
                             <option value="BILLING_TYPE_WEEKLY">Weekly</option>
@@ -145,13 +161,45 @@
                               type="checkbox" 
                               id="account-projects-single-invoice" 
                               name="account-projects-single-invoice" 
-                              v-model="account.projectsSingleInvoice"
+                              v-model="account.projects_single_invoice"
                               class="h-4 w-4 text-sage focus:ring-sage border-gray-300 rounded"
                             />
                             <label for="account-projects-single-invoice" class="ml-2 block text-sm text-gray-900">
                               Combine all projects into a single invoice
                             </label>
                           </div>
+                        </div>
+                      </div>
+
+                      <!-- Budget Hours -->
+                      <div class="space-y-2 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-5">
+                        <div>
+                          <label for="account-budget-hours" class="block text-sm/6 font-medium text-gray-900 sm:mt-1.5">Budget Hours</label>
+                        </div>
+                        <div class="sm:col-span-2">
+                          <input 
+                            type="number" 
+                            name="account-budget-hours" 
+                            id="account-budget-hours" 
+                            v-model="account.budget_hours"
+                            class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-sage sm:text-sm/6" 
+                          />
+                        </div>
+                      </div>
+
+                      <!-- Budget Dollars -->
+                      <div class="space-y-2 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-5">
+                        <div>
+                          <label for="account-budget-dollars" class="block text-sm/6 font-medium text-gray-900 sm:mt-1.5">Budget Dollars</label>
+                        </div>
+                        <div class="sm:col-span-2">
+                          <input 
+                            type="number" 
+                            name="account-budget-dollars" 
+                            id="account-budget-dollars" 
+                            v-model="account.budget_dollars"
+                            class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-sage sm:text-sm/6" 
+                          />
                         </div>
                       </div>
                     </div>
@@ -230,13 +278,17 @@ const isEditing = computed(() => !!props.accountData?.id);
 // Initialize account with default values or provided data
 const account = ref({
   id: props.accountData?.id || null,
+  ID: props.accountData?.ID || null,
   name: props.accountData?.name || '',
   type: props.accountData?.type || 'ACCOUNT_TYPE_CLIENT',
+  legal_name: props.accountData?.legal_name || '',
   email: props.accountData?.email || '',
-  phone: props.accountData?.phone || '',
   address: props.accountData?.address || '',
-  billingFrequency: props.accountData?.billingFrequency || 'BILLING_TYPE_MONTHLY',
-  projectsSingleInvoice: props.accountData?.projectsSingleInvoice || false
+  website: props.accountData?.website || '',
+  billing_frequency: props.accountData?.billing_frequency || 'BILLING_TYPE_MONTHLY',
+  budget_hours: props.accountData?.budget_hours || 0,
+  budget_dollars: props.accountData?.budget_dollars || 0,
+  projects_single_invoice: props.accountData?.projects_single_invoice || false
 });
 
 // Update account data when accountData prop changes
@@ -244,13 +296,17 @@ watch(() => props.accountData, (newVal) => {
   if (newVal) {
     account.value = {
       id: newVal.id || null,
+      ID: newVal.ID || null,
       name: newVal.name || '',
       type: newVal.type || 'ACCOUNT_TYPE_CLIENT',
+      legal_name: newVal.legal_name || '',
       email: newVal.email || '',
-      phone: newVal.phone || '',
       address: newVal.address || '',
-      billingFrequency: newVal.billingFrequency || 'BILLING_TYPE_MONTHLY',
-      projectsSingleInvoice: newVal.projectsSingleInvoice || false
+      website: newVal.website || '',
+      billing_frequency: newVal.billing_frequency || 'BILLING_TYPE_MONTHLY',
+      budget_hours: newVal.budget_hours || 0,
+      budget_dollars: newVal.budget_dollars || 0,
+      projects_single_invoice: newVal.projects_single_invoice || false
     };
   }
 }, { deep: true });

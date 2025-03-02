@@ -9,6 +9,7 @@ export interface Client {
 
 export interface Account {
   ID: number;
+  id?: number; // For frontend compatibility
   name: string;
   legal_name: string;
   address: string;
@@ -20,9 +21,11 @@ export interface Account {
   budget_dollars: number;
   projects_single_invoice: boolean;
   clients: Client[] | null;
-  budget_amount?: number; // Optional for backward compatibility
-  budget_year?: number; // Optional for backward compatibility
-  number_of_clients?: number; // Optional for backward compatibility
+  
+  // Properties for backward compatibility - to be deprecated
+  budget_amount?: number;
+  budget_year?: number;
+  number_of_clients?: number;
 }
 
 /**
@@ -40,7 +43,8 @@ export const BILLING_FREQUENCIES = [
   'BILLING_TYPE_MONTHLY',
   'BILLING_TYPE_PROJECT',
   'BILLING_TYPE_BIWEEKLY',
-  'BILLING_TYPE_WEEKLY'
+  'BILLING_TYPE_WEEKLY',
+  'BILLING_TYPE_BIMONTHLY'
 ];
 
 /**

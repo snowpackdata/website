@@ -1,7 +1,12 @@
 import axios from 'axios';
 import type { Account } from '../types/Account';
 
-const API_URL = import.meta.env.VITE_API_URL || '';
+const API_URL = import.meta.env.VITE_API_URL || '/api';
+
+// Simple token getter function
+const getToken = () => {
+  return localStorage.getItem('token') || '';
+};
 
 /**
  * API service for account-related operations
@@ -122,12 +127,15 @@ export default {
 };
 
 /**
- * Fetches all accounts
- * @returns Promise with accounts data
+ * Fetch all accounts
  */
 export const fetchAccounts = async () => {
   try {
-    const response = await axios.get(`${API_URL}/api/accounts`);
+    const response = await axios.get(`${API_URL}/accounts`, {
+      headers: {
+        'Authorization': `Bearer ${getToken()}`
+      }
+    });
     return response.data;
   } catch (error) {
     console.error('Error fetching accounts:', error);
@@ -136,13 +144,16 @@ export const fetchAccounts = async () => {
 };
 
 /**
- * Fetches a single account by ID
- * @param id Account ID
- * @returns Promise with account data
+ * Fetch a single account by ID
+ * @param id The account ID
  */
-export const fetchAccountById = async (id: number) => {
+export const fetchAccountById = async (id: number | string) => {
   try {
-    const response = await axios.get(`${API_URL}/api/accounts/${id}`);
+    const response = await axios.get(`${API_URL}/accounts/${id}`, {
+      headers: {
+        'Authorization': `Bearer ${getToken()}`
+      }
+    });
     return response.data;
   } catch (error) {
     console.error(`Error fetching account ${id}:`, error);
@@ -151,13 +162,16 @@ export const fetchAccountById = async (id: number) => {
 };
 
 /**
- * Creates a new account
- * @param accountData Account data to create
- * @returns Promise with created account data
+ * Create a new account
+ * @param accountData The account data to create
  */
 export const createAccount = async (accountData: any) => {
   try {
-    const response = await axios.post(`${API_URL}/api/accounts`, accountData);
+    const response = await axios.post(`${API_URL}/accounts`, accountData, {
+      headers: {
+        'Authorization': `Bearer ${getToken()}`
+      }
+    });
     return response.data;
   } catch (error) {
     console.error('Error creating account:', error);
@@ -166,32 +180,86 @@ export const createAccount = async (accountData: any) => {
 };
 
 /**
- * Updates an existing account
- * @param id Account ID
- * @param accountData Updated account data
- * @returns Promise with updated account data
+ * Update an existing account
+ * @param id The account ID
+ * @param accountData The updated account data
  */
-export const updateAccount = async (id: number, accountData: any) => {
+export const updateAccount = async (id: number | string, accountData: any) => {
   try {
-    const response = await axios.put(`${API_URL}/api/accounts/${id}`, accountData);
+    const response = await axios.put(`${API_URL}/accounts/${id}`, accountData, {
+      headers: {
+        'Authorization': `Bearer ${getToken()}`
+      }
+    });
     return response.data;
   } catch (error) {
-    console.error(`Error updating account ${id}:`, error);
+    console.error('Error updating account:', error);
     throw error;
   }
 };
 
 /**
- * Deletes an account
- * @param id Account ID to delete
- * @returns Promise with deletion status
+ * Delete an account
+ * @param id The account ID to delete
  */
-export const deleteAccount = async (id: number) => {
+export const deleteAccount = async (id: number | string) => {
   try {
-    const response = await axios.delete(`${API_URL}/api/accounts/${id}`);
+    const response = await axios.delete(`${API_URL}/accounts/${id}`, {
+      headers: {
+        'Authorization': `Bearer ${getToken()}`
+      }
+    });
     return response.data;
   } catch (error) {
-    console.error(`Error deleting account ${id}:`, error);
+    console.error('Error deleting account:', error);
     throw error;
   }
-}; 
+};
+
+/**
+ * Invite a user to an account
+ * @param accountId The account ID
+ * @param email The user's email
+ * @param role The user's role
+ */
+export const inviteUser = async (accountId: number | string, email: string, role: string) => {
+  try {
+    const response = await axios.post(`${API_URL}/accounts/${accountId}/invite`, {
+      email,
+      role
+    }, {
+      headers: {
+        'Authorization': `Bearer ${getToken()}`
+      }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error inviting user:', error);
+    throw error;
+  }
+};
+
+// API wrappers for components
+export async function fetchAccountsComponent() {
+  return await fetchAccounts();
+}
+
+export async function fetchAccountComponent(id: number | string) {
+  return await fetchAccountById(id);
+}
+
+export async function createAccountComponent(accountData: any) {
+  return await createAccount(accountData);
+}
+
+export async function updateAccountComponent(id: number | string, accountData: any) {
+  return await updateAccount(id, accountData);
+}
+
+export async function deleteAccountComponent(id: number | string) {
+  return await deleteAccount(id);
+}
+
+export async function inviteUserComponent(accountId: number, email: string, role: string) {
+  return await inviteUser(accountId, email, role);
+} 

@@ -43,21 +43,17 @@
                   <dd class="mt-1 text-sm text-gray-700 sm:col-span-2 sm:mt-0">{{ account.email || 'Not specified' }}</dd>
                 </div>
                 <div class="px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                  <dt class="text-sm font-medium text-gray-900">Phone</dt>
-                  <dd class="mt-1 text-sm text-gray-700 sm:col-span-2 sm:mt-0">{{ account.phone || 'Not specified' }}</dd>
-                </div>
-                <div class="px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
                   <dt class="text-sm font-medium text-gray-900">Address</dt>
                   <dd class="mt-1 text-sm text-gray-700 sm:col-span-2 sm:mt-0 whitespace-pre-line">{{ account.address || 'Not specified' }}</dd>
                 </div>
                 <div class="px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
                   <dt class="text-sm font-medium text-gray-900">Billing Frequency</dt>
-                  <dd class="mt-1 text-sm text-gray-700 sm:col-span-2 sm:mt-0">{{ formatBillingFrequency(account.billingFrequency) }}</dd>
+                  <dd class="mt-1 text-sm text-gray-700 sm:col-span-2 sm:mt-0">{{ formatBillingFrequency(account.billing_frequency) }}</dd>
                 </div>
                 <div class="px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
                   <dt class="text-sm font-medium text-gray-900">Invoice Type</dt>
                   <dd class="mt-1 text-sm text-gray-700 sm:col-span-2 sm:mt-0">
-                    {{ account.projectsSingleInvoice ? 'Combined (all projects in one invoice)' : 'Separate (one invoice per project)' }}
+                    {{ account.projects_single_invoice ? 'Combined (all projects in one invoice)' : 'Separate (one invoice per project)' }}
                   </dd>
                 </div>
               </dl>

@@ -31,14 +31,6 @@ onMounted(async () => {
   await fetchProjects();
 });
 
-
-// Format date for display
-const formatDate = (dateString: string): string => {
-  if (!dateString) return '';
-  const date = new Date(dateString);
-  return date.toLocaleDateString();
-};
-
 // Project drawer functions
 const openProjectDrawer = (project: Project | null = null) => {
   selectedProject.value = project;
@@ -56,10 +48,16 @@ const editProject = (project: Project) => {
 };
 
 // Function to save project
-const saveProject = async (projectData: any) => {
+const saveProject = async (projectData: Project) => {
   try {
-    // Implementation would be added here for saving project
-    // For now, just refresh the list
+    if (projectData.ID) {
+      // Update existing project
+      await projectsApi.updateProject(projectData);
+    } else {
+      // Create new project
+      await projectsApi.createProject(projectData);
+    }
+    // Refresh the list
     await fetchProjects();
     closeProjectDrawer();
   } catch (error) {
@@ -131,13 +129,13 @@ const saveProject = async (projectData: any) => {
                 <div class="px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
                   <dt class="text-sm font-medium text-gray-900">Start Date</dt>
                   <dd class="mt-1 text-sm text-gray-700 sm:col-span-2 sm:mt-0">
-                    {{ formatDate(project.active_start) ? formatDate(project.active_start) : 'Not specified' }}
+                    {{ project.active_start ? project.active_start : 'Not specified' }}
                   </dd>
                 </div>
                 <div class="px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
                   <dt class="text-sm font-medium text-gray-900">End Date</dt>
                   <dd class="mt-1 text-sm text-gray-700 sm:col-span-2 sm:mt-0">
-                    {{ formatDate(project.active_end) ? formatDate(project.active_end) : 'Not specified' }}
+                    {{ project.active_end ? project.active_end : 'Not specified' }}
                   </dd>
                 </div>
                 <div class="px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
@@ -146,13 +144,17 @@ const saveProject = async (projectData: any) => {
                     {{ project.budget_hours !== null && project.budget_hours !== undefined ? project.budget_hours : 'Not specified' }}
                   </dd>
                 </div>
-                <div class="px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6" v-if="project.description && project.description.length > 0">
-                  <dt class="text-sm font-medium text-gray-900">Description</dt>
-                  <dd class="mt-1 text-sm text-gray-700 sm:col-span-2 sm:mt-0 whitespace-pre-line">{{ project.description }}</dd>
+                <div class="px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                  <dt class="text-sm font-medium text-gray-900">Project Type</dt>
+                  <dd class="mt-1 text-sm text-gray-700 sm:col-span-2 sm:mt-0">
+                    {{ project.project_type || 'Not specified' }}
+                  </dd>
                 </div>
-                <div class="px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6" v-if="project.type && project.type.length > 0">
-                  <dt class="text-sm font-medium text-gray-900">Type</dt>
-                  <dd class="mt-1 text-sm text-gray-700 sm:col-span-2 sm:mt-0">{{ project.type }}</dd>
+                <div class="px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                  <dt class="text-sm font-medium text-gray-900">Internal Project</dt>
+                  <dd class="mt-1 text-sm text-gray-700 sm:col-span-2 sm:mt-0">
+                    {{ project.internal ? 'Yes' : 'No' }}
+                  </dd>
                 </div>
               </dl>
             </div>

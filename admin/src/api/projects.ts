@@ -142,7 +142,7 @@ export const fetchProjectById = async (id: number) => {
  * @param projectData Project data to create
  * @returns Promise with created project data
  */
-export const createProject = async (projectData: any) => {
+export const createProject = async (projectData: Partial<Project>) => {
   try {
     const response = await axios.post(`${API_URL}/api/projects`, projectData);
     return response.data;
@@ -158,7 +158,7 @@ export const createProject = async (projectData: any) => {
  * @param projectData Updated project data
  * @returns Promise with updated project data
  */
-export const updateProject = async (id: number, projectData: any) => {
+export const updateProject = async (id: number, projectData: Partial<Project>) => {
   try {
     const response = await axios.put(`${API_URL}/api/projects/${id}`, projectData);
     return response.data;

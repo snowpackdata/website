@@ -74,10 +74,10 @@
                         </div>
                         <div class="sm:col-span-2">
                           <select 
-                            id="project-type" 
-                            name="project-type" 
-                            v-model="project.type"
-                            class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+                            id="project-type"
+                            name="project-type"
+                            v-model="project.project_type"
+                            class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-sage sm:text-sm/6"
                           >
                             <option value="PROJECT_TYPE_NEW">New Project</option>
                             <option value="PROJECT_TYPE_EXISTING">Existing Project</option>
@@ -117,18 +117,76 @@
                         </div>
                       </div>
 
-                      <!-- Description -->
+                      <!-- Internal project -->
                       <div class="space-y-2 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-5">
                         <div>
-                          <label for="project-description" class="block text-sm/6 font-medium text-gray-900 sm:mt-1.5">Description</label>
+                          <label for="project-internal" class="block text-sm/6 font-medium text-gray-900 sm:mt-1.5">Internal Project</label>
+                        </div>
+                        <div class="sm:col-span-2 flex items-center">
+                          <input 
+                            type="checkbox" 
+                            name="project-internal" 
+                            id="project-internal" 
+                            v-model="project.internal"
+                            class="h-4 w-4 rounded border-gray-300 text-sage focus:ring-sage" 
+                          />
+                          <label for="project-internal" class="ml-2 text-sm text-gray-600">
+                            Mark this project as internal
+                          </label>
+                        </div>
+                      </div>
+
+                      <!-- Billing Frequency -->
+                      <div class="space-y-2 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-5">
+                        <div>
+                          <label for="billing-frequency" class="block text-sm/6 font-medium text-gray-900 sm:mt-1.5">Billing Frequency</label>
                         </div>
                         <div class="sm:col-span-2">
-                          <textarea 
-                            rows="3" 
-                            name="project-description" 
-                            id="project-description" 
-                            v-model="project.description"
-                            class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6" 
+                          <select 
+                            id="billing-frequency"
+                            name="billing-frequency"
+                            v-model="project.billing_frequency"
+                            class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-sage sm:text-sm/6"
+                          >
+                            <option value="BILLING_TYPE_MONTHLY">Monthly</option>
+                            <option value="BILLING_TYPE_PROJECT">Project</option>
+                            <option value="BILLING_TYPE_BIWEEKLY">Bi-Weekly</option>
+                            <option value="BILLING_TYPE_WEEKLY">Weekly</option>
+                            <option value="BILLING_TYPE_BIMONTHLY">Bi-Monthly</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      <!-- Budget Hours -->
+                      <div class="space-y-2 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-5">
+                        <div>
+                          <label for="budget-hours" class="block text-sm/6 font-medium text-gray-900 sm:mt-1.5">Budget Hours</label>
+                        </div>
+                        <div class="sm:col-span-2">
+                          <input 
+                            type="number" 
+                            name="budget-hours" 
+                            id="budget-hours" 
+                            v-model="project.budget_hours"
+                            min="0"
+                            class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-sage sm:text-sm/6" 
+                          />
+                        </div>
+                      </div>
+
+                      <!-- Budget Dollars -->
+                      <div class="space-y-2 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-5">
+                        <div>
+                          <label for="budget-dollars" class="block text-sm/6 font-medium text-gray-900 sm:mt-1.5">Budget Dollars</label>
+                        </div>
+                        <div class="sm:col-span-2">
+                          <input 
+                            type="number" 
+                            name="budget-dollars" 
+                            id="budget-dollars" 
+                            v-model="project.budget_dollars"
+                            min="0"
+                            class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-sage sm:text-sm/6" 
                           />
                         </div>
                       </div>
@@ -201,11 +259,14 @@ const formatDateForInput = (dateStr) => {
 const project = ref({
   id: props.projectData?.id || null,
   name: props.projectData?.name || '',
-  description: props.projectData?.description || '',
-  accountId: props.projectData?.accountId || '',
-  type: props.projectData?.type || 'PROJECT_TYPE_NEW',
-  startDate: formatDateForInput(props.projectData?.startDate),
-  endDate: formatDateForInput(props.projectData?.endDate)
+  accountId: props.projectData?.account_id || '',
+  project_type: props.projectData?.project_type || 'PROJECT_TYPE_NEW',
+  internal: props.projectData?.internal || false,
+  startDate: formatDateForInput(props.projectData?.active_start),
+  endDate: formatDateForInput(props.projectData?.active_end),
+  billing_frequency: props.projectData?.billing_frequency || 'BILLING_TYPE_MONTHLY',
+  budget_hours: props.projectData?.budget_hours || 0,
+  budget_dollars: props.projectData?.budget_dollars || 0
 });
 
 // Update project data when projectData prop changes
@@ -214,11 +275,14 @@ watch(() => props.projectData, (newVal) => {
     project.value = {
       id: newVal.id || null,
       name: newVal.name || '',
-      description: newVal.description || '',
-      accountId: newVal.accountId || '',
-      type: newVal.type || 'PROJECT_TYPE_NEW',
-      startDate: formatDateForInput(newVal.startDate),
-      endDate: formatDateForInput(newVal.endDate)
+      accountId: newVal.account_id || '',
+      project_type: newVal.project_type || 'PROJECT_TYPE_NEW',
+      internal: newVal.internal || false,
+      startDate: formatDateForInput(newVal.active_start),
+      endDate: formatDateForInput(newVal.active_end),
+      billing_frequency: newVal.billing_frequency || 'BILLING_TYPE_MONTHLY',
+      budget_hours: newVal.budget_hours || 0,
+      budget_dollars: newVal.budget_dollars || 0
     };
   }
 }, { deep: true });
@@ -243,14 +307,20 @@ const handleSubmit = () => {
     return;
   }
 
-  // Convert dates back to ISO strings
+  // Convert dates back to ISO strings and map fields to match API
   const formattedProject = {
-    ...project.value,
-    startDate: project.value.startDate ? new Date(project.value.startDate).toISOString() : null,
-    endDate: project.value.endDate ? new Date(project.value.endDate).toISOString() : null
+    id: project.value.id,
+    name: project.value.name,
+    account_id: parseInt(project.value.accountId),
+    project_type: project.value.project_type,
+    active_start: project.value.startDate ? new Date(project.value.startDate).toISOString() : null,
+    active_end: project.value.endDate ? new Date(project.value.endDate).toISOString() : null,
+    billing_frequency: project.value.billing_frequency,
+    budget_hours: project.value.budget_hours,
+    budget_dollars: project.value.budget_dollars,
+    internal: project.value.internal
   };
 
-  // Emit save event with project data
   emit('save', formattedProject);
   
   // Close the drawer
