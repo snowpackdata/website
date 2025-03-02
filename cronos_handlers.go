@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"os"
 	"strconv"
 	"time"
 
@@ -15,12 +14,8 @@ import (
 )
 
 var JWTSecret = func() string {
-	secret := os.Getenv("SNOWPACK_JWT_SECRET")
-	if secret == "" {
-		log.Println("WARNING: JWT_SECRET environment variable not set, using default development secret")
-		return "default_development_secret" // Fallback for development
-	}
-	return secret
+	// Ignoring environment variable and always using the default development secret
+	return "default_development_secret"
 }()
 
 // RegistrationLandingHandler serves the registration page when accessed via GET request

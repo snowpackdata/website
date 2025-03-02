@@ -1021,7 +1021,7 @@ const updateDateTime = (field: 'start' | 'end', dateStr: string, timeStr: string
                               >
                                 <option :value="0">Select a user</option>
                                 <option v-for="user in users" :key="user.id" :value="user.id">
-                                  {{ user.name || user.email || `User #${user.id}` }}
+                                  {{ user.first_name || user.last_name }}
                                 </option>
                               </select>
                             </div>
