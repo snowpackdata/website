@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import type { Rate } from '../../types/Rate';
-import { fetchRates as apiFetchRates, createRate, updateRate, deleteRate as apiDeleteRate } from '../../api';
+import { ratesAPI, fetchRates, createRate, updateRate, deleteRate } from '../../api';
 // @ts-ignore - Ignore type issues with Vue components for now
 import RateDrawer from '../../components/rates/RateDrawer.vue';
 // @ts-ignore - Ignore type issues with Vue components for now
@@ -41,7 +41,7 @@ const fetchRatesData = async () => {
   error.value = null;
   
   try {
-    const ratesData = await apiFetchRates();
+    const ratesData = await fetchRates();
     rates.value = ratesData || [];
   } catch (err) {
     console.error('Error fetching rates:', err);
@@ -124,7 +124,7 @@ const handleDeleteFromDrawer = async (rate: Rate) => {
   
   try {
     // Convert string ID to number before passing to API
-    await apiDeleteRate(Number(rate.ID));
+    await deleteRate(Number(rate.ID));
     
     // Refresh rates
     await fetchRatesData();

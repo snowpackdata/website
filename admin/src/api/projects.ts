@@ -1,25 +1,16 @@
-import axios from 'axios';
 import type { Project } from '../types/Project';
-
-const API_URL = import.meta.env.VITE_API_URL || '';
+import { fetchAll, fetchById, create, update, remove } from './apiUtils';
 
 /**
  * API service for project-related operations
  */
-export default {
+const projectsAPI = {
   /**
    * Get all projects
    * @returns Promise with array of projects
    */
   async getProjects(): Promise<Project[]> {
-    const token = localStorage.getItem('snowpack_token');
-    const response = await axios.get('/api/projects', {
-      headers: { 
-        'Content-Type': 'application/json', 
-        'x-access-token': token 
-      }
-    });
-    return response.data;
+    return fetchAll<Project>('projects');
   },
 
   /**
@@ -28,14 +19,7 @@ export default {
    * @returns Promise with project data
    */
   async getProject(id: number): Promise<Project> {
-    const token = localStorage.getItem('snowpack_token');
-    const response = await axios.get(`/api/projects/${id}`, {
-      headers: { 
-        'Content-Type': 'application/json', 
-        'x-access-token': token 
-      }
-    });
-    return response.data.project;
+    return fetchById<Project>('projects', id);
   },
 
   /**
@@ -44,46 +28,42 @@ export default {
    * @returns Promise with created project
    */
   async createProject(project: Project): Promise<Project> {
-    const token = localStorage.getItem('snowpack_token');
-    const response = await axios.post('/api/projects', project, {
-      headers: { 
-        'Content-Type': 'application/json', 
-        'x-access-token': token 
-      }
-    });
-    return response.data.project;
+    return create<Project>('projects', project);
   },
 
   /**
    * Update an existing project
-   * @param project - Project data with ID
+   * @param project - Project data to update
    * @returns Promise with updated project
    */
   async updateProject(project: Project): Promise<Project> {
-    const token = localStorage.getItem('snowpack_token');
-    const response = await axios.put(`/api/projects/${project.ID}`, project, {
-      headers: { 
-        'Content-Type': 'application/json', 
-        'x-access-token': token 
-      }
-    });
-    return response.data.project;
+    return update<Project>('projects', project.ID, project);
   },
 
   /**
    * Delete a project
-   * @param id - Project ID
-   * @returns Promise with response data
+   * @param id - ID of project to delete
+   * @returns Promise with deletion result
    */
   async deleteProject(id: number): Promise<any> {
-    const token = localStorage.getItem('snowpack_token');
-    const response = await axios.delete(`/api/projects/${id}`, {
-      headers: { 
-        'Content-Type': 'application/json', 
-        'x-access-token': token 
-      }
-    });
-    return response.data;
+    return remove('projects', id);
+  },
+  
+  /**
+   * Get projects for a specific account
+   * @param accountId - ID of the account
+   * @returns Promise with array of projects
+   */
+  async getAccountProjects(accountId: number): Promise<Project[]> {
+    return fetchAll<Project>(`accounts/${accountId}/projects`);
+  },
+  
+  /**
+   * Get active projects
+   * @returns Promise with array of active projects
+   */
+  async getActiveProjects(): Promise<Project[]> {
+    return fetchAll<Project>('active_projects');
   },
 
   /**
@@ -91,35 +71,29 @@ export default {
    * @param id - Project ID
    * @returns Promise with billing codes
    */
-  async getProjectBillingCodes(id: number): Promise<any[]> {
-    const token = localStorage.getItem('snowpack_token');
-    const response = await axios.get(`/api/projects/${id}/billing-codes`, {
-      headers: { 
-        'Content-Type': 'application/json', 
-        'x-access-token': token 
-      }
-    });
-    return response.data.billing_codes;
+  async getBillingCodes(id: number): Promise<any[]> {
+    return fetchAll(`projects/${id}/billing_codes`);
+  },
+
+  /**
+   * Fetches projects for a specific account
+   * @param accountId Account ID to filter projects
+   * @returns Promise with projects data
+   */
+  async getProjectsByAccount(accountId: number): Promise<Project[]> {
+    return fetchAll<Project>(`projects?account_id=${accountId}`);
   }
 };
 
+// For backward compatibility, maintain these exported functions
+// that delegate to the API methods
 /**
  * Fetches all projects or projects for a specific account if accountId is provided
  * @param accountId Optional account ID to filter projects
  * @returns Promise with projects data
  */
 export const fetchProjects = async (accountId?: number) => {
-  try {
-    const url = accountId 
-      ? `${API_URL}/api/projects?account_id=${accountId}`
-      : `${API_URL}/api/projects`;
-      
-    const response = await axios.get(url);
-    return response.data;
-  } catch (error) {
-    console.error('Error fetching projects:', error);
-    throw error;
-  }
+  return accountId ? projectsAPI.getProjectsByAccount(accountId) : projectsAPI.getProjects();
 };
 
 /**
@@ -128,13 +102,7 @@ export const fetchProjects = async (accountId?: number) => {
  * @returns Promise with project data
  */
 export const fetchProjectById = async (id: number) => {
-  try {
-    const response = await axios.get(`${API_URL}/api/projects/${id}`);
-    return response.data;
-  } catch (error) {
-    console.error(`Error fetching project ${id}:`, error);
-    throw error;
-  }
+  return projectsAPI.getProject(id);
 };
 
 /**
@@ -143,13 +111,7 @@ export const fetchProjectById = async (id: number) => {
  * @returns Promise with created project data
  */
 export const createProject = async (projectData: Partial<Project>) => {
-  try {
-    const response = await axios.post(`${API_URL}/api/projects`, projectData);
-    return response.data;
-  } catch (error) {
-    console.error('Error creating project:', error);
-    throw error;
-  }
+  return projectsAPI.createProject(projectData as Project);
 };
 
 /**
@@ -159,13 +121,8 @@ export const createProject = async (projectData: Partial<Project>) => {
  * @returns Promise with updated project data
  */
 export const updateProject = async (id: number, projectData: Partial<Project>) => {
-  try {
-    const response = await axios.put(`${API_URL}/api/projects/${id}`, projectData);
-    return response.data;
-  } catch (error) {
-    console.error(`Error updating project ${id}:`, error);
-    throw error;
-  }
+  const fullProject = { ...projectData, ID: id } as Project;
+  return projectsAPI.updateProject(fullProject);
 };
 
 /**
@@ -174,11 +131,7 @@ export const updateProject = async (id: number, projectData: Partial<Project>) =
  * @returns Promise with deletion status
  */
 export const deleteProject = async (id: number) => {
-  try {
-    const response = await axios.delete(`${API_URL}/api/projects/${id}`);
-    return response.data;
-  } catch (error) {
-    console.error(`Error deleting project ${id}:`, error);
-    throw error;
-  }
-}; 
+  return projectsAPI.deleteProject(id);
+};
+
+export default projectsAPI; 

@@ -127,12 +127,13 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue';
 import { 
-  fetchBillingCodes, 
+  billingCodesAPI,
+  getBillingCodes, 
   fetchProjects, 
   fetchRates, 
   createBillingCode, 
   updateBillingCode, 
-  deleteBillingCode as apiDeleteBillingCode 
+  deleteBillingCode as deleteBillingCodeAPI 
 } from '../../api';
 import BillingCodeDrawer from '../../components/billing-codes/BillingCodeDrawer.vue';
 import ConfirmationModal from '../../components/ConfirmationModal.vue';
@@ -152,7 +153,7 @@ onMounted(async () => {
   try {
     // Fetch billing codes, projects, and rates
     const [billingCodesData, projectsData, ratesData] = await Promise.all([
-      fetchBillingCodes(),
+      getBillingCodes(),
       fetchProjects(),
       fetchRates()
     ]);
@@ -187,7 +188,7 @@ const formatCurrency = (amount) => {
 // Project filter
 const handleProjectChange = async () => {
   try {
-    const billingCodesData = await fetchBillingCodes(selectedProjectId.value || undefined);
+    const billingCodesData = await getBillingCodes(selectedProjectId.value || undefined);
     billingCodes.value = billingCodesData || [];
   } catch (error) {
     console.error('Error filtering billing codes:', error);
@@ -222,7 +223,7 @@ const saveBillingCode = async (billingCodeData) => {
     }
     
     // Refresh billing codes with current filter
-    const updatedBillingCodes = await fetchBillingCodes(selectedProjectId.value || undefined);
+    const updatedBillingCodes = await getBillingCodes(selectedProjectId.value || undefined);
     billingCodes.value = updatedBillingCodes;
     
     // Close drawer
@@ -243,10 +244,10 @@ const deleteBillingCode = async () => {
   if (!billingCodeToDelete.value) return;
   
   try {
-    await apiDeleteBillingCode(billingCodeToDelete.value.id);
+    await deleteBillingCodeAPI(billingCodeToDelete.value.id);
     
     // Refresh billing codes with current filter
-    const updatedBillingCodes = await fetchBillingCodes(selectedProjectId.value || undefined);
+    const updatedBillingCodes = await getBillingCodes(selectedProjectId.value || undefined);
     billingCodes.value = updatedBillingCodes;
     
     // Close modal

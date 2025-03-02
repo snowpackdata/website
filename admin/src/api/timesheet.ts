@@ -1,23 +1,25 @@
-import axios from 'axios';
 import type { TimesheetEntry } from '../types/Timesheet';
+import { fetchAll, fetchById, create, update, remove } from './apiUtils';
 
 /**
  * API service for timesheet-related operations
  */
-export default {
+const timesheetAPI = {
   /**
    * Fetch all timesheet entries
    * @returns Promise with timesheet entries
    */
   async getEntries(): Promise<TimesheetEntry[]> {
-    const token = localStorage.getItem('snowpack_token');
-    const response = await axios.get('/api/entries', {
-      headers: { 
-        'Content-Type': 'application/json', 
-        'x-access-token': token 
-      }
-    });
-    return response.data;
+    return fetchAll<TimesheetEntry>('entries');
+  },
+
+  /**
+   * Fetch a single timesheet entry by ID
+   * @param id - Entry ID
+   * @returns Promise with timesheet entry data
+   */
+  async getEntry(id: number): Promise<TimesheetEntry> {
+    return fetchById<TimesheetEntry>('entries', id);
   },
 
   /**
@@ -25,14 +27,7 @@ export default {
    * @returns Promise with users data
    */
   async getUsers(): Promise<any[]> {
-    const token = localStorage.getItem('snowpack_token');
-    const response = await axios.get('/api/users', {
-      headers: { 
-        'Content-Type': 'application/json', 
-        'x-access-token': token 
-      }
-    });
-    return response.data;
+    return fetchAll('staff');
   },
 
   /**
@@ -40,104 +35,76 @@ export default {
    * @returns Promise with billing codes data
    */
   async getActiveBillingCodes(): Promise<any[]> {
-    const token = localStorage.getItem('snowpack_token');
-    const response = await axios.get('/api/billing-codes/active', {
-      headers: { 
-        'Content-Type': 'application/json', 
-        'x-access-token': token 
-      }
-    });
-    return response.data;
+    return fetchAll('active_billing_codes');
   },
 
   /**
    * Create a new timesheet entry
-   * @param entry - The entry data to create
-   * @returns Promise with the created entry
+   * @param entry - Timesheet entry data
+   * @returns Promise with created entry
    */
   async createEntry(entry: TimesheetEntry): Promise<TimesheetEntry> {
-    const token = localStorage.getItem('snowpack_token');
-    const formData = new FormData();
-    
-    formData.set('billing_code_id', entry.billing_code_id.toString());
-    formData.set('start', entry.start);
-    formData.set('end', entry.end);
-    formData.set('notes', entry.notes);
-    
-    if (entry.impersonate_as_user_id) {
-      formData.set('impersonate_as_user_id', entry.impersonate_as_user_id.toString());
-    }
-
-    const response = await axios.post('/api/entries/0', formData, {
-      headers: { 
-        'Content-Type': 'application/json', 
-        'x-access-token': token 
-      }
-    });
-    
-    return response.data;
+    return create<TimesheetEntry>('entries', entry);
   },
 
   /**
    * Update an existing timesheet entry
-   * @param entry - The entry data to update
-   * @returns Promise with the updated entry
+   * @param entry - Entry data to update
+   * @returns Promise with updated entry
    */
   async updateEntry(entry: TimesheetEntry): Promise<TimesheetEntry> {
-    const token = localStorage.getItem('snowpack_token');
-    const formData = new FormData();
-    
-    formData.set('billing_code_id', entry.billing_code_id.toString());
-    formData.set('start', entry.start);
-    formData.set('end', entry.end);
-    formData.set('notes', entry.notes);
-    
-    if (entry.impersonate_as_user_id) {
-      formData.set('impersonate_as_user_id', entry.impersonate_as_user_id.toString());
-    }
-
-    const response = await axios.put(`/api/entries/${entry.entry_id}`, formData, {
-      headers: { 
-        'Content-Type': 'application/json', 
-        'x-access-token': token 
-      }
-    });
-    
-    return response.data;
+    return update<TimesheetEntry>('entries', entry.entry_id, entry);
   },
 
   /**
    * Delete a timesheet entry
-   * @param id - The ID of the entry to delete
-   * @returns Promise with the response data
+   * @param id - ID of entry to delete
+   * @returns Promise with deletion result
    */
   async deleteEntry(id: number): Promise<any> {
-    const token = localStorage.getItem('snowpack_token');
-    const response = await axios.delete(`/api/entries/${id}`, {
-      headers: { 
-        'Content-Type': 'application/json', 
-        'x-access-token': token 
-      }
-    });
-    
-    return response.data;
+    return remove('entries', id);
   },
 
   /**
-   * Change the state of a timesheet entry
-   * @param id - The ID of the entry
-   * @param state - The new state (draft, approved, void, etc.)
-   * @returns Promise with the updated entry
+   * Fetch timesheet entries for a specific time period
+   * @param startDate - Start date in YYYY-MM-DD format
+   * @param endDate - End date in YYYY-MM-DD format
+   * @returns Promise with filtered timesheet entries
    */
-  async changeEntryState(id: number, state: string): Promise<TimesheetEntry> {
-    const token = localStorage.getItem('snowpack_token');
-    const response = await axios.post(`/api/entries/state/${id}/${state}`, null, {
-      headers: { 
-        'Content-Type': 'application/json', 
-        'x-access-token': token 
-      }
-    });
-    
-    return response.data;
+  async getEntriesByDateRange(startDate: string, endDate: string): Promise<TimesheetEntry[]> {
+    return fetchAll<TimesheetEntry>(`entries?start_date=${startDate}&end_date=${endDate}`);
+  },
+
+  /**
+   * Fetch timesheet entries for a specific user
+   * @param userId - User ID
+   * @returns Promise with user's timesheet entries
+   */
+  async getEntriesByUser(userId: number): Promise<TimesheetEntry[]> {
+    return fetchAll<TimesheetEntry>(`entries?user_id=${userId}`);
+  },
+
+  /**
+   * Fetch timesheet entries for a specific project
+   * @param projectId - Project ID
+   * @returns Promise with project's timesheet entries
+   */
+  async getEntriesByProject(projectId: number): Promise<TimesheetEntry[]> {
+    return fetchAll<TimesheetEntry>(`entries?project_id=${projectId}`);
   }
-}; 
+};
+
+// Export as default
+export default timesheetAPI;
+
+// Export individual functions for backward compatibility
+export const getEntries = timesheetAPI.getEntries;
+export const getEntry = timesheetAPI.getEntry;
+export const getUsers = timesheetAPI.getUsers;
+export const getActiveBillingCodes = timesheetAPI.getActiveBillingCodes;
+export const createEntry = timesheetAPI.createEntry;
+export const updateEntry = timesheetAPI.updateEntry;
+export const deleteEntry = timesheetAPI.deleteEntry;
+export const getEntriesByDateRange = timesheetAPI.getEntriesByDateRange;
+export const getEntriesByUser = timesheetAPI.getEntriesByUser;
+export const getEntriesByProject = timesheetAPI.getEntriesByProject; 

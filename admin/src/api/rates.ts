@@ -1,19 +1,63 @@
-import axios from 'axios';
+import type { Rate } from '../types/Rate';
+import { fetchAll, fetchById, create, update, remove } from './apiUtils';
 
-const API_URL = import.meta.env.VITE_API_URL || '';
+/**
+ * API service for rate-related operations
+ */
+const ratesAPI = {
+  /**
+   * Get all rates
+   * @returns Promise with array of rates
+   */
+  async getRates(): Promise<Rate[]> {
+    return fetchAll<Rate>('rates');
+  },
 
+  /**
+   * Get a single rate by ID
+   * @param id - Rate ID
+   * @returns Promise with rate data
+   */
+  async getRate(id: number): Promise<Rate> {
+    return fetchById<Rate>('rates', id);
+  },
+
+  /**
+   * Create a new rate
+   * @param rate - Rate data
+   * @returns Promise with created rate
+   */
+  async createRate(rate: Rate): Promise<Rate> {
+    return create<Rate>('rates', rate);
+  },
+
+  /**
+   * Update an existing rate
+   * @param rate - Rate data to update
+   * @returns Promise with updated rate
+   */
+  async updateRate(rate: Rate): Promise<Rate> {
+    return update<Rate>('rates', rate.ID, rate);
+  },
+
+  /**
+   * Delete a rate
+   * @param id - ID of rate to delete
+   * @returns Promise with deletion result
+   */
+  async deleteRate(id: number): Promise<any> {
+    return remove('rates', id);
+  }
+};
+
+// For backward compatibility, maintain these exported functions
+// that delegate to the API methods
 /**
  * Fetches all rates
  * @returns Promise with rates data
  */
 export const fetchRates = async () => {
-  try {
-    const response = await axios.get(`${API_URL}/api/rates`);
-    return response.data;
-  } catch (error) {
-    console.error('Error fetching rates:', error);
-    throw error;
-  }
+  return await ratesAPI.getRates();
 };
 
 /**
@@ -22,13 +66,7 @@ export const fetchRates = async () => {
  * @returns Promise with rate data
  */
 export const fetchRateById = async (id: number) => {
-  try {
-    const response = await axios.get(`${API_URL}/api/rates/${id}`);
-    return response.data;
-  } catch (error) {
-    console.error(`Error fetching rate ${id}:`, error);
-    throw error;
-  }
+  return await ratesAPI.getRate(id);
 };
 
 /**
@@ -37,13 +75,7 @@ export const fetchRateById = async (id: number) => {
  * @returns Promise with created rate data
  */
 export const createRate = async (rateData: any) => {
-  try {
-    const response = await axios.post(`${API_URL}/api/rates`, rateData);
-    return response.data;
-  } catch (error) {
-    console.error('Error creating rate:', error);
-    throw error;
-  }
+  return await ratesAPI.createRate(rateData as Rate);
 };
 
 /**
@@ -53,13 +85,8 @@ export const createRate = async (rateData: any) => {
  * @returns Promise with updated rate data
  */
 export const updateRate = async (id: number, rateData: any) => {
-  try {
-    const response = await axios.put(`${API_URL}/api/rates/${id}`, rateData);
-    return response.data;
-  } catch (error) {
-    console.error(`Error updating rate ${id}:`, error);
-    throw error;
-  }
+  const fullRate = { ...rateData, ID: id } as Rate;
+  return await ratesAPI.updateRate(fullRate);
 };
 
 /**
@@ -68,11 +95,7 @@ export const updateRate = async (id: number, rateData: any) => {
  * @returns Promise with deletion status
  */
 export const deleteRate = async (id: number) => {
-  try {
-    const response = await axios.delete(`${API_URL}/api/rates/${id}`);
-    return response.data;
-  } catch (error) {
-    console.error(`Error deleting rate ${id}:`, error);
-    throw error;
-  }
-}; 
+  return await ratesAPI.deleteRate(id);
+};
+
+export default ratesAPI; 

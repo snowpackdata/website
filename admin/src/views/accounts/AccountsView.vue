@@ -92,7 +92,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
-import { fetchAccounts, createAccount, updateAccount, deleteAccount as apiDeleteAccount } from '../../api/accounts';
+import { accountsAPI, fetchAccounts, createAccount, updateAccount, deleteAccount as deleteAccountAPI } from '../../api';
 import AccountDrawer from '../../components/accounts/AccountDrawer.vue';
 import ConfirmationModal from '../../components/ConfirmationModal.vue';
 
@@ -175,7 +175,7 @@ const deleteAccount = async () => {
   if (!accountToDelete.value) return;
   
   try {
-    await apiDeleteAccount(accountToDelete.value.id);
+    await deleteAccountAPI(accountToDelete.value.id);
     
     // Refresh accounts
     const updatedAccounts = await fetchAccounts();

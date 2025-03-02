@@ -1,5 +1,5 @@
-import axios from 'axios';
 import type { Account } from '../types/Account';
+import { fetchAll, fetchById, createWithFormData, updateWithFormData, remove } from './apiUtils';
 
 const API_URL = import.meta.env.VITE_API_URL || '/api';
 
@@ -11,20 +11,22 @@ const getToken = () => {
 /**
  * API service for account-related operations
  */
-export default {
+const accountsAPI = {
   /**
    * Fetch all accounts
    * @returns Promise with account data
    */
-  async getAccounts(): Promise<Account[]> {
-    const token = localStorage.getItem('snowpack_token');
-    const response = await axios.get('/api/accounts', {
-      headers: { 
-        'Content-Type': 'application/json', 
-        'x-access-token': token 
-      }
-    });
-    return response.data;
+  async fetchAccounts(): Promise<Account[]> {
+    return fetchAll<Account>('accounts');
+  },
+
+  /**
+   * Get a single account by ID
+   * @param id - Account ID
+   * @returns Promise with account data
+   */
+  async getAccount(id: number): Promise<Account> {
+    return fetchById<Account>('accounts', id);
   },
 
   /**
@@ -33,28 +35,7 @@ export default {
    * @returns Promise with the created account
    */
   async createAccount(account: Account): Promise<Account> {
-    const token = localStorage.getItem('snowpack_token');
-    const formData = new FormData();
-    
-    formData.set('name', account.name);
-    formData.set('website', account.website);
-    formData.set('email', account.email);
-    formData.set('type', account.type);
-    formData.set('legal_name', account.legal_name);
-    formData.set('address', account.address);
-    formData.set('billing_frequency', account.billing_frequency);
-    formData.set('budget_hours', account.budget_hours.toString());
-    formData.set('budget_dollars', account.budget_dollars.toString());
-    formData.set('projects_single_invoice', account.projects_single_invoice.toString());
-
-    const response = await axios.post('/api/accounts/0', formData, {
-      headers: { 
-        'Content-Type': 'application/json', 
-        'x-access-token': token 
-      }
-    });
-    
-    return response.data;
+    return createWithFormData<Account>('accounts/0', account);
   },
 
   /**
@@ -63,28 +44,7 @@ export default {
    * @returns Promise with the updated account
    */
   async updateAccount(account: Account): Promise<Account> {
-    const token = localStorage.getItem('snowpack_token');
-    const formData = new FormData();
-    
-    formData.set('name', account.name);
-    formData.set('website', account.website);
-    formData.set('email', account.email);
-    formData.set('type', account.type);
-    formData.set('legal_name', account.legal_name);
-    formData.set('address', account.address);
-    formData.set('billing_frequency', account.billing_frequency);
-    formData.set('budget_hours', account.budget_hours.toString());
-    formData.set('budget_dollars', account.budget_dollars.toString());
-    formData.set('projects_single_invoice', account.projects_single_invoice.toString());
-
-    const response = await axios.put(`/api/accounts/${account.ID}`, formData, {
-      headers: { 
-        'Content-Type': 'application/json', 
-        'x-access-token': token 
-      }
-    });
-    
-    return response.data;
+    return updateWithFormData<Account>('accounts', account.ID, account);
   },
 
   /**
@@ -93,15 +53,7 @@ export default {
    * @returns Promise with the response data
    */
   async deleteAccount(id: number): Promise<any> {
-    const token = localStorage.getItem('snowpack_token');
-    const response = await axios.delete(`/api/accounts/${id}`, {
-      headers: { 
-        'Content-Type': 'application/json', 
-        'x-access-token': token 
-      }
-    });
-    
-    return response.data;
+    return remove('accounts', id);
   },
 
   /**
@@ -111,155 +63,20 @@ export default {
    * @returns Promise with the invited user data
    */
   async inviteUser(accountId: number, email: string): Promise<any> {
-    const token = localStorage.getItem('snowpack_token');
-    const formData = new FormData();
-    formData.set('email', email);
-    
-    const response = await axios.post(`/api/accounts/${accountId}/invite`, formData, {
-      headers: { 
-        'Content-Type': 'application/json', 
-        'x-access-token': token 
-      }
-    });
-    
-    return response.data;
+    return createWithFormData('accounts/' + accountId + '/invite', { email });
   }
 };
 
-/**
- * Fetch all accounts
- */
-export const fetchAccounts = async () => {
-  try {
-    const response = await axios.get(`${API_URL}/accounts`, {
-      headers: {
-        'Authorization': `Bearer ${getToken()}`
-      }
-    });
-    return response.data;
-  } catch (error) {
-    console.error('Error fetching accounts:', error);
-    throw error;
-  }
-};
+// Export as default
+export default accountsAPI;
 
-/**
- * Fetch a single account by ID
- * @param id The account ID
- */
-export const fetchAccountById = async (id: number | string) => {
-  try {
-    const response = await axios.get(`${API_URL}/accounts/${id}`, {
-      headers: {
-        'Authorization': `Bearer ${getToken()}`
-      }
-    });
-    return response.data;
-  } catch (error) {
-    console.error(`Error fetching account ${id}:`, error);
-    throw error;
-  }
-};
+// Export individual functions for backward compatibility
+export const fetchAccounts = accountsAPI.fetchAccounts;
+export const getAccount = accountsAPI.getAccount;
+export const createAccount = accountsAPI.createAccount;
+export const updateAccount = accountsAPI.updateAccount;
+export const deleteAccount = accountsAPI.deleteAccount;
+export const inviteUser = accountsAPI.inviteUser;
 
-/**
- * Create a new account
- * @param accountData The account data to create
- */
-export const createAccount = async (accountData: any) => {
-  try {
-    const response = await axios.post(`${API_URL}/accounts`, accountData, {
-      headers: {
-        'Authorization': `Bearer ${getToken()}`
-      }
-    });
-    return response.data;
-  } catch (error) {
-    console.error('Error creating account:', error);
-    throw error;
-  }
-};
 
-/**
- * Update an existing account
- * @param id The account ID
- * @param accountData The updated account data
- */
-export const updateAccount = async (id: number | string, accountData: any) => {
-  try {
-    const response = await axios.put(`${API_URL}/accounts/${id}`, accountData, {
-      headers: {
-        'Authorization': `Bearer ${getToken()}`
-      }
-    });
-    return response.data;
-  } catch (error) {
-    console.error('Error updating account:', error);
-    throw error;
-  }
-};
 
-/**
- * Delete an account
- * @param id The account ID to delete
- */
-export const deleteAccount = async (id: number | string) => {
-  try {
-    const response = await axios.delete(`${API_URL}/accounts/${id}`, {
-      headers: {
-        'Authorization': `Bearer ${getToken()}`
-      }
-    });
-    return response.data;
-  } catch (error) {
-    console.error('Error deleting account:', error);
-    throw error;
-  }
-};
-
-/**
- * Invite a user to an account
- * @param accountId The account ID
- * @param email The user's email
- * @param role The user's role
- */
-export const inviteUser = async (accountId: number | string, email: string, role: string) => {
-  try {
-    const response = await axios.post(`${API_URL}/accounts/${accountId}/invite`, {
-      email,
-      role
-    }, {
-      headers: {
-        'Authorization': `Bearer ${getToken()}`
-      }
-    });
-    return response.data;
-  } catch (error) {
-    console.error('Error inviting user:', error);
-    throw error;
-  }
-};
-
-// API wrappers for components
-export async function fetchAccountsComponent() {
-  return await fetchAccounts();
-}
-
-export async function fetchAccountComponent(id: number | string) {
-  return await fetchAccountById(id);
-}
-
-export async function createAccountComponent(accountData: any) {
-  return await createAccount(accountData);
-}
-
-export async function updateAccountComponent(id: number | string, accountData: any) {
-  return await updateAccount(id, accountData);
-}
-
-export async function deleteAccountComponent(id: number | string) {
-  return await deleteAccount(id);
-}
-
-export async function inviteUserComponent(accountId: number, email: string, role: string) {
-  return await inviteUser(accountId, email, role);
-} 

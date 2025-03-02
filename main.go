@@ -14,9 +14,11 @@ import (
 	"strings"
 	"time"
 
+	jwt "github.com/golang-jwt/jwt/v5"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/snowpackdata/cronos"
+	"golang.org/x/crypto/bcrypt"
 )
 
 //go:embed static/admin/assets
@@ -27,6 +29,7 @@ type App struct {
 	cronosApp *cronos.App
 	logger    *log.Logger
 	GitHash   string
+	DevToken  string // JWT token for development environment
 }
 
 // createFileServer creates a file server for embedded assets with proper MIME types
@@ -62,6 +65,73 @@ func createFileServer(embeddedFS embed.FS, fsRoot string) http.Handler {
 		// Serve the file from the embedded filesystem
 		http.FileServer(http.FS(subFS)).ServeHTTP(w, r)
 	})
+}
+
+// registerDevUser creates a test user with ID 1 for local development testing
+func (a *App) registerDevUser() string {
+	// Check if user with ID 1 exists
+	var user cronos.User
+	if a.cronosApp.DB.Where("id = ?", 1).First(&user).RowsAffected == 0 {
+		log.Println("Creating development user with ID 1")
+		// Create a new user if it doesn't exist
+		user = cronos.User{
+			Email: "dev@example.com",
+			Role:  cronos.UserRoleAdmin.String(),
+		}
+		a.cronosApp.DB.Create(&user)
+
+		// Set ID to 1 explicitly if needed
+		a.cronosApp.DB.Model(&user).Update("id", 1)
+	} else {
+		log.Println("Development user with ID 1 already exists")
+	}
+
+	// Set password for the user
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte("devpassword"), bcrypt.DefaultCost)
+	if err != nil {
+		log.Println("Error generating password hash:", err)
+		return ""
+	}
+	user.Password = string(hashedPassword)
+	a.cronosApp.DB.Save(&user)
+
+	// Create or update employee record for admin user
+	var employee cronos.Employee
+	if a.cronosApp.DB.Where("user_id = ?", 1).First(&employee).RowsAffected == 0 {
+		log.Println("Creating employee record for development user")
+		employee = cronos.Employee{
+			UserID:    1,
+			FirstName: "Dev",
+			LastName:  "User",
+			StartDate: time.Now(),
+		}
+		a.cronosApp.DB.Create(&employee)
+	} else {
+		log.Println("Updating existing employee record for development user")
+		employee.FirstName = "Dev"
+		employee.LastName = "User"
+		a.cronosApp.DB.Save(&employee)
+	}
+
+	// Generate JWT token
+	claims := Claims{
+		UserID:  1,
+		Email:   user.Email,
+		IsStaff: true, // Admin users are staff
+		RegisteredClaims: &jwt.RegisteredClaims{
+			IssuedAt:  jwt.NewNumericDate(time.Now()),
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(time.Hour * 720)),
+		},
+	}
+	token := jwt.NewWithClaims(jwt.GetSigningMethod("HS256"), claims)
+	tokenString, err := token.SignedString([]byte(JWTSecret))
+	if err != nil {
+		log.Println("Error signing JWT token:", err)
+		return ""
+	}
+
+	log.Printf("Created development JWT token for user_id=1 (first 10 chars: %s...)", tokenString[:10])
+	return tokenString
 }
 
 func main() {
@@ -113,9 +183,22 @@ func main() {
 		GitHash:   gitHash,
 	}
 
+	// Register a development user and get a JWT token in local/dev environment
+	env := os.Getenv("ENVIRONMENT")
+	if env == "local" || env == "development" {
+		log.Println("Development environment detected, registering dev user")
+		// Register a dev user and get JWT token
+		a.DevToken = a.registerDevUser()
+		log.Println("Development JWT token created")
+	}
+
 	// Mux is a subrouter generator that allows us to handle requests and route them to the appropriate handler
 	// the router allows us to handle a couple high level subrouters and then specific routes.
 	r := mux.NewRouter()
+
+	// Add the App context middleware to all routes
+	r.Use(a.AppContextMiddleware)
+
 	// Define a subrouter to handle files at static for accessing static content
 	// static, api, and r are all subrouters that allow us to handle different types of requests
 

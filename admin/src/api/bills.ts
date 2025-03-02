@@ -1,23 +1,16 @@
-import axios from 'axios';
 import type { Bill } from '../types/Bill';
+import { fetchAll, fetchById, create, update, remove } from './apiUtils';
 
 /**
  * API service for bill-related operations
  */
-export default {
+const billsAPI = {
   /**
    * Get all bills
    * @returns Promise with array of bills
    */
   async getBills(): Promise<Bill[]> {
-    const token = localStorage.getItem('snowpack_token');
-    const response = await axios.get('/api/bills', {
-      headers: { 
-        'Content-Type': 'application/json', 
-        'x-access-token': token 
-      }
-    });
-    return response.data.bills;
+    return fetchAll<Bill>('bills');
   },
 
   /**
@@ -26,14 +19,7 @@ export default {
    * @returns Promise with bill data
    */
   async getBill(id: number): Promise<Bill> {
-    const token = localStorage.getItem('snowpack_token');
-    const response = await axios.get(`/api/bills/${id}`, {
-      headers: { 
-        'Content-Type': 'application/json', 
-        'x-access-token': token 
-      }
-    });
-    return response.data.bill;
+    return fetchById<Bill>('bills', id);
   },
 
   /**
@@ -42,65 +28,45 @@ export default {
    * @returns Promise with created bill
    */
   async createBill(bill: Bill): Promise<Bill> {
-    const token = localStorage.getItem('snowpack_token');
-    const response = await axios.post('/api/bills', bill, {
-      headers: { 
-        'Content-Type': 'application/json', 
-        'x-access-token': token 
-      }
-    });
-    return response.data.bill;
+    return create<Bill>('bills', bill);
   },
 
   /**
    * Update an existing bill
-   * @param bill - Bill data with ID
+   * @param bill - Bill data to update
    * @returns Promise with updated bill
    */
   async updateBill(bill: Bill): Promise<Bill> {
-    const token = localStorage.getItem('snowpack_token');
-    const response = await axios.put(`/api/bills/${bill.ID}`, bill, {
-      headers: { 
-        'Content-Type': 'application/json', 
-        'x-access-token': token 
-      }
-    });
-    return response.data.bill;
+    return update<Bill>('bills', bill.ID, bill);
   },
 
   /**
    * Delete a bill
-   * @param id - Bill ID
-   * @returns Promise with response data
+   * @param id - ID of bill to delete
+   * @returns Promise with deletion result
    */
   async deleteBill(id: number): Promise<any> {
-    const token = localStorage.getItem('snowpack_token');
-    const response = await axios.delete(`/api/bills/${id}`, {
-      headers: { 
-        'Content-Type': 'application/json', 
-        'x-access-token': token 
-      }
-    });
-    return response.data;
+    return remove('bills', id);
   },
-
+  
   /**
-   * Change bill state (draft, paid, void)
+   * Change the state of a bill
    * @param id - Bill ID
-   * @param state - New state
+   * @param state - New state value
    * @returns Promise with updated bill
    */
   async changeBillState(id: number, state: string): Promise<Bill> {
-    const token = localStorage.getItem('snowpack_token');
-    const response = await axios.put(`/api/bills/${id}/state`, 
-      { state },
-      { 
-        headers: { 
-          'Content-Type': 'application/json', 
-          'x-access-token': token 
-        }
-      }
-    );
-    return response.data.bill;
+    return create<Bill>(`bills/state/${id}/${state}`, {});
   }
-}; 
+};
+
+// Export as default
+export default billsAPI;
+
+// Export individual functions for backward compatibility
+export const getBills = billsAPI.getBills;
+export const getBill = billsAPI.getBill;
+export const createBill = billsAPI.createBill;
+export const updateBill = billsAPI.updateBill;
+export const deleteBill = billsAPI.deleteBill;
+export const changeBillState = billsAPI.changeBillState; 

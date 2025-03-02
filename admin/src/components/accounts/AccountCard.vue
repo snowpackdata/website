@@ -80,7 +80,7 @@ resetForm();
             <span class="bg-blue-light-blue text-blue text-xs px-2 py-1 rounded-full capitalize">
               {{ accountType }}
             </span>
-            <span class="bg-green-light-green text-green text-xs px-2 py-1 rounded-full capitalize">
+            <span class="bg-blue-light-green text-green text-xs px-2 py-1 rounded-full capitalize">
               {{ billingFrequency }}
             </span>
           </div>

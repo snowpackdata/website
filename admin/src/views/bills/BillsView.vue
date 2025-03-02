@@ -2,7 +2,7 @@
 import { ref, onMounted, computed } from 'vue';
 import type { Bill } from '../../types/Bill';
 import { createEmptyBill, BILL_STATES } from '../../types/Bill';
-import billsApi from '../../api/bills';
+import { billsAPI, getBills, createBill, updateBill, deleteBill as deleteBillAPI } from '../../api';
 
 // State
 const bills = ref<Bill[]>([]);
@@ -22,7 +22,7 @@ const fetchBills = async () => {
   error.value = null;
   
   try {
-    bills.value = await billsApi.getBills();
+    bills.value = await getBills();
   } catch (err) {
     console.error('Error fetching bills:', err);
     error.value = 'Failed to load bills. Please try again.';
@@ -56,9 +56,9 @@ const saveBill = async () => {
   try {
     let savedBill;
     if (selectedBill.value.ID === 0) {
-      savedBill = await billsApi.createBill(selectedBill.value);
+      savedBill = await createBill(selectedBill.value);
     } else {
-      savedBill = await billsApi.updateBill(selectedBill.value);
+      savedBill = await updateBill(selectedBill.value);
     }
     
     // Update local bills list
@@ -79,7 +79,7 @@ const saveBill = async () => {
 // Delete bill
 const deleteBill = async (id: number) => {
   try {
-    await billsApi.deleteBill(id);
+    await deleteBillAPI(id);
     bills.value = bills.value.filter(b => b.ID !== id);
     closeModal();
   } catch (err) {

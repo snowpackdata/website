@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import projectsApi from '../../api/projects';
+import { projectsAPI, fetchProjects as getProjectsAPI, createProject, updateProject } from '../../api';
 import type { Project } from '../../types/Project';
 // @ts-ignore - Ignore type issues with Vue components for now
 import ProjectDrawer from '../../components/projects/ProjectDrawer.vue';
@@ -17,7 +17,7 @@ const fetchProjects = async () => {
   isLoading.value = true;
   error.value = null;
   try {
-    projects.value = await projectsApi.getProjects();
+    projects.value = await getProjectsAPI();
   } catch (err) {
     console.error('Error fetching projects:', err);
     error.value = 'Failed to load projects. Please try again.';
@@ -52,10 +52,10 @@ const saveProject = async (projectData: Project) => {
   try {
     if (projectData.ID) {
       // Update existing project
-      await projectsApi.updateProject(projectData);
+      await updateProject(projectData.ID, projectData);
     } else {
       // Create new project
-      await projectsApi.createProject(projectData);
+      await createProject(projectData);
     }
     // Refresh the list
     await fetchProjects();

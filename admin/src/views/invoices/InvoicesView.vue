@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { type Invoice } from '../../types/Invoice';
-import invoicesApi from '../../api/invoices';
+import { invoicesAPI, getInvoices } from '../../api';
 
 // State
 const invoices = ref<Invoice[]>([]);
@@ -21,7 +21,7 @@ const fetchInvoices = async () => {
   try {
     // Placeholder for API call
     await new Promise(resolve => setTimeout(resolve, 1000));
-    invoices.value = await invoicesApi.getInvoices(); // This would be populated from an API
+    invoices.value = await getInvoices(); // This would be populated from an API
     
   } catch (err) {
     console.error('Error fetching invoices:', err);

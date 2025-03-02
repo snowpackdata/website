@@ -4,7 +4,7 @@ import { XMarkIcon } from '@heroicons/vue/24/outline';
 import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot, Switch, SwitchGroup, SwitchLabel } from '@headlessui/vue';
 import type { TimesheetEntry } from '../../types/Timesheet';
 import { createEmptyTimesheetEntry } from '../../types/Timesheet';
-import timesheetApi from '../../api/timesheet';
+import { timesheetAPI, getEntries, getTimesheetActiveBillingCodes, getUsers, createEntry, updateEntry, deleteEntry as deleteEntryAPI } from '../../api';
 import TimesheetEntryComponent from '../../components/timesheet/TimesheetEntry.vue';
 
 // DOM refs for calendar positioning
@@ -120,7 +120,7 @@ const fetchWeeklyEntries = async () => {
   
   try {
     // Fetch all entries
-    const allEntries = await timesheetApi.getEntries();
+    const allEntries = await getEntries();
     
     // Filter entries to only include those in the current week
     weeklyEntries.value = allEntries.filter(entry => {
@@ -147,7 +147,7 @@ const fetchWeeklyEntries = async () => {
 // Fetch billing codes
 const fetchBillingCodes = async () => {
   try {
-    billingCodes.value = await timesheetApi.getActiveBillingCodes();
+    billingCodes.value = await getTimesheetActiveBillingCodes();
     console.log('Fetched billing codes:', billingCodes.value);
   } catch (err) {
     console.error('Error fetching billing codes:', err);
@@ -157,7 +157,7 @@ const fetchBillingCodes = async () => {
 // Fetch users for impersonation
 const fetchUsers = async () => {
   try {
-    users.value = await timesheetApi.getUsers();
+    users.value = await getUsers();
     console.log('Fetched users for impersonation:', users.value);
   } catch (err) {
     console.error('Error fetching users:', err);
@@ -590,11 +590,11 @@ const saveEntry = async () => {
     // Create or update entry
     if (formEntry.value.entry_id === 0) {
       console.log('Creating new entry');
-      const result = await timesheetApi.createEntry(formEntry.value);
+      const result = await createEntry(formEntry.value);
       console.log('Created entry:', result);
     } else {
       console.log('Updating existing entry with ID:', formEntry.value.entry_id);
-      const result = await timesheetApi.updateEntry(formEntry.value);
+      const result = await updateEntry(formEntry.value);
       console.log('Updated entry:', result);
     }
     
@@ -621,7 +621,7 @@ const deleteEntry = async () => {
   console.log('Deleting entry with ID:', formEntry.value.entry_id);
   
   try {
-    const result = await timesheetApi.deleteEntry(formEntry.value.entry_id);
+    const result = await deleteEntryAPI(formEntry.value.entry_id);
     console.log('Deleted entry result:', result);
     
     // Refresh entries after delete
