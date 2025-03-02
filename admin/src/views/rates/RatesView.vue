@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import type { Rate } from '../../types/Rate';
 import { fetchRates, updateRate, createRate, deleteRate } from '../../api/rates';
 // @ts-ignore - Ignore type issues with Vue components for now
@@ -15,6 +15,27 @@ const error = ref<string | null>(null);
 const showDrawer = ref(false);
 const selectedRate = ref<Rate | null>(null);
 const showDeleteConfirm = ref(false);
+
+// Computed property to sort rates by active status
+const sortedRates = computed(() => {
+  if (!rates.value || !Array.isArray(rates.value)) {
+    return [];
+  }
+  
+  // Return a new sorted array
+  return [...rates.value].sort((a, b) => {
+    const isAActive = isRateActive(a);
+    const isBActive = isRateActive(b);
+    
+    // Sort active rates first, then inactive
+    if (isAActive && !isBActive) return -1;
+    if (!isAActive && isBActive) return 1;
+    
+    // If both have the same active status, keep their original order
+    // Alternatively, we could sort by name, ID, or date
+    return 0;
+  });
+});
 
 // Mock API - This would be replaced with actual API calls
 // Commented out as it's not being used
@@ -202,7 +223,7 @@ const isRateActive = (rate: Rate): boolean => {
     <!-- Rate List (New Design) -->
     <div v-else class="bg-white shadow rounded-lg mt-8">
       <ul role="list" class="divide-y divide-gray-100">
-        <li v-for="rate in rates" :key="rate.ID" class="flex items-center justify-between gap-x-6 py-5 px-4 hover:bg-gray-50">
+        <li v-for="rate in sortedRates" :key="rate.ID" class="flex items-center justify-between gap-x-6 py-5 px-4 hover:bg-gray-50">
           <div class="min-w-0 flex-1">
             <div class="flex items-start gap-x-3">
               <p class="text-sm/6 font-semibold text-gray-900">{{ rate.name }}</p>
@@ -243,7 +264,7 @@ const isRateActive = (rate: Rate): boolean => {
             </button>
           </div>
         </li>
-        <li v-if="rates.length === 0" class="py-5 px-4">
+        <li v-if="sortedRates.length === 0" class="py-5 px-4">
           <div class="flex flex-col items-center justify-center p-10">
             <i class="fas fa-calculator text-5xl text-gray-300 mb-4"></i>
             <p class="text-lg font-medium text-gray-dark">No rates found</p>

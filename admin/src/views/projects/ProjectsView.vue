@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { fetchProjects, createProject, updateProject } from '../../api/projects';
 import { getUsers } from '../../api/timesheet';
 import type { Project } from '../../types/Project';
@@ -15,6 +15,47 @@ const error = ref<string | null>(null);
 const isProjectDrawerOpen = ref(false);
 const selectedProject = ref<Project | null>(null);
 const staffMembers = ref<any[]>([]);
+
+// Helper function to check if a project is currently active
+const isProjectActive = (project: Project): boolean => {
+  if (!project) return false;
+  
+  // Parse dates
+  const startDate = project.active_start ? new Date(project.active_start) : null;
+  const endDate = project.active_end ? new Date(project.active_end) : null;
+  
+  // Get current date at midnight
+  const now = new Date();
+  now.setHours(0, 0, 0, 0);
+  
+  // Project is active if:
+  // 1. Current date is after or equal to the start date (if a start date exists)
+  // 2. Current date is before or equal to the end date (if an end date exists)
+  const isAfterStart = startDate ? now >= startDate : true;
+  const isBeforeEnd = endDate ? now <= endDate : true;
+  
+  return isAfterStart && isBeforeEnd;
+};
+
+// Computed property to sort projects by active status
+const sortedProjects = computed(() => {
+  if (!projects.value || !Array.isArray(projects.value)) {
+    return [];
+  }
+  
+  // Return a new sorted array
+  return [...projects.value].sort((a, b) => {
+    const isAActive = isProjectActive(a);
+    const isBActive = isProjectActive(b);
+    
+    // Sort active projects first, then inactive
+    if (isAActive && !isBActive) return -1;
+    if (!isAActive && isBActive) return 1;
+    
+    // If both have the same active status, keep their original order
+    return 0;
+  });
+});
 
 // Fetch projects function
 const fetchProjectsData = async () => {
@@ -95,6 +136,9 @@ const editProject = (project: Project) => {
 // Save project
 const saveProject = async (projectData: Project) => {
   try {
+    console.log('Saving project with data:', projectData);
+    console.log('Project billing frequency:', projectData.billing_frequency);
+    
     if (projectData.ID && projectData.ID > 0) {
       // Use exported updateProject function
       await updateProject(Number(projectData.ID), projectData);
@@ -158,7 +202,7 @@ const saveProject = async (projectData: Project) => {
     <!-- Projects List - Full Width -->
     <div v-else class="mt-8 flow-root">
       <ul role="list" class="grid grid-cols-1 gap-6">
-        <li v-for="project in projects" :key="project.ID">
+        <li v-for="project in sortedProjects" :key="project.ID">
           <ProjectCard 
             :project="project" 
             :staff-members="staffMembers"

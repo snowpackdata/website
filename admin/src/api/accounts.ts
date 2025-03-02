@@ -11,6 +11,7 @@ function validateAccount(account: Partial<Account>): { isValid: boolean; errors:
   
   // Check required fields
   if (!account.name) errors.push('Account name is required');
+  if (!account.billing_frequency) errors.push('Billing frequency is required');
   
   return { 
     isValid: errors.length === 0,
@@ -50,13 +51,19 @@ function prepareAccountForApi(account: Account): FormData {
     formData.set("type", account.type);
   }
   
+  // Always set billing_frequency with a default if not provided
   if (account.billing_frequency) {
     formData.set("billing_frequency", account.billing_frequency);
+  } else {
+    // Default to monthly if not specified
+    formData.set("billing_frequency", "BILLING_TYPE_MONTHLY");
   }
   
   formData.set("budget_hours", account.budget_hours.toString());
   formData.set("budget_dollars", account.budget_dollars.toString());
   formData.set("projects_single_invoice", account.projects_single_invoice ? "true" : "false");
+  
+  console.log('Preparing account FormData with billing_frequency:', account.billing_frequency);
   
   return formData;
 }

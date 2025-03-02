@@ -194,6 +194,9 @@ func (a *App) ProjectHandler(w http.ResponseWriter, r *http.Request) {
 		if r.FormValue("project_type") != "" {
 			project.ProjectType = r.FormValue("project_type")
 		}
+		if r.FormValue("billing_frequency") != "" {
+			project.BillingFrequency = r.FormValue("billing_frequency")
+		}
 		if r.FormValue("ae_id") != "" && r.FormValue("ae_id") != "null" {
 			aeID, _ := strconv.ParseUint(r.FormValue("ae_id"), 10, 64)
 			uintAEID := uint(aeID)
@@ -220,6 +223,7 @@ func (a *App) ProjectHandler(w http.ResponseWriter, r *http.Request) {
 		project.BudgetDollars, _ = strconv.Atoi(r.FormValue("budget_dollars"))
 		project.Internal, _ = strconv.ParseBool(r.FormValue("internal"))
 		project.ProjectType = r.FormValue("project_type")
+		project.BillingFrequency = r.FormValue("billing_frequency")
 
 		if r.FormValue("ae_id") != "" && r.FormValue("ae_id") != "null" {
 			aeID, _ := strconv.ParseUint(r.FormValue("ae_id"), 10, 64)

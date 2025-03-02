@@ -52,7 +52,7 @@
     <!-- Billing Codes List (New Design, similar to RatesView) -->
     <div v-else class="bg-white shadow rounded-lg mt-8">
       <ul role="list" class="divide-y divide-gray-100">
-        <li v-for="billingCode in billingCodes" :key="billingCode.ID" class="flex items-center justify-between gap-x-6 py-5 px-4 hover:bg-gray-50">
+        <li v-for="billingCode in sortedBillingCodes" :key="billingCode.ID" class="flex items-center justify-between gap-x-6 py-5 px-4 hover:bg-gray-50">
           <div class="min-w-0 flex-1">
             <div class="flex items-start gap-x-3">
               <p class="text-sm/6 font-semibold text-gray-900">{{ billingCode.name }}</p>
@@ -104,7 +104,7 @@
             </button>
           </div>
         </li>
-        <li v-if="billingCodes.length === 0" class="py-5 px-4">
+        <li v-if="sortedBillingCodes.length === 0" class="py-5 px-4">
           <div class="flex flex-col items-center justify-center p-10">
             <i class="fas fa-tags text-5xl text-gray-300 mb-4"></i>
             <p class="text-lg font-medium text-gray-dark">No billing codes found</p>
@@ -161,6 +161,26 @@ const billingCodeToDelete = ref(null);
 const selectedProjectId = ref('');
 const isLoading = ref(true);
 const error = ref(null);
+
+// Computed property to sort billing codes by active status
+const sortedBillingCodes = computed(() => {
+  if (!billingCodes.value || !Array.isArray(billingCodes.value)) {
+    return [];
+  }
+  
+  // Return a new sorted array
+  return [...billingCodes.value].sort((a, b) => {
+    const isAActive = isBillingCodeActive(a);
+    const isBActive = isBillingCodeActive(b);
+    
+    // Sort active billing codes first, then inactive
+    if (isAActive && !isBActive) return -1;
+    if (!isAActive && isBActive) return 1;
+    
+    // If both have the same active status, keep their original order
+    return 0;
+  });
+});
 
 // Fetch data
 onMounted(async () => {

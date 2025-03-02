@@ -218,6 +218,9 @@ const closeAccountDrawer = () => {
 // Save account
 const saveAccount = async (accountData) => {
   try {
+    console.log('Saving account with data:', accountData);
+    console.log('Account billing frequency:', accountData.billing_frequency);
+    
     if (accountData.id) {
       // Create a copy of the account data with both id and ID properties
       const accountToUpdate = {

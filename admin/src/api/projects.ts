@@ -20,6 +20,7 @@ function validateProject(project: Partial<Project>): { isValid: boolean; errors:
   if (!project.account_id && (!project.account || !project.account.ID)) errors.push('Account is required');
   if (!project.active_start) errors.push('Start date is required');
   if (!project.active_end) errors.push('End date is required');
+  if (!project.billing_frequency) errors.push('Billing frequency is required');
   
   // Validate date range
   if (project.active_start && project.active_end) {
@@ -58,6 +59,14 @@ function prepareProjectForApi(project: Project): FormData {
   formData.set("internal", project.internal.toString());
   formData.set("project_type", project.project_type);
   
+  // Add billing_frequency - this was missing
+  if (project.billing_frequency) {
+    formData.set("billing_frequency", project.billing_frequency);
+  } else {
+    // Default to monthly if not specified
+    formData.set("billing_frequency", "BILLING_TYPE_MONTHLY");
+  }
+  
   // Only add optional fields if they have values
   if (project.ae_id) {
     formData.set("ae_id", project.ae_id.toString());
@@ -66,6 +75,8 @@ function prepareProjectForApi(project: Project): FormData {
   if (project.sdr_id) {
     formData.set("sdr_id", project.sdr_id.toString());
   }
+  
+  console.log('Preparing project FormData with billing_frequency:', project.billing_frequency);
   
   return formData;
 }
