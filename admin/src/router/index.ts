@@ -71,6 +71,14 @@ const routes = [
     meta: {
       title: 'Accounts'
     }
+  },
+  {
+    path: '/settings',
+    name: 'settings',
+    component: () => import('../views/settings/SettingsView.vue'),
+    meta: {
+      title: 'System Settings'
+    }
   }
 ];
 

@@ -182,6 +182,7 @@
 import { ref, computed, watch } from 'vue';
 import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } from '@headlessui/vue';
 import { XMarkIcon } from '@heroicons/vue/24/outline';
+import { formatDate, parseServerDate, formatDateForServer } from '../../utils/dateUtils';
 
 const props = defineProps({
   isOpen: {
@@ -211,36 +212,39 @@ const handleDelete = () => {
 // Determine if editing or creating new
 const isEditing = computed(() => !!props.rateData?.ID);
 
-// Format dates to YYYY-MM-DD for date inputs
-const formatDateForInput = (dateStr) => {
-  if (!dateStr) return '';
-  const date = new Date(dateStr);
-  return date.toISOString().split('T')[0];
-};
-
 // Initialize rate with default values or provided data
 const rate = ref({
   ID: props.rateData?.ID || null,
   name: props.rateData?.name || '',
   type: props.rateData?.type || 'RATE_TYPE_EXTERNAL_CLIENT_BILLABLE',
   amount: props.rateData?.amount || 0,
-  startDate: formatDateForInput(props.rateData?.active_from),
-  endDate: formatDateForInput(props.rateData?.active_to),
+  startDate: parseServerDate(props.rateData?.active_from),
+  endDate: parseServerDate(props.rateData?.active_to),
   internal_only: props.rateData?.internal_only || false
 });
 
 // Update rate data when rateData prop changes
 watch(() => props.rateData, (newVal) => {
   if (newVal) {
+    console.log('Raw date values from server:', {
+      active_from: newVal.active_from,
+      active_to: newVal.active_to
+    });
+    
     rate.value = {
       ID: newVal.ID || null,
       name: newVal.name || '',
       type: newVal.type || 'RATE_TYPE_EXTERNAL_CLIENT_BILLABLE',
       amount: newVal.amount || 0,
-      startDate: formatDateForInput(newVal.active_from),
-      endDate: formatDateForInput(newVal.active_to),
+      startDate: parseServerDate(newVal.active_from),
+      endDate: parseServerDate(newVal.active_to),
       internal_only: newVal.internal_only || false
     };
+    
+    console.log('Parsed date values:', {
+      startDate: rate.value.startDate,
+      endDate: rate.value.endDate
+    });
   } else {
     // Reset form when no data is provided (for new rates)
     rate.value = {
@@ -263,14 +267,21 @@ const handleSubmit = () => {
     return;
   }
 
-  // Convert dates back to ISO strings and amount to number
+  // Format and prepare data for API
   const formattedRate = {
     ...rate.value,
     amount: parseFloat(rate.value.amount),
-    active_from: rate.value.startDate,
-    active_to: rate.value.endDate,
+    active_from: rate.value.startDate ? formatDateForServer(rate.value.startDate) : '',
+    active_to: rate.value.endDate ? formatDateForServer(rate.value.endDate) : '',
     internal_only: rate.value.internal_only
   };
+
+  console.log('Submitting rate with formatted dates:', {
+    startDate: rate.value.startDate,
+    endDate: rate.value.endDate,
+    active_from: formattedRate.active_from,
+    active_to: formattedRate.active_to
+  });
 
   // Remove temporary date fields
   delete formattedRate.startDate;

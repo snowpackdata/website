@@ -43,10 +43,11 @@
               <thead class="bg-gray-50">
                 <tr>
                   <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">Name</th>
+                  <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Code</th>
                   <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Project</th>
                   <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Rate</th>
                   <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Status</th>
-                  <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Description</th>
+                  <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Category</th>
                   <th scope="col" class="relative py-3.5 pl-3 pr-4 sm:pr-6">
                     <span class="sr-only">Actions</span>
                   </th>
@@ -56,6 +57,9 @@
                 <tr v-for="billingCode in billingCodes" :key="billingCode.ID" class="hover:bg-gray-50">
                   <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
                     {{ billingCode.name }}
+                  </td>
+                  <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                    {{ billingCode.code }}
                   </td>
                   <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
                     {{ getProjectName(billingCode.project) }}
@@ -76,7 +80,7 @@
                     </span>
                   </td>
                   <td class="px-3 py-4 text-sm text-gray-500 max-w-md truncate">
-                    {{ billingCode.description }}
+                    {{ formatCategory(billingCode.type) }}
                   </td>
                   <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
                     <button
@@ -137,6 +141,7 @@ import {
 } from '../../api';
 import BillingCodeDrawer from '../../components/billing-codes/BillingCodeDrawer.vue';
 import ConfirmationModal from '../../components/ConfirmationModal.vue';
+import { formatDate, parseServerDate, getCurrentDate } from '../../utils/dateUtils';
 
 // State
 const billingCodes = ref([]);
@@ -203,24 +208,25 @@ const handleProjectChange = async () => {
 
 // Drawer functions
 const openBillingCodeDrawer = (billingCode = null) => {
-  // If a project is selected and we're creating a new billing code,
-  // pre-populate the project ID
-  if (!billingCode && selectedProjectId.value) {
-    selectedBillingCode.value = { projectId: selectedProjectId.value };
-  } else if (billingCode) {
-    // Map API data structure to form fields
+  if (billingCode) {
     selectedBillingCode.value = {
+      id: billingCode.id,
       ID: billingCode.ID,
-      id: billingCode.ID,
       name: billingCode.name,
-      description: billingCode.description,
+      code: billingCode.code || '',
+      type: billingCode.type,
       project: billingCode.project,
       projectId: billingCode.project,
       rate_id: billingCode.rate_id,
       rateId: billingCode.rate_id,
       active: billingCode.active,
-      isActive: billingCode.active
+      isActive: billingCode.active,
+      active_start: billingCode.active_start || getCurrentDate(),
+      active_end: billingCode.active_end || '',
+      internal_rate_id: billingCode.internal_rate_id || ''
     };
+    
+    console.log('Opening billing code drawer with data:', selectedBillingCode.value);
   } else {
     selectedBillingCode.value = null;
   }
@@ -240,11 +246,17 @@ const saveBillingCode = async (billingCodeData) => {
     const apiData = {
       ID: billingCodeData.id || 0,
       name: billingCodeData.name,
-      description: billingCodeData.description,
+      code: billingCodeData.code || '',
+      type: billingCodeData.category || '',
       project: parseInt(billingCodeData.projectId, 10),
       rate_id: parseInt(billingCodeData.rateId, 10),
-      active: billingCodeData.isActive
+      active: billingCodeData.isActive,
+      active_start: billingCodeData.active_start || parseServerDate(new Date().toString()),
+      active_end: billingCodeData.active_end || '',
+      internal_rate_id: billingCodeData.internal_rate_id ? parseInt(billingCodeData.internal_rate_id, 10) : 0
     };
+    
+    console.log('Saving billing code with data:', apiData);
     
     if (apiData.ID) {
       await updateBillingCode(apiData.ID, apiData);
@@ -252,7 +264,7 @@ const saveBillingCode = async (billingCodeData) => {
       await createBillingCode(apiData);
     }
     
-    // Refresh billing codes with current filter
+    // Refresh billing codes
     const updatedBillingCodes = await getBillingCodes(selectedProjectId.value || undefined);
     billingCodes.value = updatedBillingCodes;
     
@@ -262,6 +274,19 @@ const saveBillingCode = async (billingCodeData) => {
     console.error('Error saving billing code:', error);
     alert('Failed to save billing code. Please try again.');
   }
+};
+
+// Helper function to format category
+const formatCategory = (type) => {
+  const categories = {
+    'BILLABLE': 'Billable',
+    'NON_BILLABLE': 'Non-Billable',
+    'LEAVE': 'Leave',
+    'HOLIDAY': 'Holiday',
+    'ADMINISTRATIVE': 'Administrative',
+    'DEVELOPMENT': 'Development'
+  };
+  return categories[type] || type || 'Unknown';
 };
 
 // Delete billing code

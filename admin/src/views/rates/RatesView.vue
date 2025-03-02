@@ -6,7 +6,7 @@ import { fetchRates, updateRate, createRate, deleteRate } from '../../api/rates'
 import RateDrawer from '../../components/rates/RateDrawer.vue';
 // @ts-ignore - Ignore type issues with Vue components for now
 import ConfirmationModal from '../../components/ConfirmationModal.vue';
-import { formatDate } from '../../utils/formatters';
+import { formatDate } from '../../utils/dateUtils';
 
 // State
 const rates = ref<Rate[]>([]);
@@ -140,13 +140,26 @@ const handleDeleteFromDrawer = async (rate: Rate) => {
   }
 };
 
-// Check if a rate is currently active
-const isRateActive = (rate: Rate) => {
-  const now = new Date();
-  const activeFrom = new Date(rate.active_from);
-  const activeTo = rate.active_to ? new Date(rate.active_to) : null;
+// Helper function to check if a rate is currently active
+const isRateActive = (rate: Rate): boolean => {
+  // Ensure we have a valid rate object
+  if (!rate) return false;
   
-  return now >= activeFrom && (!activeTo || now <= activeTo);
+  // Parse start and end dates using our utility functions
+  const startDate = rate.active_from ? new Date(rate.active_from) : null;
+  const endDate = rate.active_to ? new Date(rate.active_to) : null;
+  
+  // Get current date at midnight
+  const now = new Date();
+  now.setHours(0, 0, 0, 0);
+  
+  // Rate is active if: 
+  // 1. Current date is after or equal to the start date (if a start date exists)
+  // 2. Current date is before the end date (if an end date exists)
+  const isAfterStart = startDate ? now >= startDate : true;
+  const isBeforeEnd = endDate ? now < endDate : true;
+  
+  return isAfterStart && isBeforeEnd;
 };
 </script>
 
@@ -156,7 +169,7 @@ const isRateActive = (rate: Rate) => {
       <div class="sm:flex-auto">
         <h1 class="text-base font-semibold leading-6 text-gray-900">Rates</h1>
         <p class="mt-2 text-sm text-gray-700">
-          A list of all rates including their name, type, amount, and effective dates.
+          A list of all rates including their name, amount, and effective dates.
         </p>
       </div>
       <div class="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
@@ -185,66 +198,58 @@ const isRateActive = (rate: Rate) => {
       </button>
     </div>
     
-    <!-- Rate Table -->
-    <div v-else class="mt-8 flow-root">
-      <div class="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
-        <div class="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
-          <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
-            <table class="min-w-full divide-y divide-gray-300">
-              <thead class="bg-gray-50">
-                <tr>
-                  <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">Name</th>
-                  <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Amount</th>
-                  <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Start Date</th>
-                  <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">End Date</th>
-                  <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Status</th>
-                  <th scope="col" class="relative py-3.5 pl-3 pr-4 sm:pr-6">
-                    <span class="sr-only">Actions</span>
-                  </th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-gray-200 bg-white">
-                <tr v-for="rate in rates" :key="rate.ID" class="hover:bg-gray-50">
-                  <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
-                    {{ rate.name }}
-                  </td>
-                  <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-900">
-                    {{ formatCurrency(rate.amount) }}
-                  </td>
-                  <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                    {{ formatDate(rate.active_from) }}
-                  </td>
-                  <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                    {{ formatDate(rate.active_to) }}
-                  </td>
-                  <td class="whitespace-nowrap px-3 py-4 text-sm">
-                    <span :class="[
-                      isRateActive(rate) ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800',
-                      'px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full'
-                    ]">
-                      {{ isRateActive(rate) ? 'Active' : 'Inactive' }}
-                    </span>
-                  </td>
-                  <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                    <button
-                      @click="openDrawer(rate)"
-                      class="text-sage hover:text-sage-dark rounded-full p-1 hover:bg-gray-100 transition-colors"
-                      title="Edit Rate"
-                    >
-                      <i class="fas fa-pencil-alt"></i>
-                    </button>
-                  </td>
-                </tr>
-                <tr v-if="rates.length === 0">
-                  <td colspan="6" class="px-3 py-4 text-sm text-gray-500 text-center">
-                    No rates found. Click "Create new rate" to add one.
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+    <!-- Rate List (New Design) -->
+    <div v-else class="bg-white shadow rounded-lg mt-8">
+      <ul role="list" class="divide-y divide-gray-100">
+        <li v-for="rate in rates" :key="rate.ID" class="flex items-center justify-between gap-x-6 py-5 px-4 hover:bg-gray-50">
+          <div class="min-w-0 flex-1">
+            <div class="flex items-start gap-x-3">
+              <p class="text-sm/6 font-semibold text-gray-900">{{ rate.name }}</p>
+              <p :class="[
+                isRateActive(rate) ? 'text-green-700 bg-green-50 ring-green-600/20' : 'text-red-700 bg-red-50 ring-red-600/20',
+                'mt-0.5 whitespace-nowrap rounded-md px-1.5 py-0.5 text-xs font-medium ring-1 ring-inset'
+              ]">
+                {{ isRateActive(rate) ? 'Active' : 'Inactive' }}
+              </p>
+              <p v-if="rate.internal_only" class="text-gray-600 bg-gray-50 ring-gray-500/10 mt-0.5 whitespace-nowrap rounded-md px-1.5 py-0.5 text-xs font-medium ring-1 ring-inset">
+                Internal Only
+              </p>
+            </div>
+            <div class="mt-1 flex items-center gap-x-2 text-xs/5 text-gray-500">
+              <p class="whitespace-nowrap">
+                <span class="font-medium">{{ formatCurrency(rate.amount) }}</span>
+              </p>
+              <svg viewBox="0 0 2 2" class="size-0.5 fill-current">
+                <circle cx="1" cy="1" r="1" />
+              </svg>
+              <p class="whitespace-nowrap">
+                Active from <time :datetime="rate.active_from">{{ formatDate(rate.active_from) }}</time>
+              </p>
+              <svg v-if="rate.active_to" viewBox="0 0 2 2" class="size-0.5 fill-current">
+                <circle cx="1" cy="1" r="1" />
+              </svg>
+              <p v-if="rate.active_to" class="whitespace-nowrap">
+                to <time :datetime="rate.active_to">{{ formatDate(rate.active_to) }}</time>
+              </p>
+            </div>
           </div>
-        </div>
-      </div>
+          <div class="flex flex-none items-center gap-x-4">
+            <button
+              @click="openDrawer(rate)"
+              class="rounded-md bg-white px-2.5 py-1.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+            >
+              <i class="fas fa-pencil-alt mr-1"></i> Edit
+            </button>
+          </div>
+        </li>
+        <li v-if="rates.length === 0" class="py-5 px-4">
+          <div class="flex flex-col items-center justify-center p-10">
+            <i class="fas fa-calculator text-5xl text-gray-300 mb-4"></i>
+            <p class="text-lg font-medium text-gray-dark">No rates found</p>
+            <p class="text-gray mb-4">Click "Create new rate" to add one</p>
+          </div>
+        </li>
+      </ul>
     </div>
     
     <!-- Rate Drawer -->

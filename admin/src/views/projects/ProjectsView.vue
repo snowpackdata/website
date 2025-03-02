@@ -4,6 +4,7 @@ import { fetchProjects, createProject, updateProject } from '../../api/projects'
 import type { Project } from '../../types/Project';
 // @ts-ignore - Ignore type issues with Vue components for now
 import ProjectDrawer from '../../components/projects/ProjectDrawer.vue';
+import { formatDate } from '../../utils/dateUtils';
 
 // State
 const projects = ref<Project[]>([]);
@@ -35,7 +36,7 @@ const fetchProjectsData = async () => {
       name: project.name || '',
       account_id: project.account_id || 0,
       account: project.account || { ID: 0, name: 'Unknown' },
-      active_start: project.active_start || new Date().toISOString().split('T')[0],
+      active_start: project.active_start || '',
       active_end: project.active_end || '',
       budget_hours: Number(project.budget_hours) || 0,
       budget_dollars: Number(project.budget_dollars) || 0,
@@ -198,13 +199,13 @@ const saveProject = async (projectData: Project) => {
                 <div class="px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
                   <dt class="text-sm font-medium text-gray-900">Start Date</dt>
                   <dd class="mt-1 text-sm text-gray-700 sm:col-span-2 sm:mt-0">
-                    {{ project.active_start ? project.active_start : 'Not specified' }}
+                    {{ project.active_start ? formatDate(project.active_start) : 'Not specified' }}
                   </dd>
                 </div>
                 <div class="px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
                   <dt class="text-sm font-medium text-gray-900">End Date</dt>
                   <dd class="mt-1 text-sm text-gray-700 sm:col-span-2 sm:mt-0">
-                    {{ project.active_end ? project.active_end : 'Not specified' }}
+                    {{ project.active_end ? formatDate(project.active_end) : 'Not specified' }}
                   </dd>
                 </div>
                 <div class="px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">

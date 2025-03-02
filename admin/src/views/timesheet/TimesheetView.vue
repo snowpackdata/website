@@ -6,6 +6,7 @@ import type { TimesheetEntry } from '../../types/Timesheet';
 import { createEmptyTimesheetEntry } from '../../types/Timesheet';
 import { getEntries, getTimesheetActiveBillingCodes, getUsers, createEntry, updateEntry, deleteEntry as deleteEntryAPI } from '../../api';
 import TimesheetEntryComponent from '../../components/timesheet/TimesheetEntry.vue';
+import { formatDate, getTodayFormatted } from '../../utils/dateUtils';
 
 // DOM refs for calendar positioning
 const container = ref<HTMLElement | null>(null);
@@ -164,13 +165,10 @@ const fetchUsers = async () => {
   }
 };
 
-// Open modal to create a new entry
+// Create a new entry when clicking a cell
 const createNewEntry = (day: Date, hour: number) => {
-  // Create a clean, empty entry
-  formEntry.value = {
-    ...createEmptyTimesheetEntry(),
-    billing_code_id: 0 // Explicitly set to numeric zero
-  };
+  // Reset form data to defaults for a new entry
+  formEntry.value = createEmptyTimesheetEntry();
   
   console.log('New entry created with billing_code_id:', formEntry.value.billing_code_id, 'type:', typeof formEntry.value.billing_code_id);
   
@@ -179,7 +177,7 @@ const createNewEntry = (day: Date, hour: number) => {
   console.log(`Creating new entry with day ${day.toDateString()} and hour ${hour}`);
   
   // Get the date part in local timezone format
-  const dateStr = day.toISOString().split('T')[0];
+  const dateStr = formatDate(day, 'input');
   
   // For direct clicks on the calendar cell
   if (hour >= 8 && hour <= 22) {
@@ -222,6 +220,7 @@ const createNewEntry = (day: Date, hour: number) => {
     formEntry.value.end = `${dateStr}T${endTime}.000Z`;
   }
   
+  // Show the modal
   showModal.value = true;
 };
 
@@ -655,19 +654,11 @@ const weekRangeText = computed(() => {
   
   if (!startDate || !endDate) return '';
   
-  const startMonth = startDate.toLocaleDateString('en-US', { month: 'short' });
-  const endMonth = endDate.toLocaleDateString('en-US', { month: 'short' });
+  // Format dates using our utility function
+  const startDateFormatted = formatDate(startDate, 'short');
+  const endDateFormatted = formatDate(endDate, 'short');
   
-  const startDay = startDate.getDate();
-  const endDay = endDate.getDate();
-  
-  // If the week spans two months
-  if (startMonth !== endMonth) {
-    return `${startMonth} ${startDay} - ${endMonth} ${endDay}`;
-  }
-  
-  // If the week is within the same month
-  return `${startMonth} ${startDay} - ${endDay}`;
+  return `${startDateFormatted} - ${endDateFormatted}`;
 });
 
 const dayHeaders = computed(() => {
@@ -697,16 +688,15 @@ const getEntriesForDay = (day: Date) => {
   if (!day || !weeklyEntries.value) return [];
   
   // Format the day to YYYY-MM-DD for comparison
-  const dayDateStr = day.toISOString().split('T')[0];
+  const dayDateStr = formatDate(day, 'input');
   
+  // Filter entries that fall on this day
   return weeklyEntries.value.filter(entry => {
-    if (!entry.start) return false;
+    // Convert entry start time to Date object and YYYY-MM-DD format
+    const entryStartDate = new Date(entry.start);
+    const entryDateStr = formatDate(entryStartDate, 'input');
     
-    // Extract just the date part from the entry's ISO timestamp without timezone conversion
-    // This treats dates as specified in the entry regardless of local timezone
-    const entryDateStr = entry.start.split('T')[0];
-    
-    // Compare just the date parts (YYYY-MM-DD) without timezone influence
+    // Compare the date strings
     return entryDateStr === dayDateStr;
   });
 };
@@ -731,7 +721,7 @@ const totalWeeklyHours = computed(() => {
 // Update the updateDateTime function to format times correctly
 const updateDateTime = (field: 'start' | 'end', dateStr: string, timeStr: string) => {
   // Ensure we have default values
-  if (!dateStr) dateStr = new Date().toISOString().split('T')[0];
+  if (!dateStr) dateStr = getTodayFormatted();
   if (!timeStr) timeStr = '00:00';
   
   // Create a proper date object to handle the conversion correctly

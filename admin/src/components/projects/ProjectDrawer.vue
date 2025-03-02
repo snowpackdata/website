@@ -225,7 +225,8 @@
 import { ref, computed, onMounted, watch } from 'vue';
 import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } from '@headlessui/vue';
 import { XMarkIcon } from '@heroicons/vue/24/outline';
-import { fetchAccounts } from '../../api/accounts';
+import { fetchAccounts } from '../../api';
+import { formatDate, parseServerDate, formatDateForServer } from '../../utils/dateUtils';
 
 const props = defineProps({
   isOpen: {
@@ -248,13 +249,6 @@ const handleClose = () => {
 // Determine if editing or creating new
 const isEditing = computed(() => !!props.projectData?.id);
 
-// Format dates to YYYY-MM-DD for date inputs
-const formatDateForInput = (dateStr) => {
-  if (!dateStr) return '';
-  const date = new Date(dateStr);
-  return date.toISOString().split('T')[0];
-};
-
 // Initialize project with default values or provided data
 const project = ref({
   id: props.projectData?.id || null,
@@ -262,8 +256,8 @@ const project = ref({
   accountId: props.projectData?.account_id || '',
   project_type: props.projectData?.project_type || 'PROJECT_TYPE_NEW',
   internal: props.projectData?.internal || false,
-  startDate: formatDateForInput(props.projectData?.active_start),
-  endDate: formatDateForInput(props.projectData?.active_end),
+  startDate: parseServerDate(props.projectData?.active_start),
+  endDate: parseServerDate(props.projectData?.active_end),
   billing_frequency: props.projectData?.billing_frequency || 'BILLING_TYPE_MONTHLY',
   budget_hours: props.projectData?.budget_hours || 0,
   budget_dollars: props.projectData?.budget_dollars || 0
@@ -278,8 +272,8 @@ watch(() => props.projectData, (newVal) => {
       accountId: newVal.account_id || '',
       project_type: newVal.project_type || 'PROJECT_TYPE_NEW',
       internal: newVal.internal || false,
-      startDate: formatDateForInput(newVal.active_start),
-      endDate: formatDateForInput(newVal.active_end),
+      startDate: parseServerDate(newVal.active_start),
+      endDate: parseServerDate(newVal.active_end),
       billing_frequency: newVal.billing_frequency || 'BILLING_TYPE_MONTHLY',
       budget_hours: newVal.budget_hours || 0,
       budget_dollars: newVal.budget_dollars || 0
@@ -301,8 +295,8 @@ onMounted(async () => {
 
 // Handle form submission
 const handleSubmit = () => {
-  // Validate form
-  if (!project.value.name || !project.value.accountId || !project.value.startDate) {
+  // Validate the form
+  if (!project.value.name || !project.value.accountId) {
     alert('Please fill in all required fields');
     return;
   }
@@ -313,8 +307,8 @@ const handleSubmit = () => {
     name: project.value.name,
     account_id: parseInt(project.value.accountId),
     project_type: project.value.project_type,
-    active_start: project.value.startDate ? new Date(project.value.startDate).toISOString() : null,
-    active_end: project.value.endDate ? new Date(project.value.endDate).toISOString() : null,
+    active_start: formatDateForServer(project.value.startDate),
+    active_end: formatDateForServer(project.value.endDate),
     billing_frequency: project.value.billing_frequency,
     budget_hours: project.value.budget_hours,
     budget_dollars: project.value.budget_dollars,

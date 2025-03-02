@@ -46,6 +46,23 @@
                           />
                         </div>
                       </div>
+                      
+                      <!-- Billing Code code -->
+                      <div class="space-y-2 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-5">
+                        <div>
+                          <label for="billing-code-code" class="block text-sm/6 font-medium text-gray-900 sm:mt-1.5">Billing Code ID</label>
+                        </div>
+                        <div class="sm:col-span-2">
+                          <input 
+                            type="text" 
+                            name="billing-code-code" 
+                            id="billing-code-code" 
+                            v-model="billingCode.code"
+                            placeholder="Enter billing code identifier"
+                            class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-sage sm:text-sm/6" 
+                          />
+                        </div>
+                      </div>
 
                       <!-- Project selection -->
                       <div class="space-y-2 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-5">
@@ -60,7 +77,7 @@
                             class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
                           >
                             <option value="">Select a project</option>
-                            <option v-for="project in projects" :key="project.id" :value="project.id">
+                            <option v-for="project in projects" :key="project.ID" :value="project.ID">
                               {{ project.name }}
                             </option>
                           </select>
@@ -80,7 +97,7 @@
                             class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-sage sm:text-sm/6"
                           >
                             <option value="">Select a rate</option>
-                            <option v-for="rate in rates" :key="rate.id" :value="rate.id">
+                            <option v-for="rate in rates" :key="rate.ID" :value="rate.ID">
                               {{ rate.name }} ({{ formatCurrency(rate.amount) }})
                             </option>
                           </select>
@@ -108,19 +125,75 @@
                         </div>
                       </div>
 
-                      <!-- Description -->
+                      <!-- Billing Code Category -->
                       <div class="space-y-2 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-5">
                         <div>
-                          <label for="billing-code-description" class="block text-sm/6 font-medium text-gray-900 sm:mt-1.5">Description</label>
+                          <label for="billing-code-description" class="block text-sm/6 font-medium text-gray-900 sm:mt-1.5">Category</label>
                         </div>
                         <div class="sm:col-span-2">
-                          <textarea 
-                            rows="3" 
-                            name="billing-code-description" 
+                          <select 
                             id="billing-code-description" 
-                            v-model="billingCode.description"
+                            name="billing-code-description" 
+                            v-model="billingCode.category"
+                            class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-sage sm:text-sm/6"
+                          >
+                            <option value="">Select a category</option>
+                            <option v-for="category in billingCodeCategories" :key="category.id" :value="category.id">
+                              {{ category.name }}
+                            </option>
+                          </select>
+                        </div>
+                      </div>
+                      
+                      <!-- Start Date -->
+                      <div class="space-y-2 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-5">
+                        <div>
+                          <label for="billing-code-start-date" class="block text-sm/6 font-medium text-gray-900 sm:mt-1.5">Start Date</label>
+                        </div>
+                        <div class="sm:col-span-2">
+                          <input 
+                            type="date" 
+                            name="billing-code-start-date" 
+                            id="billing-code-start-date" 
+                            v-model="billingCode.active_start"
                             class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-sage sm:text-sm/6" 
                           />
+                        </div>
+                      </div>
+                      
+                      <!-- End Date -->
+                      <div class="space-y-2 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-5">
+                        <div>
+                          <label for="billing-code-end-date" class="block text-sm/6 font-medium text-gray-900 sm:mt-1.5">End Date</label>
+                        </div>
+                        <div class="sm:col-span-2">
+                          <input 
+                            type="date" 
+                            name="billing-code-end-date" 
+                            id="billing-code-end-date" 
+                            v-model="billingCode.active_end"
+                            class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-sage sm:text-sm/6" 
+                          />
+                        </div>
+                      </div>
+                      
+                      <!-- Internal Rate selection -->
+                      <div class="space-y-2 px-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:space-y-0 sm:px-6 sm:py-5">
+                        <div>
+                          <label for="billing-code-internal-rate" class="block text-sm/6 font-medium text-gray-900 sm:mt-1.5">Internal Rate</label>
+                        </div>
+                        <div class="sm:col-span-2">
+                          <select 
+                            id="billing-code-internal-rate" 
+                            name="billing-code-internal-rate" 
+                            v-model="billingCode.internal_rate_id"
+                            class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-sage sm:text-sm/6"
+                          >
+                            <option value="">Select an internal rate (optional)</option>
+                            <option v-for="rate in rates.filter(r => r.internal_only)" :key="rate.ID" :value="rate.ID">
+                              {{ rate.name }} ({{ formatCurrency(rate.amount) }})
+                            </option>
+                          </select>
                         </div>
                       </div>
                     </div>
@@ -160,6 +233,7 @@ import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot } fro
 import { XMarkIcon } from '@heroicons/vue/24/outline';
 import { fetchProjects } from '../../api/projects';
 import { fetchRates } from '../../api/rates';
+import { formatDate, parseServerDate, getTodayFormatted } from '../../utils/dateUtils';
 
 const props = defineProps({
   isOpen: {
@@ -179,29 +253,47 @@ const handleClose = () => {
   emit('close');
 };
 
+// Billing code categories
+const billingCodeCategories = [
+  { id: 'BILLABLE', name: 'Billable' },
+  { id: 'NON_BILLABLE', name: 'Non-Billable' },
+  { id: 'LEAVE', name: 'Leave' },
+  { id: 'HOLIDAY', name: 'Holiday' },
+  { id: 'ADMINISTRATIVE', name: 'Administrative' },
+  { id: 'DEVELOPMENT', name: 'Development' },
+];
+
 // Determine if editing or creating new
-const isEditing = computed(() => !!props.billingCodeData?.id);
+const isEditing = computed(() => !!props.billingCodeData?.ID || !!props.billingCodeData?.id);
 
 // Initialize billing code with default values or provided data
 const billingCode = ref({
-  id: props.billingCodeData?.id || null,
+  id: props.billingCodeData?.id || props.billingCodeData?.ID || null,
   name: props.billingCodeData?.name || '',
-  description: props.billingCodeData?.description || '',
-  projectId: props.billingCodeData?.projectId || '',
-  rateId: props.billingCodeData?.rateId || '',
-  isActive: props.billingCodeData?.isActive !== undefined ? props.billingCodeData.isActive : true
+  code: props.billingCodeData?.code || '',
+  category: props.billingCodeData?.type || '',
+  projectId: props.billingCodeData?.projectId || props.billingCodeData?.project || '',
+  rateId: props.billingCodeData?.rateId || props.billingCodeData?.rate_id || '',
+  isActive: props.billingCodeData?.isActive !== undefined ? props.billingCodeData.isActive : (props.billingCodeData?.active !== undefined ? props.billingCodeData.active : true),
+  active_start: parseServerDate(props.billingCodeData?.active_start) || getTodayFormatted(),
+  active_end: parseServerDate(props.billingCodeData?.active_end) || '',
+  internal_rate_id: props.billingCodeData?.internal_rate_id || ''
 });
 
 // Update billing code data when billingCodeData prop changes
 watch(() => props.billingCodeData, (newVal) => {
   if (newVal) {
     billingCode.value = {
-      id: newVal.ID || null,
+      id: newVal.ID || newVal.id || null,
       name: newVal.name || '',
-      description: newVal.description || '',
-      projectId: newVal.project || '',
-      rateId: newVal.rate_id || '',
-      isActive: newVal.active !== undefined ? newVal.active : true
+      code: newVal.code || '',
+      category: newVal.type || '',
+      projectId: newVal.project || newVal.projectId || '',
+      rateId: newVal.rate_id || newVal.rateId || '',
+      isActive: newVal.active !== undefined ? newVal.active : (newVal.isActive !== undefined ? newVal.isActive : true),
+      active_start: parseServerDate(newVal.active_start) || getTodayFormatted(),
+      active_end: parseServerDate(newVal.active_end) || '',
+      internal_rate_id: newVal.internal_rate_id || ''
     };
   }
 }, { deep: true });
@@ -233,8 +325,28 @@ const formatCurrency = (amount) => {
 // Handle form submission
 const handleSubmit = () => {
   // Validate form
-  if (!billingCode.value.name || !billingCode.value.projectId || !billingCode.value.rateId) {
-    alert('Please fill in all required fields');
+  if (!billingCode.value.name) {
+    alert('Please enter a billing code name');
+    return;
+  }
+  
+  if (!billingCode.value.code) {
+    alert('Please enter a billing code ID');
+    return;
+  }
+  
+  if (!billingCode.value.category) {
+    alert('Please select a category');
+    return;
+  }
+  
+  if (!billingCode.value.projectId) {
+    alert('Please select a project');
+    return;
+  }
+  
+  if (!billingCode.value.rateId) {
+    alert('Please select a rate');
     return;
   }
 

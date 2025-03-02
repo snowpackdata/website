@@ -122,7 +122,7 @@ export async function fetchById<T>(endpoint: string, id: number): Promise<T> {
 
 // Generic create
 export async function create<T>(endpoint: string, data: any): Promise<T> {
-  const normalizedUrl = normalizeApiUrl(endpoint);
+  const normalizedUrl = normalizeApiUrl(`${endpoint}/0`);
   const response = await api.post<T>(normalizedUrl, data);
   return response.data;
 }
@@ -145,7 +145,7 @@ type FormDataValue = string | Blob | File;
 
 // Create with FormData
 export async function createWithFormData<T>(endpoint: string, data: FormData | Record<string, any>): Promise<T> {
-  const normalizedUrl = normalizeApiUrl(endpoint);
+  const normalizedUrl = normalizeApiUrl(`${endpoint}/0`);
   let formData: FormData;
   
   // If data is already FormData, use it directly
