@@ -2,6 +2,7 @@
 import { computed } from 'vue';
 import type { TimesheetEntry } from '../../types/Timesheet';
 import type { CSSProperties } from 'vue';
+import { UserIcon, UserMinusIcon } from '@heroicons/vue/20/solid';
 
 // Define props
 const props = defineProps<{
@@ -17,6 +18,41 @@ const emit = defineEmits<{
   (e: 'edit', entry: TimesheetEntry): void;
 }>();
 
+// Hash a string to get a consistent color
+const hashCodeToColor = (str: string): string => {
+  if (!str || typeof str !== 'string') return '#e2e8f0'; // Default gray for empty strings
+  
+  // Take only the first part of the code (before underscore)
+  const prefix = str.split('_')[0];
+  
+  // Simple hash function to get a number
+  let hash = 0;
+  for (let i = 0; i < prefix.length; i++) {
+    hash = prefix.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  
+  // Convert to color with good saturation and lightness
+  const h = Math.abs(hash) % 360; // Hue (0-360)
+  const s = 65 + (Math.abs(hash) % 20); // Saturation (65-85%)
+  const l = 50 + (Math.abs(hash) % 10); // Lightness (50-60%)
+  
+  return `hsl(${h}, ${s}%, ${l}%)`;
+};
+
+// Get text color (white/black) based on background color's perceived brightness
+const getTextColor = (bgColor: string): string => {
+  // For HSL colors, a simple rule: if lightness < 60%, use white, otherwise black
+  const match = bgColor.match(/hsl\(\d+,\s*\d+%,\s*(\d+)%\)/);
+  
+  if (match && match[1]) {
+    const lightness = parseInt(match[1], 10);
+    return lightness < 60 ? 'text-white' : 'text-gray-900';
+  }
+  
+  // Default to black if can't determine
+  return 'text-gray-900';
+};
+
 // Calculate grid row placement for the entry
 const gridRowValues = computed(() => {
   if (!props.entry || !props.entry.start || !props.entry.end) {
@@ -24,16 +60,15 @@ const gridRowValues = computed(() => {
   }
 
   try {
-    // Parse dates from ISO strings
-    const startDate = new Date(props.entry.start);
+    // Extract date parts directly from ISO strings to avoid timezone issues
+    const entryDatePart = props.entry.start.split('T')[0];
     
-    // Extract date parts for comparison using local date values
-    const entryDateStr = startDate.toISOString().split('T')[0];
+    // Format day as ISO date string and extract just the date part
     const dayDateStr = props.day.toISOString().split('T')[0];
     
     // Check if entry belongs to this day (using date part only)
-    if (entryDateStr !== dayDateStr) {
-      console.log(`Entry ${props.entry.entry_id} doesn't match day (${entryDateStr} vs ${dayDateStr}), hiding`);
+    if (entryDatePart !== dayDateStr) {
+      // console.log(`Entry ${props.entry.entry_id} doesn't match day (${entryDatePart} vs ${dayDateStr}), hiding`);
       return { start: 0, span: 0 };
     }
     
@@ -67,15 +102,15 @@ const gridRowValues = computed(() => {
     // Convert to 30-minute blocks
     const totalHalfHours = (durationHours * 2) + (durationMinutes / 30);
     
-    console.log(`Entry ${props.entry.entry_id} grid position:`, {
-      startRow,
-      span: totalHalfHours,
-      startHour,
-      startMinute,
-      endHour,
-      endMinute,
-      timeRangeStart
-    });
+    // console.log(`Entry ${props.entry.entry_id} grid position:`, {
+    //   startRow,
+    //   span: totalHalfHours,
+    //   startHour,
+    //   startMinute,
+    //   endHour,
+    //   endMinute,
+    //   timeRangeStart
+    // });
     
     return {
       start: startRow,
@@ -103,9 +138,9 @@ const entryColor = computed(() => {
     case 'ENTRY_STATE_DRAFT':
       return 'bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200';
     case 'ENTRY_STATE_APPROVED':
-      return 'bg-green-50 text-green-700 hover:bg-green-100 border border-green-200';
-    case 'ENTRY_STATE_INVOICED':
       return 'bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200';
+    case 'ENTRY_STATE_INVOICED':
+      return 'bg-purple-50 text-blue-700 hover:bg-blue-100 border border-blue-200';
     case 'ENTRY_STATE_PAID':
       return 'bg-gray-50 text-gray-700 hover:bg-gray-200 border border-gray-300';
     case 'ENTRY_STATE_VOID':
@@ -164,6 +199,67 @@ const gridStyle = computed((): CSSProperties => {
     position: 'relative'
   };
 });
+
+// NOTE: This computed property is temporarily unused but kept for future implementation
+// of visibility filtering
+/*
+const isVisibleForDay = computed(() => {
+  try {
+    // Convert entry date to YYYY-MM-DD format
+    const entryDate = new Date(props.entry.start);
+    const entryDatePart = entryDate.toISOString().split('T')[0];
+    
+    // Get the current day's date in YYYY-MM-DD format
+    const dayDateStr = props.day.toISOString().split('T')[0];
+    
+    // Compare the date strings directly to avoid timezone issues
+    return entryDatePart === dayDateStr;
+  } catch (e) {
+    console.error('Error comparing entry date:', e);
+    return false;
+  }
+});
+*/
+
+// Calculate grid positioning based on start/end times
+// NOTE: This computed property is temporarily unused but kept for future implementation
+// of alternative grid positioning approach
+// const gridArea = computed(() => {
+//   if (!isVisibleForDay.value) return '';
+//   
+//   // Compute the grid row positioning based on hours
+//   const startTime = new Date(props.entry.start);
+//   const endTime = new Date(props.entry.end);
+//   
+//   // Get hours and adjust for grid (1-based in grid)
+//   const startHour = startTime.getHours();
+//   const startMin = startTime.getMinutes();
+//   const endHour = endTime.getHours();
+//   const endMin = endTime.getMinutes();
+//   
+//   // Calculate fractional positions
+//   const startRow = startHour + 1 + (startMin / 60);
+//   const endRow = endHour + 1 + (endMin / 60);
+//   
+//   // Format for grid-area property
+//   const area = `${startRow} / 1 / ${endRow} / 2`;
+//   
+//   // console.log(`Entry ${props.entry.entry_id} grid position:`, {
+//   //   date: props.entry.start_date,
+//   //   startHour,
+//   //   startMin,
+//   //   endHour,
+//   //   endMin,
+//   //   gridArea: area
+//   // });
+//   
+//   return area;
+// });
+
+// New computed property to determine if diagonal shading should be applied
+const hasImpersonationStyles = computed(() => {
+  return props.entry?.is_being_impersonated === true;
+});
 </script>
 
 <template>
@@ -176,13 +272,47 @@ const gridStyle = computed((): CSSProperties => {
       href="#" 
       @click.prevent="handleEdit"
       class="group absolute inset-1 flex flex-col overflow-y-auto rounded-lg p-2 text-xs/5 shadow-sm entry-link"
-      :class="entryColor"
+      :class="[
+        entryColor,
+        { 'impersonation-striping': hasImpersonationStyles }
+      ]"
       :style="entryOffset"
     >
-      <p class="font-semibold">{{ entry.billing_code_name }}</p>
-      <p class="font-semibold">({{ entry.duration_hours }} hrs)</p>
-      <div class="text-xs mt-1">
-        <div class="text-xs line-clamp-2">{{ entry.notes }}</div>
+      <div class="flex flex-col mb-1">
+        <!-- Billing code name on top -->
+        <span class="font-semibold truncate text-xs">{{ entry.billing_code_name }}</span>
+        
+        <!-- Color-coded badge below with impersonation icon if needed -->
+        <div class="flex items-center gap-1 mt-0.5">
+          <span 
+            v-if="entry.billing_code"
+            :style="{ backgroundColor: hashCodeToColor(entry.billing_code) }"
+            :class="[
+              'inline-flex items-center px-1.5 py-0.5 rounded text-[0.6rem] font-medium', 
+              getTextColor(hashCodeToColor(entry.billing_code))
+            ]"
+          >
+            {{ entry.billing_code }}
+          </span>
+          
+          <!-- Impersonating someone else -->
+          <UserIcon 
+            v-if="entry.impersonate_as_user_id !== null" 
+            class="h-3 w-3 text-gray-700" 
+            title="You are impersonating another user"
+          />
+          
+          <!-- Someone is impersonating you -->
+          <UserMinusIcon 
+            v-if="entry.is_being_impersonated" 
+            class="h-3 w-3 text-gray-700" 
+            title="Someone is impersonating you"
+          />
+        </div>
+      </div>
+      <p class="font-semibold text-[0.65rem]">({{ entry.duration_hours }} hrs)</p>
+      <div class="mt-1">
+        <div class="text-[0.6rem] line-clamp-2">{{ entry.notes }}</div>
       </div>
     </a>
   </li>
@@ -219,5 +349,16 @@ a.entry-link:hover {
 
 .timesheet-entry:hover {
   z-index: 900 !important; /* Apply higher z-index to the parent element when hovering */
+}
+
+/* Diagonal striping for entries where user is being impersonated */
+.impersonation-striping {
+  background-image: repeating-linear-gradient(
+    45deg,
+    rgba(245, 158, 11, 0.05), /* amber-500 with low opacity */
+    rgba(245, 158, 11, 0.05) 10px,
+    rgba(255, 255, 255, 0) 10px,
+    rgba(255, 255, 255, 0) 20px
+  ) !important;
 }
 </style> 

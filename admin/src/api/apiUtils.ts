@@ -42,7 +42,7 @@ export const getToken = (): string => {
 
 // Configure axios instance with defaults - explicitly DON'T use baseURL
 // We'll manually construct URLs for each request to avoid inconsistencies
-const api = axios.create({
+export const api = axios.create({
   headers: {
     'Content-Type': 'application/json'
   }
@@ -54,6 +54,15 @@ api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   if (config.url && !config.url.startsWith('/api')) {
     const cleanUrl = config.url.startsWith('/') ? config.url.substring(1) : config.url;
     config.url = `/api/${cleanUrl}`;
+  }
+
+  // If the data is FormData, remove any Content-Type header to let axios set the correct one
+  if (config.data instanceof FormData) {
+    // Remove Content-Type to let axios set the correct one with boundary
+    if (config.headers) {
+      delete config.headers['Content-Type'];
+    }
+    console.log('FormData detected, allowing axios to set Content-Type header');
   }
 
   // Log request details in development
@@ -129,9 +138,37 @@ export async function create<T>(endpoint: string, data: any): Promise<T> {
 
 // Generic update
 export async function update<T>(endpoint: string, id: number, data: any): Promise<T> {
+  if (!id || isNaN(id) || id <= 0) {
+    throw new Error(`Invalid ID for update: ${id}`);
+  }
+  
   const normalizedUrl = normalizeApiUrl(`${endpoint}/${id}`);
-  const response = await api.put<T>(normalizedUrl, data);
-  return response.data;
+  console.log(`Executing PUT request to ${normalizedUrl} with ID ${id}`, data);
+  
+  try {
+    const response = await api.put<T>(normalizedUrl, data);
+    return response.data;
+  } catch (error: any) {
+    // Enhanced error handling with specific messages for different status codes
+    if (error.response) {
+      const status = error.response.status;
+      if (status === 404) {
+        console.error(`Entity not found: ${endpoint}/${id}. The entry may have been deleted or is in a state that doesn't allow updates.`);
+        throw new Error(`Not Found: The entry with ID ${id} does not exist or cannot be updated in its current state.`);
+      } else if (status === 403) {
+        console.error(`Permission denied: ${endpoint}/${id}`);
+        throw new Error(`Permission denied: You don't have permission to update this entry.`);
+      } else if (status === 409) {
+        // Handle the 409 Conflict for entries that can't be edited due to state
+        const errorData = error.response.data || {};
+        const errorMessage = errorData.error || 'The entry cannot be updated in its current state';
+        console.error(`Conflict error for ${endpoint}/${id}:`, errorMessage);
+        throw new Error(`Cannot update: ${errorMessage}`);
+      }
+    }
+    console.error(`Error updating ${endpoint}/${id}:`, error.message);
+    throw error;
+  }
 }
 
 // Generic delete

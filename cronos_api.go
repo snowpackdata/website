@@ -640,7 +640,13 @@ func (a *App) EntryHandler(w http.ResponseWriter, r *http.Request) {
 
 		// We cannot edit entries that are approved, paid, or voided
 		if entry.State == cronos.EntryStateApproved.String() || entry.State == cronos.EntryStatePaid.String() || entry.State == cronos.EntryStateVoid.String() {
-			w.WriteHeader(http.StatusNotFound)
+			w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+			w.WriteHeader(http.StatusConflict) // 409 Conflict is more appropriate than 404
+			errorResponse := map[string]string{
+				"error": fmt.Sprintf("Cannot edit entry in %s state. Only entries in DRAFT state can be modified.", entry.State),
+				"state": entry.State,
+			}
+			_ = json.NewEncoder(w).Encode(errorResponse)
 			return
 		}
 

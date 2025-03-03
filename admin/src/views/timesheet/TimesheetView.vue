@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, watch } from 'vue';
 import { XMarkIcon } from '@heroicons/vue/24/outline';
-import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot, Switch, SwitchGroup, SwitchLabel } from '@headlessui/vue';
+import { CheckIcon, ChevronUpDownIcon } from '@heroicons/vue/20/solid';
+import { Dialog, DialogPanel, DialogTitle, TransitionChild, TransitionRoot, Switch, SwitchGroup, SwitchLabel, Combobox, ComboboxButton, ComboboxInput, ComboboxLabel, ComboboxOption, ComboboxOptions } from '@headlessui/vue';
 import type { TimesheetEntry } from '../../types/Timesheet';
 import { createEmptyTimesheetEntry } from '../../types/Timesheet';
 import { getEntries, getTimesheetActiveBillingCodes, getUsers, createEntry, updateEntry, deleteEntry as deleteEntryAPI } from '../../api';
@@ -33,6 +34,44 @@ const dragColumnIndex = ref<number | null>(null);
 
 // Modal form state
 const formEntry = ref<TimesheetEntry>(createEmptyTimesheetEntry());
+
+// Hash a string to get a consistent color
+const hashCodeToColor = (str: string): string => {
+  if (!str || typeof str !== 'string') return '#e2e8f0'; // Default gray for empty strings
+  
+  // Take only the first part of the code (before underscore)
+  const prefix = str.split('_')[0];
+  
+  // Simple hash function to get a number
+  let hash = 0;
+  for (let i = 0; i < prefix.length; i++) {
+    hash = prefix.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  
+  // Convert to color with good saturation and lightness
+  const h = Math.abs(hash) % 360; // Hue (0-360)
+  const s = 65 + (Math.abs(hash) % 20); // Saturation (65-85%)
+  const l = 50 + (Math.abs(hash) % 10); // Lightness (50-60%)
+  
+  return `hsl(${h}, ${s}%, ${l}%)`;
+};
+
+// Get text color (white/black) based on background color's perceived brightness
+const getTextColor = (bgColor: string): string => {
+  // For HSL colors, a simple rule: if lightness < 60%, use white, otherwise black
+  const match = bgColor.match(/hsl\(\d+,\s*\d+%,\s*(\d+)%\)/);
+  
+  if (match && match[1]) {
+    const lightness = parseInt(match[1], 10);
+    return lightness < 60 ? 'text-white' : 'text-gray-900';
+  }
+  
+  // Default to black if can't determine
+  return 'text-gray-900';
+};
+
+// Additional state for combobox
+const billingCodeQuery = ref('');
 
 // Watch for impersonation toggle changes
 watch(showImpersonation, (newValue) => {
@@ -71,27 +110,39 @@ onMounted(async () => {
 
 // Initialize the current week dates
 const initializeCurrentWeek = () => {
+  // Create UTC date objects to avoid timezone shifts
   const now = new Date(currentDate.value);
-  const dayOfWeek = now.getDay(); // 0 = Sunday, 6 = Saturday
   
-  // Find the start of the week (Sunday)
+  // Find the day of week in local time (0 = Sunday, 6 = Saturday)
+  const dayOfWeek = now.getDay();
+  
+  // Find the start of the week (Sunday) by calculating the date difference
   const startDate = new Date(now);
   startDate.setDate(now.getDate() - dayOfWeek);
+  
+  // Reset the time component to midnight to avoid time-of-day comparison issues
+  startDate.setHours(0, 0, 0, 0);
   
   // Create array of dates for the week
   const weekDates: Date[] = [];
   for (let i = 0; i < 7; i++) {
     const date = new Date(startDate);
     date.setDate(startDate.getDate() + i);
+    // Ensure each date starts at midnight
+    date.setHours(0, 0, 0, 0);
     weekDates.push(date);
   }
   
   currentWeek.value = weekDates;
+  
+  console.log('Week initialized:', weekDates.map(d => d.toISOString().split('T')[0]));
 };
 
 // Navigate to previous week
 const previousWeek = () => {
   const firstDay = new Date(currentWeek.value[0]);
+  // Ensure consistent date math by setting to midnight
+  firstDay.setHours(0, 0, 0, 0);
   firstDay.setDate(firstDay.getDate() - 7);
   currentDate.value = firstDay;
   initializeCurrentWeek();
@@ -101,6 +152,8 @@ const previousWeek = () => {
 // Navigate to next week
 const nextWeek = () => {
   const firstDay = new Date(currentWeek.value[0]);
+  // Ensure consistent date math by setting to midnight
+  firstDay.setHours(0, 0, 0, 0);
   firstDay.setDate(firstDay.getDate() + 7);
   currentDate.value = firstDay;
   initializeCurrentWeek();
@@ -109,7 +162,10 @@ const nextWeek = () => {
 
 // Go to today
 const goToToday = () => {
-  currentDate.value = new Date();
+  const today = new Date();
+  // Ensure consistent date by setting to midnight
+  today.setHours(0, 0, 0, 0);
+  currentDate.value = today;
   initializeCurrentWeek();
   fetchWeeklyEntries();
 };
@@ -125,18 +181,25 @@ const fetchWeeklyEntries = async () => {
     
     // Filter entries to only include those in the current week
     weeklyEntries.value = allEntries.filter(entry => {
-      const entryDate = new Date(entry.start);
+      if (!entry || !entry.start) return false;
       
-      // Get start and end of current week
-      const weekStart = new Date(currentWeek.value[0]);
-      weekStart.setHours(0, 0, 0, 0);
-      
-      const weekEnd = new Date(currentWeek.value[6]);
-      weekEnd.setHours(23, 59, 59, 999);
-      
-      // Check if entry is within the current week range
-      return entryDate >= weekStart && entryDate <= weekEnd;
+      try {
+        // Extract just the date part from the ISO string
+        const entryDatePart = entry.start.split('T')[0];
+        
+        // Get start and end dates of current week as ISO date strings
+        const weekStartISO = currentWeek.value[0].toISOString().split('T')[0];
+        const weekEndISO = currentWeek.value[6].toISOString().split('T')[0];
+        
+        // Compare string dates directly to avoid timezone issues
+        return entryDatePart >= weekStartISO && entryDatePart <= weekEndISO;
+      } catch (e) {
+        console.error('Error filtering entry by date:', e, entry);
+        return false;
+      }
     });
+    
+    console.log(`Filtered to ${weeklyEntries.value.length} entries for week ${currentWeek.value[0].toISOString().split('T')[0]} to ${currentWeek.value[6].toISOString().split('T')[0]}`);
   } catch (err) {
     console.error('Error fetching timesheet entries:', err);
     error.value = 'Failed to load timesheet entries. Please try again.';
@@ -148,8 +211,29 @@ const fetchWeeklyEntries = async () => {
 // Fetch billing codes
 const fetchBillingCodes = async () => {
   try {
-    billingCodes.value = await getTimesheetActiveBillingCodes();
-    console.log('Fetched billing codes:', billingCodes.value);
+    const codes = await getTimesheetActiveBillingCodes();
+    
+    // Filter and ensure billing codes have consistent ID format (as numbers)
+    billingCodes.value = codes
+      .filter(code => {
+        // First get ID from one of the possible sources
+        const rawId = code.id || code.billing_code_id || code.ID;
+        const numericId = Number(rawId);
+        
+        // Verify it's a valid number
+        const isValid = !isNaN(numericId) && numericId > 0;
+        
+        if (!isValid) {
+          console.warn('Filtered out billing code with invalid ID:', code);
+        }
+        
+        return isValid;
+      })
+      .map(code => ({
+        ...code,
+        // Convert to number and ensure it's a valid positive number
+        id: Number(code.id || code.billing_code_id || code.ID)
+      }));
   } catch (err) {
     console.error('Error fetching billing codes:', err);
   }
@@ -158,70 +242,52 @@ const fetchBillingCodes = async () => {
 // Fetch users for impersonation
 const fetchUsers = async () => {
   try {
-    users.value = await getUsers();
-    console.log('Fetched users for impersonation:', users.value);
+    const usersList = await getUsers();
+    
+    // Ensure users have the necessary properties
+    users.value = usersList.map(user => ({
+      id: Number(user.id || user.user_id),
+      first_name: user.first_name || '',
+      last_name: user.last_name || '',
+      email: user.email || ''
+    }));
+    
+    console.log('Processed users for impersonation:', users.value);
   } catch (err) {
     console.error('Error fetching users:', err);
   }
 };
 
-// Create a new entry when clicking a cell
-const createNewEntry = (day: Date, hour: number) => {
-  // Reset form data to defaults for a new entry
+// Open modal to create a new entry
+const createNewEntry = (event: any, day: any) => {
+  
+  // Reset form values to defaults using the provided factory function
   formEntry.value = createEmptyTimesheetEntry();
   
-  console.log('New entry created with billing_code_id:', formEntry.value.billing_code_id, 'type:', typeof formEntry.value.billing_code_id);
+  // Set the billing code ID to 0 (no selection)
+  formEntry.value.billing_code_id = 0;
   
-  // Set up start and end times based on the day and hour clicked
-  // We need to carefully handle timezone conversion to avoid time shifts
-  console.log(`Creating new entry with day ${day.toDateString()} and hour ${hour}`);
+  // Create date strings from the provided day
+  const dateStr = day.format ? day.format('YYYY-MM-DD') : new Date(day).toISOString().split('T')[0];
   
-  // Get the date part in local timezone format
-  const dateStr = formatDate(day, 'input');
+  // Set start and end times (one hour apart) on the selected day
+  const now = new Date();
+  const hours = now.getHours();
+  const minutes = now.getMinutes();
   
-  // For direct clicks on the calendar cell
-  if (hour >= 8 && hour <= 22) {
-    // Create start time string - format: "2023-01-01T08:00:00"
-    // Construct time string directly to avoid timezone conversion issues
-    const startHourInt = Math.floor(hour);
-    const startMinInt = hour % 1 === 0 ? 0 : 30;
-    
-    // Format hours and minutes with leading zeros
-    const startHour = startHourInt.toString().padStart(2, '0');
-    const startMin = startMinInt.toString().padStart(2, '0');
-    
-    // Calculate end time (1 hour later)
-    let endHourInt = startHourInt + 1;
-    const endMinInt = startMinInt;
-    
-    // Format end hours and minutes
-    const endHour = endHourInt.toString().padStart(2, '0');
-    const endMin = endMinInt.toString().padStart(2, '0');
-    
-    // Create direct ISO strings with the correct time (no timezone conversion)
-    formEntry.value.start = `${dateStr}T${startHour}:${startMin}:00.000Z`;
-    formEntry.value.end = `${dateStr}T${endHour}:${endMin}:00.000Z`;
-    
-    console.log('Direct time string creation:', {
-      dateStr,
-      hour,
-      startTime: `${startHour}:${startMin}`,
-      endTime: `${endHour}:${endMin}`,
-      startFull: formEntry.value.start,
-      endFull: formEntry.value.end
-    });
-  } 
-  // For header clicks, we use a fixed time (noon)
-  else {
-    const startTime = '12:00:00';
-    const endTime = '13:00:00';
-    
-    formEntry.value.start = `${dateStr}T${startTime}.000Z`;
-    formEntry.value.end = `${dateStr}T${endTime}.000Z`;
-  }
+  const startTime = new Date(dateStr);
+  startTime.setHours(hours, minutes, 0, 0);
   
-  // Show the modal
+  const endTime = new Date(dateStr);
+  endTime.setHours(hours + 1, minutes, 0, 0);
+  
+  formEntry.value.start = startTime.toISOString();
+  formEntry.value.end = endTime.toISOString();
+  
+  console.log('Creating new entry with defaults:', formEntry.value);
+  
   showModal.value = true;
+  showImpersonation.value = false; // Default to not showing impersonation UI
 };
 
 // Drag functionality for calendar
@@ -420,12 +486,6 @@ const endDrag = (event?: MouseEvent) => {
   
   // Reset drag state
   isDragging.value = false;
-  dragDay.value = null;
-  dragStartHour.value = null;
-  dragEndHour.value = null;
-  dragColumnIndex.value = null;
-  
-  // Clean up
   removeHighlighting();
   document.body.style.userSelect = '';
   
@@ -509,8 +569,8 @@ const editEntry = (entry: TimesheetEntry) => {
   // Create a deep copy to avoid reference issues
   formEntry.value = JSON.parse(JSON.stringify(entry));
   
-  // Ensure billing_code_id is a number
-  formEntry.value.billing_code_id = Number(formEntry.value.billing_code_id) || 0;
+  // Ensure billing_code_id is a proper number
+  formEntry.value.billing_code_id = Number(formEntry.value.billing_code_id || 0);
   
   // Make sure user can interact immediately with the form
   showModal.value = true;
@@ -518,13 +578,12 @@ const editEntry = (entry: TimesheetEntry) => {
   // If the entry has impersonation, show the impersonation UI
   if (entry.impersonate_as_user_id && entry.impersonate_as_user_id > 0) {
     showImpersonation.value = true;
+    // Make sure impersonate_as_user_id is explicitly set as a number
+    formEntry.value.impersonate_as_user_id = Number(entry.impersonate_as_user_id);
   } else {
     showImpersonation.value = false;
+    formEntry.value.impersonate_as_user_id = null;
   }
-  
-  // Log to help with debugging
-  console.log('Editing entry:', formEntry.value);
-  console.log('Using billing code ID:', formEntry.value.billing_code_id);
 };
 
 // Close the modal
@@ -538,27 +597,20 @@ const closeModal = () => {
 const saveEntry = async () => {
   error.value = null; // Clear previous errors
   
-  // Add detailed debugging for the billing code issue
-  console.log('Raw formEntry data:', formEntry.value);
-  console.log('Billing code ID (raw):', formEntry.value.billing_code_id);
-  console.log('Billing code ID type:', typeof formEntry.value.billing_code_id);
-  
   try {
     // Ensure billing_code_id is a number and has a value
     const billingCodeId = Number(formEntry.value.billing_code_id);
-    console.log('Billing code ID after Number conversion:', billingCodeId, 'isNaN:', isNaN(billingCodeId));
-    formEntry.value.billing_code_id = isNaN(billingCodeId) ? 0 : billingCodeId;
-    
-    // Validate required fields
-    if (!formEntry.value.billing_code_id || formEntry.value.billing_code_id === 0) {
-      error.value = 'Please select a billing code';
-      console.error('Missing billing code');
+    if (isNaN(billingCodeId) || billingCodeId <= 0) {
+      error.value = 'Please select a valid billing code';
       return;
     }
     
+    // Update the value as a number in the form
+    formEntry.value.billing_code_id = billingCodeId;
+    
+    // Validate required fields
     if (!formEntry.value.start || !formEntry.value.end) {
       error.value = 'Please select both start and end times';
-      console.error('Missing start or end time');
       return;
     }
     
@@ -567,44 +619,92 @@ const saveEntry = async () => {
     const endDate = new Date(formEntry.value.end);
     if (endDate <= startDate) {
       error.value = 'End time must be after start time';
-      console.error('Invalid time range: end time is before or equal to start time');
+      return;
+    }
+    
+    // Validate that notes are provided
+    if (!formEntry.value.notes || formEntry.value.notes.trim() === '') {
+      error.value = 'Please enter notes for this timesheet entry';
       return;
     }
     
     // Ensure impersonation fields are properly set
     if (showImpersonation.value && formEntry.value.impersonate_as_user_id) {
       formEntry.value.is_being_impersonated = true;
-      console.log('Setting impersonation fields:', {
-        impersonate_as_user_id: formEntry.value.impersonate_as_user_id,
-        is_being_impersonated: formEntry.value.is_being_impersonated
-      });
+      // Ensure impersonate_as_user_id is a number
+      formEntry.value.impersonate_as_user_id = Number(formEntry.value.impersonate_as_user_id);
     } else {
-      formEntry.value.impersonate_as_user_id = 0;
+      // When not using impersonation, explicitly set to null
+      formEntry.value.impersonate_as_user_id = null;
       formEntry.value.is_being_impersonated = false;
     }
     
     // Make sure notes is always a string
-    formEntry.value.notes = formEntry.value.notes || '';
+    formEntry.value.notes = formEntry.value.notes.trim();
+    
+    // Log entry data for debugging
+    console.log('Saving entry with data:', {
+      entry_id: formEntry.value.entry_id,
+      billing_code_id: formEntry.value.billing_code_id,
+      start: formEntry.value.start,
+      end: formEntry.value.end,
+      notes: formEntry.value.notes,
+      impersonate_as_user_id: formEntry.value.impersonate_as_user_id
+    });
     
     // Create or update entry
     if (formEntry.value.entry_id === 0) {
-      console.log('Creating new entry');
-      const result = await createEntry(formEntry.value);
-      console.log('Created entry:', result);
+      await createEntry(formEntry.value);
+      // Successfully created - close modal and refresh
+      closeModal();
+      await fetchWeeklyEntries();
     } else {
-      console.log('Updating existing entry with ID:', formEntry.value.entry_id);
-      const result = await updateEntry(formEntry.value);
-      console.log('Updated entry:', result);
+      try {
+        // Convert entry_id to a number to ensure proper API call
+        formEntry.value.entry_id = Number(formEntry.value.entry_id);
+        
+        // Validate entry_id
+        if (isNaN(formEntry.value.entry_id) || formEntry.value.entry_id <= 0) {
+          throw new Error(`Invalid entry ID: ${formEntry.value.entry_id}`);
+        }
+        
+        console.log(`Attempting to update entry ${formEntry.value.entry_id}`);
+        await updateEntry(formEntry.value);
+        
+        // Successfully updated - close modal and refresh
+        closeModal();
+        await fetchWeeklyEntries();
+      } catch (updateErr: any) {
+        console.error('Error updating timesheet entry:', updateErr);
+        
+        // Extract error message for better user feedback
+        let errorMessage = 'Failed to update entry. Please try again.';
+        
+        if (updateErr.message) {
+          errorMessage = updateErr.message;
+        } else if (updateErr.response) {
+          if (updateErr.response.status === 404) {
+            errorMessage = `Failed to update entry #${formEntry.value.entry_id}. The entry may have been deleted or you don't have permission to edit it.`;
+          } else if (updateErr.response.status === 409) {
+            // Special handling for entries that can't be edited due to their state
+            const state = updateErr.response.data?.state || 'non-draft';
+            errorMessage = `This entry cannot be modified because it is in ${state} state. Only entries in DRAFT state can be edited.`;
+          } else if (updateErr.response.data && updateErr.response.data.error) {
+            errorMessage = updateErr.response.data.error;
+          }
+        }
+        
+        error.value = errorMessage;
+        // Don't close the modal so user can see the error
+      }
     }
-    
-    // Refresh entries after save
-    await fetchWeeklyEntries();
-    closeModal();
   } catch (err: any) {
     console.error('Error saving timesheet entry:', err);
     
     // Extract error message for better user feedback
-    if (err.response && err.response.data && err.response.data.error) {
+    if (err.message) {
+      error.value = err.message;
+    } else if (err.response && err.response.data && err.response.data.error) {
       error.value = err.response.data.error;
     } else {
       error.value = 'Failed to save entry. Please try again.';
@@ -667,8 +767,11 @@ const dayHeaders = computed(() => {
   return currentWeek.value.map(date => {
     if (!date) return { dayName: '', dayNum: '', date: new Date(), isToday: false };
     
-    const dayName = date.toLocaleDateString('en-US', { weekday: 'short' });
+    // Format day name using utility function for consistency
+    const dayName = date.toLocaleDateString('en-US', { weekday: 'short', timeZone: 'UTC' });
     const dayNum = date.getDate();
+    
+    // Compare date strings to determine if this is today
     const isToday = isDateToday(date);
     
     return { dayName, dayNum, date, isToday };
@@ -677,27 +780,38 @@ const dayHeaders = computed(() => {
 
 // Helper functions
 const isDateToday = (date: Date) => {
+  // Compare dates as YYYY-MM-DD strings to avoid timezone issues
   const today = new Date();
-  return date.getDate() === today.getDate() && 
-         date.getMonth() === today.getMonth() && 
-         date.getFullYear() === today.getFullYear();
+  today.setHours(0, 0, 0, 0);
+  
+  // Format both to YYYY-MM-DD format and compare
+  const todayStr = today.toISOString().split('T')[0];
+  const dateStr = date.toISOString().split('T')[0];
+  
+  return dateStr === todayStr;
 };
 
 // Get entries for a specific day
 const getEntriesForDay = (day: Date) => {
   if (!day || !weeklyEntries.value) return [];
   
-  // Format the day to YYYY-MM-DD for comparison
+  // Format the day to YYYY-MM-DD for comparison (in UTC to match how we store dates)
   const dayDateStr = formatDate(day, 'input');
   
   // Filter entries that fall on this day
   return weeklyEntries.value.filter(entry => {
-    // Convert entry start time to Date object and YYYY-MM-DD format
-    const entryStartDate = new Date(entry.start);
-    const entryDateStr = formatDate(entryStartDate, 'input');
+    if (!entry || !entry.start) return false;
     
-    // Compare the date strings
-    return entryDateStr === dayDateStr;
+    try {
+      // Extract just the date part from the ISO string to avoid timezone issues
+      const entryDatePart = entry.start.split('T')[0];
+      
+      // Compare the date strings directly - this avoids timezone conversion issues
+      return entryDatePart === dayDateStr;
+    } catch (e) {
+      console.error('Error comparing entry date:', e);
+      return false;
+    }
   });
 };
 
@@ -718,24 +832,99 @@ const totalWeeklyHours = computed(() => {
   }, 0).toFixed(1);
 });
 
-// Update the updateDateTime function to format times correctly
-const updateDateTime = (field: 'start' | 'end', dateStr: string, timeStr: string) => {
-  // Ensure we have default values
-  if (!dateStr) dateStr = getTodayFormatted();
-  if (!timeStr) timeStr = '00:00';
+// Calculate duration between two ISO timestamps
+const getDuration = (start?: string, end?: string): string => {
+  if (!start || !end) return '0.00';
   
-  // Create a proper date object to handle the conversion correctly
-  const date = new Date(`${dateStr}T${timeStr}:00`);
-  
-  // Convert to ISO string with Z for UTC
-  const isoString = date.toISOString();
-  
-  // Update the form entry
-  if (field === 'start') {
-    formEntry.value.start = isoString;
-  } else {
-    formEntry.value.end = isoString;
+  try {
+    const startDate = new Date(start);
+    const endDate = new Date(end);
+    
+    // Calculate difference in milliseconds
+    const diffMs = endDate.getTime() - startDate.getTime();
+    
+    // Convert to hours with 2 decimal places
+    const hours = diffMs / (1000 * 60 * 60);
+    return hours.toFixed(2);
+  } catch (error) {
+    console.error('Error calculating duration:', error);
+    return '0.00';
   }
+};
+
+// Update the updateDateTime function to format times correctly
+const updateDateTime = (field: 'date' | 'start-time' | 'end-time', value: string) => {
+  // Ensure form entry has start and end dates
+  if (!formEntry.value.start) formEntry.value.start = new Date().toISOString();
+  if (!formEntry.value.end) formEntry.value.end = new Date().toISOString();
+  
+  // Get current date and time values
+  const startDate = formEntry.value.start.split('T')[0];
+  const endDate = formEntry.value.end.split('T')[0];
+  const startTime = formEntry.value.start.split('T')[1].split(':').slice(0, 2).join(':');
+  const endTime = formEntry.value.end.split('T')[1].split(':').slice(0, 2).join(':');
+  
+  // Common shared date for both start and end
+  let sharedDate = startDate;
+  
+  if (field === 'date') {
+    // When date changes, update both start and end dates
+    sharedDate = value;
+    
+    // Create new ISO strings with updated date
+    formEntry.value.start = `${sharedDate}T${startTime}:00.000Z`;
+    formEntry.value.end = `${sharedDate}T${endTime}:00.000Z`;
+  } 
+  else if (field === 'start-time') {
+    // When start time changes, update only start time
+    formEntry.value.start = `${sharedDate}T${value}:00.000Z`;
+  } 
+  else if (field === 'end-time') {
+    // When end time changes, update only end time
+    formEntry.value.end = `${sharedDate}T${value}:00.000Z`;
+  }
+  
+  // Log the updated values
+  console.log(`Updated ${field} to ${value}. New values: start=${formEntry.value.start}, end=${formEntry.value.end}`);
+};
+
+// Filter billing codes based on search query
+const filteredBillingCodes = computed(() => {
+  if (!billingCodeQuery.value || billingCodeQuery.value === '') {
+    return billingCodes.value;
+  }
+  
+  const query = billingCodeQuery.value.toLowerCase();
+  return billingCodes.value.filter(code => {
+    return code.name.toLowerCase().includes(query) || 
+           (code.code && code.code.toLowerCase().includes(query));
+  });
+});
+
+// Get the selected billing code
+const selectedBillingCode = computed({
+  get: () => {
+    if (!formEntry.value.billing_code_id || formEntry.value.billing_code_id <= 0) {
+      return null;
+    }
+    
+    return billingCodes.value.find(code => 
+      Number(code.id) === Number(formEntry.value.billing_code_id)
+    ) || null;
+  },
+  set: (newCode: any) => {
+    if (newCode && newCode.id) {
+      formEntry.value.billing_code_id = Number(newCode.id);
+    } else {
+      formEntry.value.billing_code_id = 0;
+    }
+  }
+});
+
+// Function to display billing code in the input
+const displayBillingCode = (code: any): string => {
+  if (!code) return '';
+  return code.name;
 };
 </script>
 
@@ -774,12 +963,37 @@ const updateDateTime = (field: 'start' | 'end', dateStr: string, timeStr: string
       </div>
     </div>
     
+    <!-- Global error banner -->
+    <div v-if="error" class="mb-4 bg-red-50 border-l-4 border-red-500 p-4 rounded-md">
+      <div class="flex">
+        <div class="flex-shrink-0">
+          <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clip-rule="evenodd" />
+          </svg>
+        </div>
+        <div class="ml-3">
+          <p class="text-sm text-red-700">{{ error }}</p>
+        </div>
+        <div class="ml-auto pl-3">
+          <div class="-mx-1.5 -my-1.5">
+            <button 
+              @click="error = null" 
+              class="inline-flex rounded-md bg-red-50 p-1.5 text-red-500 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-2 focus:ring-offset-red-50"
+            >
+              <span class="sr-only">Dismiss</span>
+              <XMarkIcon class="h-5 w-5" aria-hidden="true" />
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    
     <div v-if="isLoading" class="loading-indicator">
       <div class="animate-spin h-6 w-6 text-primary"></div>
       <span>Loading timesheet...</span>
     </div>
     
-    <div v-else-if="error" class="error-message">
+    <div v-else-if="error && !weeklyEntries.length" class="error-message">
       {{ error }}
     </div>
     
@@ -945,179 +1159,202 @@ const updateDateTime = (field: 'start' | 'end', dateStr: string, timeStr: string
             <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
               <div class="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
                 <TransitionChild as="template" enter="ease-out duration-300" enter-from="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" enter-to="opacity-100 translate-y-0 sm:scale-100" leave="ease-in duration-200" leave-from="opacity-100 translate-y-0 sm:scale-100" leave-to="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95">
-                  <DialogPanel class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg">
-                    <div class="bg-white px-6 pb-4 pt-5 sm:p-6 sm:pb-4">
-                      <div class="absolute right-0 top-0 hidden pr-4 pt-4 sm:block">
-                        <button type="button" class="rounded-md bg-white text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2" @click="closeModal">
-                          <span class="sr-only">Close</span>
-                          <XMarkIcon class="h-6 w-6" aria-hidden="true" />
-                        </button>
-                      </div>
-                      
-                      <div>
-                        <div class="w-full text-center sm:text-left">
-                          <DialogTitle as="h3" class="text-base font-semibold leading-6 text-gray-900">
-                            {{ formEntry.entry_id ? 'Edit Timesheet Entry' : 'New Timesheet Entry' }}
-                          </DialogTitle>
-                          
-                          <div class="mt-4 space-y-3">
-                            <!-- Impersonation switch -->
-                            <div class="flex items-center justify-between">
-                              <SwitchGroup as="div" class="flex items-center">
-                                <SwitchLabel as="span" class="mr-3 text-xs">
-                                  <span class="font-medium text-gray-900">Impersonation Mode</span>
-                                </SwitchLabel>
-                                <Switch
-                                  v-model="showImpersonation"
-                                  :class="[
-                                    showImpersonation ? 'bg-sage' : 'bg-gray-200',
-                                    'relative inline-flex h-5 w-10 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-sage focus:ring-offset-2'
-                                  ]"
-                                >
-                                  <span
-                                    aria-hidden="true"
-                                    :class="[
-                                      showImpersonation ? 'translate-x-5' : 'translate-x-0',
-                                      'pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out'
-                                    ]"
-                                  />
-                                </Switch>
-                              </SwitchGroup>
-                            </div>
-                            
-                            <!-- Impersonation warning and user selection -->
-                            <div v-if="showImpersonation" class="bg-yellow-50 border-l-4 border-yellow-400 p-2 mb-4">
-                              <div class="flex items-start">
-                                <div class="flex-shrink-0">
-                                  <svg class="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                                    <path fill-rule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
-                                  </svg>
-                                </div>
-                                <div class="ml-3">
-                                  <p class="text-xs text-yellow-700">
-                                    <strong>Warning:</strong> You are creating an entry on behalf of another user. This action will be logged.
-                                  </p>
-                                </div>
-                              </div>
-                            </div>
-                            
-                            <!-- User selection for impersonation -->
-                            <div v-if="showImpersonation">
-                              <label class="block text-xs font-medium text-gray-700">Select User</label>
-                              <select 
-                                v-model="formEntry.impersonate_as_user_id" 
-                                @change="formEntry.is_being_impersonated = (formEntry.impersonate_as_user_id ?? 0) > 0"
-                                class="mt-1 block w-full rounded-md border-gray-300 py-1.5 pl-3 pr-10 text-xs focus:border-sage focus:outline-none focus:ring-sage"
-                              >
-                                <option :value="0">Select a user</option>
-                                <option v-for="user in users" :key="user.id" :value="user.id">
-                                  {{ user.first_name || user.last_name }}
-                                </option>
-                              </select>
-                            </div>
-                            
-                            <!-- Billing code selector -->
-                            <div>
-                              <label class="block text-xs font-medium text-gray-700">Billing Code</label>
-                              <select 
-                                v-model="formEntry.billing_code_id"
-                                class="mt-1 block w-full rounded-md border-gray-300 py-1.5 pl-3 pr-10 text-xs focus:border-sage focus:outline-none focus:ring-sage"
-                              >
-                                <option :value="0">Select a billing code</option>
-                                <option v-for="code in billingCodes" :key="code.id" :value="Number(code.id)">
-                                  {{ code.name }}
-                                </option>
-                              </select>
-                            </div>
-                            
-                            <!-- Time inputs - updated to match Tailwind example -->
-                            <div class="grid grid-cols-2 gap-4">
-                              <div>
-                                <label for="start-time" class="block text-xs font-medium text-gray-700">Start Time</label>
-                                <div class="mt-1 grid grid-cols-2 gap-2">
-                                  <!-- Date input -->
-                                  <div class="relative">
-                                    <input 
-                                      type="date" 
-                                      id="start-date"
-                                      :value="formEntry.start ? formEntry.start.split('T')[0] : ''"
-                                      @input="e => updateDateTime('start', (e.target as HTMLInputElement).value, formEntry.start ? formEntry.start.split('T')[1].split(':').slice(0, 2).join(':') : '00:00')"
-                                      class="bg-gray-50 border h-8 border-gray-300 text-gray-900 text-xs rounded-lg focus:ring-sage focus:border-sage block w-full p-1.5 date-input"
-                                      required 
-                                    />
-                                  </div>
-                                  <!-- Time input -->
-                                  <div class="relative">
-                                    <div class="absolute inset-y-0 end-0 top-0 flex items-center pe-3.5 pointer-events-none">
+                  <DialogPanel class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-6 sm:w-full sm:max-w-md">
+                    <div class="bg-sage text-white px-4 py-2 sm:px-4 sm:py-2 flex justify-between items-center">
+                      <DialogTitle as="h3" class="text-base font-semibold leading-6">
+                        {{ formEntry.entry_id ? 'Edit Timesheet Entry' : 'New Timesheet Entry' }}
+                      </DialogTitle>
+                      <button type="button" class="text-white hover:text-gray-200 focus:outline-none" @click="closeModal">
+                        <span class="sr-only">Close</span>
+                        <XMarkIcon class="h-5 w-5" aria-hidden="true" />
+                      </button>
+                    </div>
+                    
+                    <div class="bg-white px-3 py-4 sm:p-6">
+                      <!-- Billing code selector with Combobox -->
+                      <div class="py-1 border-b border-gray-100">
+                        <Combobox v-model="selectedBillingCode" as="div">
+                          <ComboboxLabel class="block text-xs font-medium text-gray-700">Billing Code</ComboboxLabel>
+                          <div class="flex items-center gap-2 mt-0.5">
+                            <div class="relative flex-1">
+                              <ComboboxInput 
+                                class="block w-full rounded border-gray-300 py-1 pl-2 pr-8 text-2xs focus:border-sage focus:outline-none focus:ring-sage"
+                                @change="billingCodeQuery = $event.target.value"
+                                :display-value="displayBillingCode"
+                                placeholder="Select or search for a billing code..."
+                              />
+                              <ComboboxButton class="absolute inset-y-0 right-0 flex items-center pr-2">
+                                <ChevronUpDownIcon class="h-4 w-4 text-gray-400" aria-hidden="true" />
+                              </ComboboxButton>
+
+                              <ComboboxOptions v-if="filteredBillingCodes.length > 0" class="absolute z-10 mt-1 max-h-48 w-full overflow-auto rounded-md bg-white py-1 text-2xs shadow-lg ring-1 ring-black/5 focus:outline-none">
+                                <ComboboxOption v-for="code in filteredBillingCodes" :key="code.id" :value="code" as="template" v-slot="{ active, selected }">
+                                  <li :class="['relative cursor-default select-none py-1.5 pl-2 pr-9 text-2xs', active ? 'bg-sage text-white' : 'text-gray-900']">
+                                    <div class="flex items-center">
+                                      <!-- Color-coded badge for the billing code -->
+                                      <span 
+                                        v-if="code.code"
+                                        :style="{ backgroundColor: hashCodeToColor(code.code) }"
+                                        :class="[
+                                          'inline-flex items-center px-1.5 py-0.5 rounded text-[0.6rem] font-medium', 
+                                          getTextColor(hashCodeToColor(code.code))
+                                        ]"
+                                      >
+                                        {{ code.code }}
+                                      </span>
+                                      
+                                      <span :class="['ml-2 truncate', selected && 'font-semibold']">
+                                        {{ code.name }}
+                                      </span>
                                     </div>
-                                    <input 
-                                      type="time" 
-                                      id="start-time"
-                                      :value="formEntry.start ? formEntry.start.split('T')[1].split(':').slice(0, 2).join(':') : ''"
-                                      @input="e => updateDateTime('start', formEntry.start ? formEntry.start.split('T')[0] : new Date().toISOString().split('T')[0], (e.target as HTMLInputElement).value)"
-                                      class="bg-gray-50 border h-8 border-gray-300 text-gray-900 text-xs rounded-lg focus:ring-sage focus:border-sage block w-full p-1.5"
-                                      required 
-                                    />
-                                  </div>
-                                </div>
-                              </div>
-                              
-                              <div>
-                                <label for="end-time" class="block text-xs font-medium text-gray-700">End Time</label>
-                                <div class="mt-1 grid grid-cols-2 gap-2">
-                                  <!-- Date input -->
-                                  <div class="relative">
-                                    <input 
-                                      type="date" 
-                                      id="end-date"
-                                      :value="formEntry.end ? formEntry.end.split('T')[0] : ''"
-                                      @input="e => updateDateTime('end', (e.target as HTMLInputElement).value, formEntry.end ? formEntry.end.split('T')[1].split(':').slice(0, 2).join(':') : '00:00')"
-                                      class="bg-gray-50 border h-8 border-gray-300 text-gray-900 text-xs rounded-lg focus:ring-sage focus:border-sage block w-full p-1.5 date-input"
-                                      required 
-                                    />
-                                  </div>
-                                  <!-- Time input -->
-                                  <div class="relative">
-                                    <div class="absolute inset-y-0 end-0 top-0 flex items-center pe-3.5 pointer-events-none">
-                                    </div>
-                                    <input 
-                                      type="time" 
-                                      id="end-time"
-                                      :value="formEntry.end ? formEntry.end.split('T')[1].split(':').slice(0, 2).join(':') : ''"
-                                      @input="e => updateDateTime('end', formEntry.end ? formEntry.end.split('T')[0] : new Date().toISOString().split('T')[0], (e.target as HTMLInputElement).value)"
-                                      class="bg-gray-50 border h-8 border-gray-300 text-gray-900 text-xs rounded-lg focus:ring-sage focus:border-sage block w-full p-1.5"
-                                      required 
-                                    />
-                                  </div>
-                                </div>
-                              </div>
+
+                                    <span v-if="selected" :class="['absolute inset-y-0 right-0 flex items-center pr-2', active ? 'text-white' : 'text-sage']">
+                                      <CheckIcon class="h-4 w-4" aria-hidden="true" />
+                                    </span>
+                                  </li>
+                                </ComboboxOption>
+                              </ComboboxOptions>
                             </div>
                             
-                            <!-- Notes -->
-                            <div>
-                              <label class="block text-xs font-medium text-gray-700">Notes</label>
-                              <textarea 
-                                v-model="formEntry.notes"
-                                rows="2"
-                                class="mt-1 block w-full rounded-md border border-gray-300 py-1.5 px-3 shadow-sm focus:border-sage focus:outline-none focus:ring-sage text-xs"
-                              ></textarea>
+                            <!-- Show selected badge if a billing code is selected -->
+                            <div v-if="selectedBillingCode && selectedBillingCode.code" class="flex-shrink-0">
+                              <span 
+                                :style="{ backgroundColor: hashCodeToColor(selectedBillingCode.code) }"
+                                :class="[
+                                  'inline-flex items-center px-1.5 py-0.5 rounded text-[0.65rem] font-medium', 
+                                  getTextColor(hashCodeToColor(selectedBillingCode.code))
+                                ]"
+                              >
+                                {{ selectedBillingCode.code }}
+                              </span>
                             </div>
                           </div>
+                        </Combobox>
+                      </div>
+                      
+                      <!-- Time inputs - more compact -->
+                      <div class="bg-sage-pale bg-opacity-30 rounded p-2 border border-sage border-opacity-20 mt-2">
+                        <div class="grid grid-cols-3 gap-2 mb-2">
+                          <!-- Date for both start and end -->
+                          <div class="col-span-1">
+                            <label class="block text-2xs font-medium text-gray-700">Date</label>
+                            <input 
+                              type="date" 
+                              id="entry-date"
+                              :value="formEntry.start ? formEntry.start.split('T')[0] : ''"
+                              @input="e => updateDateTime('date', (e.target as HTMLInputElement).value)"
+                              class="mt-0.5 bg-white border border-gray-300 text-gray-900 text-2xs rounded focus:ring-sage focus:border-sage block w-full p-1"
+                              required 
+                            />
+                          </div>
+                          
+                          <!-- Start and end times -->
+                          <div class="col-span-1">
+                            <label class="block text-2xs font-medium text-gray-700">Start Time</label>
+                            <input 
+                              type="time" 
+                              id="start-time"
+                              :value="formEntry.start ? formEntry.start.split('T')[1].split(':').slice(0, 2).join(':') : ''"
+                              @input="e => updateDateTime('start-time', (e.target as HTMLInputElement).value)"
+                              class="mt-0.5 bg-white border border-gray-300 text-gray-900 text-2xs rounded focus:ring-sage focus:border-sage block w-full p-1"
+                              required 
+                            />
+                          </div>
+                          
+                          <div class="col-span-1">
+                            <label class="block text-2xs font-medium text-gray-700">End Time</label>
+                            <input 
+                              type="time" 
+                              id="end-time"
+                              :value="formEntry.end ? formEntry.end.split('T')[1].split(':').slice(0, 2).join(':') : ''"
+                              @input="e => updateDateTime('end-time', (e.target as HTMLInputElement).value)"
+                              class="mt-0.5 bg-white border border-gray-300 text-gray-900 text-2xs rounded focus:ring-sage focus:border-sage block w-full p-1"
+                              required 
+                            />
+                          </div>
+                        </div>
+                        
+                        <!-- Duration display -->
+                        <div class="flex justify-end">
+                          <span class="text-2xs text-gray-600 font-medium bg-white px-2 py-0.5 rounded-full border border-gray-200">
+                            Duration: {{ getDuration(formEntry.start, formEntry.end) }} hrs
+                          </span>
+                        </div>
+                      </div>
+                      
+                      <!-- Notes - Required -->
+                      <div class="py-1 mt-2">
+                        <div class="flex items-center">
+                          <label class="block text-2xs font-medium text-gray-700">Notes</label>
+                          <span class="ml-1 text-2xs text-red-500">*</span>
+                          <span class="ml-1 text-2xs text-gray-400">(required)</span>
+                        </div>
+                        <textarea 
+                          v-model="formEntry.notes"
+                          rows="4"
+                          placeholder="Enter notes about this timesheet entry..."
+                          class="mt-0.5 block w-full rounded border border-gray-300 py-1.5 px-2 shadow-sm focus:border-sage focus:outline-none focus:ring-sage text-2xs resize-none"
+                        ></textarea>
+                      </div>
+                      
+                      <!-- Impersonation section - moved to bottom -->
+                      <div class="mt-4 border-t border-gray-100 pt-3">
+                        <!-- Toggle for impersonation mode -->
+                        <SwitchGroup as="div" class="flex items-center justify-between mb-2">
+                          <SwitchLabel as="span" class="text-2xs text-gray-500">
+                            Impersonation Mode
+                          </SwitchLabel>
+                          <Switch
+                            v-model="showImpersonation"
+                            :class="[
+                              showImpersonation ? 'bg-sage' : 'bg-gray-200',
+                              'relative inline-flex h-4 w-8 items-center rounded-full'
+                            ]"
+                          >
+                            <span
+                              :class="[
+                                showImpersonation ? 'translate-x-4' : 'translate-x-0.5',
+                                'inline-block h-3 w-3 transform rounded-full bg-white transition'
+                              ]"
+                            />
+                          </Switch>
+                        </SwitchGroup>
+                        
+                        <!-- Impersonation selection - only if toggled on -->
+                        <div v-if="showImpersonation" class="bg-yellow-50 p-2 rounded text-xs space-y-1 border border-yellow-200">
+                          <div class="flex items-start mb-1">
+                            <svg class="h-3 w-3 text-yellow-400 mt-0.5 mr-1 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                              <path fill-rule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
+                            </svg>
+                            <p class="text-2xs text-yellow-700">
+                              <strong>Warning:</strong> Creating entry for another user.
+                            </p>
+                          </div>
+                          <select 
+                            v-model="formEntry.impersonate_as_user_id" 
+                            @change="formEntry.is_being_impersonated = (formEntry.impersonate_as_user_id ?? 0) > 0"
+                            class="block w-full rounded border-gray-300 py-1 pl-2 pr-8 text-2xs focus:border-sage focus:outline-none focus:ring-sage"
+                          >
+                            <option :value="null">Select a user</option>
+                            <option v-for="user in users" :key="user.id" :value="Number(user.id)">
+                              {{ user.first_name }} {{ user.last_name }}
+                            </option>
+                          </select>
                         </div>
                       </div>
                     </div>
                     
-                    <div class="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6">
+                    <div class="bg-gray-50 px-3 py-2 sm:flex sm:flex-row-reverse border-t border-gray-200">
                       <button 
                         type="button" 
-                        class="inline-flex w-full justify-center rounded-md bg-sage px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-sage-dark sm:ml-3 sm:w-auto"
+                        class="inline-flex justify-center rounded bg-sage px-2.5 py-1 text-xs font-semibold text-white shadow-sm hover:bg-sage-dark sm:ml-2 sm:w-auto"
                         @click="saveEntry"
                       >
                         {{ formEntry.entry_id ? 'Update' : 'Create' }}
                       </button>
                       <button 
                         type="button" 
-                        class="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-1.5 text-xs font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto"
+                        class="mt-2 inline-flex justify-center rounded bg-white px-2.5 py-1 text-xs font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto"
                         @click="closeModal"
                       >
                         Cancel
@@ -1126,7 +1363,7 @@ const updateDateTime = (field: 'start' | 'end', dateStr: string, timeStr: string
                       <button 
                         v-if="formEntry.entry_id !== 0"
                         type="button" 
-                        class="mt-3 inline-flex w-full justify-center rounded-md bg-red-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-red-500 sm:mt-0 sm:w-auto"
+                        class="mt-2 inline-flex justify-center rounded bg-red-600 px-2.5 py-1 text-xs font-semibold text-white shadow-sm hover:bg-red-500 sm:mt-0 sm:w-auto"
                         @click="deleteEntry"
                       >
                         Delete
@@ -1158,7 +1395,6 @@ const updateDateTime = (field: 'start' | 'end', dateStr: string, timeStr: string
   user-select: none;
   -webkit-user-select: none;
   -moz-user-select: none;
-  -ms-user-select: none;
 }
 
 .calendar-cell:hover {
@@ -1180,6 +1416,33 @@ div.calendar-cell.bg-sage-pale,
   --sage-green-dark: #476b67;
   --sage-green-light: #76a19c;
   --sage-green-pale: #e6efee;
+}
+
+/* Add Tailwind utility classes for our custom colors */
+.bg-sage-pale {
+  background-color: var(--sage-green-pale);
+}
+
+.border-sage {
+  border-color: var(--sage-green-primary);
+}
+
+.bg-sage {
+  background-color: var(--sage-green-primary);
+}
+
+.bg-sage-dark {
+  background-color: var(--sage-green-dark);
+}
+
+.text-sage {
+  color: var(--sage-green-primary);
+}
+
+/* Custom text size for extra small text */
+.text-2xs {
+  font-size: 0.65rem;
+  line-height: 0.9rem;
 }
 
 /* Fix for calendar container height */

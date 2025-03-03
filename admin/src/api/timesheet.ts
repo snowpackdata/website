@@ -1,5 +1,6 @@
 import type { TimesheetEntry } from '../types/Timesheet';
-import { fetchAll, fetchById, create, update, remove } from './apiUtils';
+import { create, update, fetchAll, fetchById, remove, createWithFormData, updateWithFormData } from './apiUtils';
+import axios from 'axios';
 
 /**
  * Validates timesheet entry data before sending to the API
@@ -45,7 +46,20 @@ const timesheetAPI = {
    * @returns Promise with timesheet entries
    */
   async getEntries(): Promise<TimesheetEntry[]> {
-    return fetchAll<TimesheetEntry>('entries');
+    const entries = await fetchAll<TimesheetEntry>('entries');
+    
+    // Ensure all entries have the correct data types
+    return entries.map(entry => ({
+      ...entry,
+      entry_id: Number(entry.entry_id),
+      billing_code_id: Number(entry.billing_code_id),
+      project_id: Number(entry.project_id),
+      user_id: Number(entry.user_id),
+      duration_hours: Number(entry.duration_hours),
+      fee: Number(entry.fee),
+      impersonate_as_user_id: entry.impersonate_as_user_id ? Number(entry.impersonate_as_user_id) : null,
+      is_being_impersonated: Boolean(entry.is_being_impersonated)
+    }));
   },
 
   /**
@@ -54,7 +68,20 @@ const timesheetAPI = {
    * @returns Promise with timesheet entry data
    */
   async getEntry(id: number): Promise<TimesheetEntry> {
-    return fetchById<TimesheetEntry>('entries', id);
+    const entry = await fetchById<TimesheetEntry>('entries', id);
+    
+    // Ensure correct data types
+    return {
+      ...entry,
+      entry_id: Number(entry.entry_id),
+      billing_code_id: Number(entry.billing_code_id),
+      project_id: Number(entry.project_id),
+      user_id: Number(entry.user_id),
+      duration_hours: Number(entry.duration_hours),
+      fee: Number(entry.fee),
+      impersonate_as_user_id: entry.impersonate_as_user_id ? Number(entry.impersonate_as_user_id) : null,
+      is_being_impersonated: Boolean(entry.is_being_impersonated)
+    };
   },
 
   /**
@@ -70,7 +97,30 @@ const timesheetAPI = {
    * @returns Promise with billing codes data
    */
   async getActiveBillingCodes(): Promise<any[]> {
-    return fetchAll('active_billing_codes');
+    const codes = await fetchAll('active_billing_codes');
+    
+    // Normalize billing code IDs to ensure consistent format
+    // Add more robust handling for missing or invalid IDs
+    return codes.map((code: any) => {
+      // Get ID from one of the possible sources
+      const rawId = code.id || code.billing_code_id || code.ID;
+      
+      // Convert to number and ensure it's valid
+      const numericId = Number(rawId);
+      const validId = !isNaN(numericId) && numericId > 0 ? numericId : null;
+      
+      // Log warning if we have an invalid ID
+      if (validId === null) {
+        console.warn('Found billing code with invalid ID:', code);
+      }
+      
+      return {
+        ...code,
+        // Use the valid ID or keep original for debugging
+        id: validId,
+        billing_code_id: validId
+      };
+    }).filter(code => code.id !== null); // Only return codes with valid IDs
   },
 
   /**
@@ -86,32 +136,55 @@ const timesheetAPI = {
       throw new Error(`Validation failed: ${validation.errors.join(', ')}`);
     }
     
-    // Prepare form data for compatibility with Go backend
-    const formData = new FormData();
-    formData.set("billing_code_id", entry.billing_code_id.toString());
+    // Prepare URLSearchParams for compatibility with Go backend
+    const formData = new URLSearchParams();
     
-    // Format dates in the expected format (2006-01-02T15:04)
-    const startDate = new Date(entry.start);
-    const endDate = new Date(entry.end);
+    // Ensure billing_code_id is a valid number and convert to string
+    const billingCodeId = Number(entry.billing_code_id);
+    if (isNaN(billingCodeId) || billingCodeId <= 0) {
+      throw new Error('Invalid billing code ID');
+    }
+    formData.set("billing_code_id", billingCodeId.toString());
     
-    // Format to YYYY-MM-DDThh:mm
-    const formatDate = (date: Date) => {
-      return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}T${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+    // NOTE: We work directly with the ISO string format to avoid timezone issues
+    // Extract date parts in local time to preserve the user's selected date
+    const formatDateTimeForAPI = (isoString: string) => {
+      // Parse the ISO string directly to extract components
+      const [datePart, timePart] = isoString.split('T');
+      const [timeHours, timeMinutes] = timePart.split(':');
+      
+      // Format as YYYY-MM-DDThh:mm which is what the Go backend expects
+      return `${datePart}T${timeHours}:${timeMinutes}`;
     };
     
-    formData.set("start", formatDate(startDate));
-    formData.set("end", formatDate(endDate));
+    // Format dates exactly as they are in the ISO strings to prevent timezone issues
+    formData.set("start", formatDateTimeForAPI(entry.start));
+    formData.set("end", formatDateTimeForAPI(entry.end));
     
-    if (entry.notes) {
-      formData.set("notes", entry.notes);
-    }
+    // Always include notes (even if empty)
+    formData.set("notes", entry.notes || '');
     
+    // Handle impersonation
     if (entry.impersonate_as_user_id) {
       formData.set("impersonate_as_user_id", entry.impersonate_as_user_id.toString());
     }
     
+    // Log the form data for debugging
+    console.log("Creating entry with URLSearchParams:", formData.toString());
+    
     try {
-      return create<TimesheetEntry>('entries', formData);
+      // Use direct API call with URLSearchParams
+      const normalizedUrl = `/api/entries/0`;
+      
+      // Create custom headers for URL-encoded form data
+      const headers = {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Authorization': `Bearer ${localStorage.getItem('snowpack_token')}`
+      };
+      
+      // Make the API call with the correct Content-Type
+      const response = await axios.post(normalizedUrl, formData.toString(), { headers });
+      return response.data;
     } catch (error) {
       console.error('Failed to create timesheet entry:', error);
       throw error;
@@ -125,40 +198,73 @@ const timesheetAPI = {
    * @throws Error if validation fails
    */
   async updateEntry(entry: TimesheetEntry): Promise<TimesheetEntry> {
+    // Ensure entry_id is valid and convert to a proper number
+    const entryId = Number(entry.entry_id);
+    if (!entryId || isNaN(entryId) || entryId <= 0) {
+      throw new Error(`Invalid entry ID for update: ${entry.entry_id}`);
+    }
+    
     // Validate entry data
     const validation = validateTimesheetEntry(entry);
     if (!validation.isValid) {
       throw new Error(`Validation failed: ${validation.errors.join(', ')}`);
     }
     
-    // Prepare form data for compatibility with Go backend
-    const formData = new FormData();
-    formData.set("billing_code_id", entry.billing_code_id.toString());
+    // Prepare URLSearchParams for compatibility with Go backend
+    const formData = new URLSearchParams();
     
-    // Format dates in the expected format (2006-01-02T15:04)
-    const startDate = new Date(entry.start);
-    const endDate = new Date(entry.end);
+    // Ensure billing_code_id is a valid number and convert to string
+    const billingCodeId = Number(entry.billing_code_id);
+    if (isNaN(billingCodeId) || billingCodeId <= 0) {
+      throw new Error('Invalid billing code ID');
+    }
+    formData.set("billing_code_id", billingCodeId.toString());
     
-    // Format to YYYY-MM-DDThh:mm
-    const formatDate = (date: Date) => {
-      return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}T${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+    // NOTE: We work directly with the ISO string format to avoid timezone issues
+    // Extract date parts in local time to preserve the user's selected date
+    const formatDateTimeForAPI = (isoString: string) => {
+      // Parse the ISO string directly to extract components
+      const [datePart, timePart] = isoString.split('T');
+      const [timeHours, timeMinutes] = timePart.split(':');
+      
+      // Format as YYYY-MM-DDThh:mm which is what the Go backend expects
+      return `${datePart}T${timeHours}:${timeMinutes}`;
     };
     
-    formData.set("start", formatDate(startDate));
-    formData.set("end", formatDate(endDate));
+    // Format dates exactly as they are in the ISO strings to prevent timezone issues
+    formData.set("start", formatDateTimeForAPI(entry.start));
+    formData.set("end", formatDateTimeForAPI(entry.end));
     
-    if (entry.notes) {
-      formData.set("notes", entry.notes);
-    }
+    // Always include notes (even if empty)
+    formData.set("notes", entry.notes || '');
     
+    // Handle impersonation
     if (entry.impersonate_as_user_id) {
-      formData.set("impersonate_as_user_id", entry.impersonate_as_user_id.toString());
+      const impersonateId = Number(entry.impersonate_as_user_id);
+      formData.set("impersonate_as_user_id", impersonateId.toString());
+    } else {
+      // Explicitly set to 0 to clear impersonation
+      formData.set("impersonate_as_user_id", "0");
     }
+    
+    // Log the form data for debugging
+    console.log("Updating entry with URLSearchParams:", formData.toString());
     
     try {
-      return update<TimesheetEntry>('entries', entry.entry_id, formData);
+      // Use direct API call with URLSearchParams
+      const normalizedUrl = `/api/entries/${entryId}`;
+      
+      // Create custom headers for URL-encoded form data
+      const headers = {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Authorization': `Bearer ${localStorage.getItem('snowpack_token')}`
+      };
+      
+      // Make the API call with the correct Content-Type
+      const response = await axios.put(normalizedUrl, formData.toString(), { headers });
+      return response.data;
     } catch (error) {
-      console.error('Failed to update timesheet entry:', error);
+      console.error(`Failed to update timesheet entry ${entryId}:`, error);
       throw error;
     }
   },
@@ -219,4 +325,124 @@ export const updateEntry = timesheetAPI.updateEntry;
 export const deleteEntry = timesheetAPI.deleteEntry;
 export const getEntriesByDateRange = timesheetAPI.getEntriesByDateRange;
 export const getEntriesByUser = timesheetAPI.getEntriesByUser;
-export const getEntriesByProject = timesheetAPI.getEntriesByProject; 
+export const getEntriesByProject = timesheetAPI.getEntriesByProject;
+
+export const createTimesheetEntry = async (formData: Partial<TimesheetEntry>): Promise<TimesheetEntry> => {
+  try {
+    // Create a FormData object instead of a plain object
+    const data = new FormData();
+    
+    // Add billing_code_id (required)
+    if (formData.billing_code_id) {
+      data.set("billing_code_id", formData.billing_code_id.toString());
+    } else {
+      throw new Error("Billing code ID is required");
+    }
+    
+    // Add start time (required)
+    if (formData.start) {
+      // Format the date/time as expected by the server (YYYY-MM-DDThh:mm)
+      const [datePart, timePart] = formData.start.split('T');
+      const [timeHours, timeMinutes] = timePart.split(':');
+      data.set("start", `${datePart}T${timeHours}:${timeMinutes}`);
+    } else {
+      throw new Error("Start time is required");
+    }
+    
+    // Add end time (required)
+    if (formData.end) {
+      // Format the date/time as expected by the server (YYYY-MM-DDThh:mm)
+      const [datePart, timePart] = formData.end.split('T');
+      const [timeHours, timeMinutes] = timePart.split(':');
+      data.set("end", `${datePart}T${timeHours}:${timeMinutes}`);
+    } else {
+      throw new Error("End time is required");
+    }
+    
+    // Add notes (can be empty)
+    data.set("notes", formData.notes || "");
+    
+    // Handle impersonation
+    if (formData.impersonate_as_user_id) {
+      data.set("impersonate_as_user_id", formData.impersonate_as_user_id.toString());
+    } else {
+      // Explicitly set to 0 to clear impersonation
+      data.set("impersonate_as_user_id", "0");
+    }
+    
+    // Add project_id if available (optional)
+    if (formData.project_id) {
+      data.set("project_id", formData.project_id.toString());
+    }
+    
+    console.log("Creating entry with FormData:", 
+      Array.from(data.entries()).map(([key, value]) => `${key}: ${value}`).join(', ')
+    );
+    
+    // Use the createWithFormData function specialized for FormData
+    return await createWithFormData<TimesheetEntry>('entries', data);
+  } catch (error) {
+    console.error('Failed to create timesheet entry:', error);
+    throw error;
+  }
+};
+
+export const updateTimesheetEntry = async (entryId: number, formData: Partial<TimesheetEntry>): Promise<TimesheetEntry> => {
+  try {
+    // Create a FormData object instead of a plain object
+    const data = new FormData();
+    
+    // Add billing_code_id (required)
+    if (formData.billing_code_id) {
+      data.set("billing_code_id", formData.billing_code_id.toString());
+    } else {
+      throw new Error("Billing code ID is required");
+    }
+    
+    // Add start time (required)
+    if (formData.start) {
+      // Format the date/time as expected by the server (YYYY-MM-DDThh:mm)
+      const [datePart, timePart] = formData.start.split('T');
+      const [timeHours, timeMinutes] = timePart.split(':');
+      data.set("start", `${datePart}T${timeHours}:${timeMinutes}`);
+    } else {
+      throw new Error("Start time is required");
+    }
+    
+    // Add end time (required)
+    if (formData.end) {
+      // Format the date/time as expected by the server (YYYY-MM-DDThh:mm)
+      const [datePart, timePart] = formData.end.split('T');
+      const [timeHours, timeMinutes] = timePart.split(':');
+      data.set("end", `${datePart}T${timeHours}:${timeMinutes}`);
+    } else {
+      throw new Error("End time is required");
+    }
+    
+    // Add notes (can be empty)
+    data.set("notes", formData.notes || "");
+    
+    // Handle impersonation
+    if (formData.impersonate_as_user_id) {
+      data.set("impersonate_as_user_id", formData.impersonate_as_user_id.toString());
+    } else {
+      // Explicitly set to 0 to clear impersonation
+      data.set("impersonate_as_user_id", "0");
+    }
+    
+    // Add project_id if available (optional)
+    if (formData.project_id) {
+      data.set("project_id", formData.project_id.toString());
+    }
+    
+    console.log("Updating entry with FormData:", 
+      Array.from(data.entries()).map(([key, value]) => `${key}: ${value}`).join(', ')
+    );
+    
+    // Use the updateWithFormData function specialized for FormData
+    return await updateWithFormData<TimesheetEntry>('entries', entryId, data);
+  } catch (error) {
+    console.error(`Failed to update timesheet entry ${entryId}:`, error);
+    throw error;
+  }
+}; 

@@ -7,6 +7,7 @@ export interface TimesheetEntry {
   employee_name: string;
   billing_code_id: number;
   billing_code_name: string;
+  billing_code: string;
   project_id: number;
   project_name: string;
   start: string;
@@ -40,6 +41,7 @@ export function createEmptyTimesheetEntry(): TimesheetEntry {
     employee_name: '',
     billing_code_id: 0,
     billing_code_name: '',
+    billing_code: '',
     project_id: 0,
     project_name: '',
     start: new Date().toISOString(),
