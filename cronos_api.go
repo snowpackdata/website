@@ -620,6 +620,11 @@ func (a *App) EntryHandler(w http.ResponseWriter, r *http.Request) {
 	userIDInt := r.Context().Value("user_id")
 	a.cronosApp.DB.Where("user_id = ?", userIDInt).First(&employee)
 
+	// Get the current user to check if they're an admin
+	var currentUser cronos.User
+	a.cronosApp.DB.First(&currentUser, employee.UserID)
+	isAdmin := currentUser.Role == cronos.UserRoleAdmin.String()
+
 	switch {
 	case r.Method == "GET":
 		a.cronosApp.DB.Preload("BillingCode.Rate").Preload("BillingCode.InternalRate").Preload("Employee").Preload("ImpersonateAsUser").First(&entry, vars["id"])
@@ -652,8 +657,9 @@ func (a *App) EntryHandler(w http.ResponseWriter, r *http.Request) {
 
 		// Check if user has permission to edit this entry:
 		// 1. They created it (employee_id = employee.ID), OR
-		// 2. They are being impersonated in it (impersonate_as_user_id = employee.ID)
-		if entry.EmployeeID != employee.ID && (entry.ImpersonateAsUserID == nil || *entry.ImpersonateAsUserID != employee.ID) {
+		// 2. They are being impersonated in it (impersonate_as_user_id = employee.ID), OR
+		// 3. They are an admin
+		if !isAdmin && entry.EmployeeID != employee.ID && (entry.ImpersonateAsUserID == nil || *entry.ImpersonateAsUserID != employee.ID) {
 			w.WriteHeader(http.StatusForbidden)
 			_ = json.NewEncoder(w).Encode(map[string]string{"error": "You do not have permission to edit this entry"})
 			return
@@ -1079,14 +1085,47 @@ func (a *App) AdjustmentHandler(w http.ResponseWriter, r *http.Request) {
 		_ = json.NewEncoder(w).Encode(&adjustment)
 		return
 	case r.Method == "POST":
-		invoiceID, _ := strconv.Atoi(r.FormValue("invoice_id"))
-		*adjustment.InvoiceID = uint(invoiceID)
-		adjustment.Type = r.FormValue("type")
-		amountFloat, _ := strconv.ParseFloat(r.FormValue("amount"), 64)
+		// Get the invoice ID and convert it to uint
+		invoiceID, err := strconv.Atoi(r.FormValue("invoice_id"))
+		if err != nil {
+			log.Printf("Error parsing invoice_id: %v", err)
+			http.Error(w, "Invalid invoice_id", http.StatusBadRequest)
+			return
+		}
+
+		// Create a uint value for the invoice ID
+		uintInvoiceID := uint(invoiceID)
+		adjustment.InvoiceID = &uintInvoiceID // Assign the pointer to the uint value
+
+		// Validate adjustment type
+		adjustmentType := r.FormValue("type")
+		if adjustmentType != cronos.AdjustmentTypeCredit.String() && adjustmentType != cronos.AdjustmentTypeFee.String() {
+			log.Printf("Invalid adjustment type: %s", adjustmentType)
+			http.Error(w, "Adjustment type must be ADJUSTMENT_TYPE_CREDIT or ADJUSTMENT_TYPE_FEE", http.StatusBadRequest)
+			return
+		}
+		adjustment.Type = adjustmentType
+
+		// Parse amount
+		amountFloat, err := strconv.ParseFloat(r.FormValue("amount"), 64)
+		if err != nil {
+			log.Printf("Error parsing amount: %v", err)
+			http.Error(w, "Invalid amount", http.StatusBadRequest)
+			return
+		}
 		adjustment.Amount = amountFloat
+
+		// Set notes and state
 		adjustment.Notes = r.FormValue("notes")
 		adjustment.State = cronos.AdjustmentStateDraft.String()
-		a.cronosApp.DB.Create(&adjustment)
+
+		// Create the adjustment in the database
+		if err := a.cronosApp.DB.Create(&adjustment).Error; err != nil {
+			log.Printf("Error creating adjustment: %v", err)
+			http.Error(w, "Failed to create adjustment", http.StatusInternalServerError)
+			return
+		}
+
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(http.StatusCreated)
 		_ = json.NewEncoder(w).Encode(&adjustment)
