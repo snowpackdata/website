@@ -90,7 +90,8 @@ const deleteBill = async (id: number) => {
 
 // Format currency for display
 const formatCurrency = (amount: number) => {
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
+  // Divide by 100 to convert from cents to dollars
+  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount / 100);
 };
 
 // Format date for display

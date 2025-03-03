@@ -23,20 +23,29 @@ const routes = [
     }
   },
   {
-    path: '/invoices',
-    name: 'invoices',
-    component: () => import('../views/invoices/InvoicesView.vue'),
+    path: '/accounts-receivable',
+    name: 'accounts-receivable',
+    component: () => import('../views/invoices/AccountsReceivableView.vue'),
     meta: {
-      title: 'Invoices'
+      title: 'Accounts Receivable'
     }
   },
   {
-    path: '/bills',
-    name: 'bills',
-    component: () => import('../views/bills/BillsView.vue'),
+    path: '/accounts-payable',
+    name: 'accounts-payable',
+    component: () => import('../views/bills/AccountsPayableView.vue'),
     meta: {
-      title: 'Bills'
+      title: 'Accounts Payable'
     }
+  },
+  // Keep these routes for backward compatibility but redirect to the new routes
+  {
+    path: '/invoices',
+    redirect: '/accounts-receivable'
+  },
+  {
+    path: '/bills',
+    redirect: '/accounts-payable'
   },
   {
     path: '/projects',

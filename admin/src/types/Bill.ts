@@ -17,6 +17,17 @@ export interface Bill {
   entries: any[]; // Timesheet entries associated with this bill
   total_hours: number;
   total_amount: number;
+  // Additional properties from the backend model
+  accepted_at?: string;
+  closed_at?: string;
+  period_start: string;
+  period_end: string;
+  user?: {
+    first_name: string;
+    last_name: string;
+    id: number;
+  };
+  file?: string; // GCS file URL for the bill PDF
 }
 
 /**
@@ -51,6 +62,8 @@ export function createEmptyBill(): Bill {
     description: '',
     entries: [],
     total_hours: 0,
-    total_amount: 0
+    total_amount: 0,
+    period_start: today.toISOString(),
+    period_end: dueDate.toISOString()
   };
 } 

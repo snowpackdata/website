@@ -1,5 +1,6 @@
 import { fetchAll, fetchById, create } from './apiUtils';
-import type { DraftInvoice, DraftEntry } from '../types/DraftInvoice';
+import type { DraftInvoice } from '../types/DraftInvoice';
+// import type { DraftInvoice, DraftEntry } from '../types/DraftInvoice';
 
 /**
  * API service for draft invoice operations

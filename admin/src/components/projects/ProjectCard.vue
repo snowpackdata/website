@@ -303,7 +303,6 @@ onMounted(async () => {
   isLoadingRates.value = true;
   try {
     rates.value = await fetchRates();
-    console.log('Fetched rates:', rates.value);
   } catch (error) {
     console.error('Failed to fetch rates:', error);
   } finally {

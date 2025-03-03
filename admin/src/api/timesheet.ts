@@ -1,5 +1,5 @@
 import type { TimesheetEntry } from '../types/Timesheet';
-import { create, update, fetchAll, fetchById, remove, createWithFormData, updateWithFormData } from './apiUtils';
+import { fetchAll, fetchById, remove, createWithFormData, updateWithFormData } from './apiUtils';
 import axios from 'axios';
 
 /**
@@ -170,7 +170,6 @@ const timesheetAPI = {
     }
     
     // Log the form data for debugging
-    console.log("Creating entry with URLSearchParams:", formData.toString());
     
     try {
       // Use direct API call with URLSearchParams
@@ -248,7 +247,6 @@ const timesheetAPI = {
     }
     
     // Log the form data for debugging
-    console.log("Updating entry with URLSearchParams:", formData.toString());
     
     try {
       // Use direct API call with URLSearchParams
@@ -375,7 +373,6 @@ export const createTimesheetEntry = async (formData: Partial<TimesheetEntry>): P
       data.set("project_id", formData.project_id.toString());
     }
     
-    console.log("Creating entry with FormData:", 
       Array.from(data.entries()).map(([key, value]) => `${key}: ${value}`).join(', ')
     );
     
@@ -435,7 +432,6 @@ export const updateTimesheetEntry = async (entryId: number, formData: Partial<Ti
       data.set("project_id", formData.project_id.toString());
     }
     
-    console.log("Updating entry with FormData:", 
       Array.from(data.entries()).map(([key, value]) => `${key}: ${value}`).join(', ')
     );
     

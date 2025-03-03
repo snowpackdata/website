@@ -76,7 +76,6 @@ function prepareProjectForApi(project: Project): FormData {
     formData.set("sdr_id", project.sdr_id.toString());
   }
   
-  console.log('Preparing project FormData with billing_frequency:', project.billing_frequency);
   
   return formData;
 }

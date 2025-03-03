@@ -61,11 +61,10 @@ const sortedProjects = computed(() => {
 const fetchProjectsData = async () => {
   isLoading.value = true;
   error.value = null;
+  
   try {
-    console.log('Fetching projects from API...');
     // Use exported fetchProjects function
     const response = await fetchProjects();
-    console.log('Raw API response:', response);
     
     if (!response || !Array.isArray(response)) {
       console.error('Invalid response format - expected array but got:', typeof response);
@@ -92,8 +91,6 @@ const fetchProjectsData = async () => {
       billing_codes: project.billing_codes || [], // Include billing codes if available
       // We don't need to map CreatedAt, UpdatedAt, DeletedAt as they're optional
     }));
-    
-    console.log('Processed projects:', projects.value);
   } catch (err) {
     console.error('Error fetching projects:', err);
     error.value = 'Failed to load projects. Please try again.';
@@ -111,7 +108,6 @@ onMounted(async () => {
   try {
     const staff = await getUsers();
     staffMembers.value = staff || [];
-    console.log('Fetched staff members:', staffMembers.value);
   } catch (err) {
     console.error('Error fetching staff members:', err);
   }
@@ -136,8 +132,6 @@ const editProject = (project: Project) => {
 // Save project
 const saveProject = async (projectData: Project) => {
   try {
-    console.log('Saving project with data:', projectData);
-    console.log('Project billing frequency:', projectData.billing_frequency);
     
     if (projectData.ID && projectData.ID > 0) {
       // Use exported updateProject function

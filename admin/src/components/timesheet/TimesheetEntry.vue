@@ -68,7 +68,6 @@ const gridRowValues = computed(() => {
     
     // Check if entry belongs to this day (using date part only)
     if (entryDatePart !== dayDateStr) {
-      // console.log(`Entry ${props.entry.entry_id} doesn't match day (${entryDatePart} vs ${dayDateStr}), hiding`);
       return { start: 0, span: 0 };
     }
     
@@ -102,7 +101,6 @@ const gridRowValues = computed(() => {
     // Convert to 30-minute blocks
     const totalHalfHours = (durationHours * 2) + (durationMinutes / 30);
     
-    // console.log(`Entry ${props.entry.entry_id} grid position:`, {
     //   startRow,
     //   span: totalHalfHours,
     //   startHour,
@@ -244,7 +242,6 @@ const isVisibleForDay = computed(() => {
 //   // Format for grid-area property
 //   const area = `${startRow} / 1 / ${endRow} / 2`;
 //   
-//   // console.log(`Entry ${props.entry.entry_id} grid position:`, {
 //   //   date: props.entry.start_date,
 //   //   startHour,
 //   //   startMin,

@@ -7,7 +7,7 @@ import type { TimesheetEntry } from '../../types/Timesheet';
 import { createEmptyTimesheetEntry } from '../../types/Timesheet';
 import { getEntries, getTimesheetActiveBillingCodes, getUsers, createEntry, updateEntry, deleteEntry as deleteEntryAPI } from '../../api';
 import TimesheetEntryComponent from '../../components/timesheet/TimesheetEntry.vue';
-import { formatDate, getTodayFormatted } from '../../utils/dateUtils';
+import { formatDate } from '../../utils/dateUtils';
 
 // DOM refs for calendar positioning
 const container = ref<HTMLElement | null>(null);
@@ -134,8 +134,6 @@ const initializeCurrentWeek = () => {
   }
   
   currentWeek.value = weekDates;
-  
-  console.log('Week initialized:', weekDates.map(d => d.toISOString().split('T')[0]));
 };
 
 // Navigate to previous week
@@ -199,7 +197,6 @@ const fetchWeeklyEntries = async () => {
       }
     });
     
-    console.log(`Filtered to ${weeklyEntries.value.length} entries for week ${currentWeek.value[0].toISOString().split('T')[0]} to ${currentWeek.value[6].toISOString().split('T')[0]}`);
   } catch (err) {
     console.error('Error fetching timesheet entries:', err);
     error.value = 'Failed to load timesheet entries. Please try again.';
@@ -252,7 +249,6 @@ const fetchUsers = async () => {
       email: user.email || ''
     }));
     
-    console.log('Processed users for impersonation:', users.value);
   } catch (err) {
     console.error('Error fetching users:', err);
   }
@@ -284,7 +280,6 @@ const createNewEntry = (event: any, day: any) => {
   formEntry.value.start = startTime.toISOString();
   formEntry.value.end = endTime.toISOString();
   
-  console.log('Creating new entry with defaults:', formEntry.value);
   
   showModal.value = true;
   showImpersonation.value = false; // Default to not showing impersonation UI
@@ -304,7 +299,6 @@ const startDrag = (day: Date, hour: number, event: MouseEvent) => {
   const dayAttr = target.getAttribute('data-day');
   const hourAttr = target.getAttribute('data-hour');
   
-  console.log('DRAG START - Raw Attributes:', { 
     'data-day': dayAttr, 
     'data-hour': hourAttr,
     'hourParam': hour,
@@ -316,7 +310,6 @@ const startDrag = (day: Date, hour: number, event: MouseEvent) => {
   const hourValue = parseFloat(hourAttr || '-1');
   
   // Log what we're actually using
-  console.log('DRAG START - Parsed Values:', {
     columnIndex,
     hourValue,
     'using function params instead?': hour !== hourValue
@@ -361,7 +354,6 @@ const handleMouseMove = (event: MouseEvent) => {
     el.classList.contains('calendar-cell')
   );
   
-  console.log(`Found ${calendarCells.length} calendar cells under cursor at (${event.clientX}, ${event.clientY})`);
   
   if (calendarCells.length === 0) return;
   
@@ -372,7 +364,6 @@ const handleMouseMove = (event: MouseEvent) => {
   const cellDayAttr = cell.getAttribute('data-day');
   const cellHourAttr = cell.getAttribute('data-hour');
   
-  console.log('Cell under cursor attributes:', { 
     cellDayAttr, 
     cellHourAttr,
     cell: cell.outerHTML,
@@ -396,7 +387,6 @@ const handleMouseMove = (event: MouseEvent) => {
   
   // Only process if this cell is in the column where we started the drag
   if (cellDay === dragColumnIndex.value) {
-    console.log(`Updating drag to hour ${cellHour} in column ${cellDay}`);
     dragEndHour.value = cellHour;
     highlightDragRange();
   }
@@ -412,7 +402,6 @@ const endDrag = (event?: MouseEvent) => {
     event.stopPropagation();
   }
   
-  console.log(`End drag in column ${dragColumnIndex.value}, from ${Math.min(dragStartHour.value, dragEndHour.value)} to ${Math.max(dragStartHour.value, dragEndHour.value)}`);
   
   // Remove the mousemove handler
   document.removeEventListener('mousemove', handleMouseMove);
@@ -427,7 +416,6 @@ const endDrag = (event?: MouseEvent) => {
     billing_code_id: 0 // Explicitly set to numeric zero
   };
   
-  console.log('New entry from drag with billing_code_id:', formEntry.value.billing_code_id, 'type:', typeof formEntry.value.billing_code_id);
   
   // Use the day from the stored column index for consistency
   const day = currentWeek.value[dragColumnIndex.value];
@@ -436,7 +424,6 @@ const endDrag = (event?: MouseEvent) => {
     return;
   }
   
-  console.log('Creating entry for day:', day.toISOString().split('T')[0]);
   
   // Get the date part in local timezone format
   const dateStr = day.toISOString().split('T')[0];
@@ -472,7 +459,6 @@ const endDrag = (event?: MouseEvent) => {
   formEntry.value.start = `${dateStr}T${startHour_str}:${startMin_str}:00.000Z`;
   formEntry.value.end = `${dateStr}T${endHour_str}:${endMin_str}:00.000Z`;
   
-  console.log('Drag time creation:', {
     dateStr,
     startHour, 
     endHour,
@@ -513,7 +499,6 @@ const highlightDragRange = () => {
   const startHour = Math.min(dragStartHour.value, dragEndHour.value);
   const endHour = Math.max(dragStartHour.value, dragEndHour.value);
   
-  console.log(`Highlighting range in column ${dragColumnIndex.value} from ${startHour} to ${endHour}`);
   
   // Get all calendar cells with an explicit selector
   const allCells = document.querySelectorAll('.calendar-cell');
@@ -543,7 +528,6 @@ const highlightDragRange = () => {
     }
   });
   
-  console.log(`Highlighted ${highlightedCount} cells in column ${dragColumnIndex.value}`);
 };
 
 // Setup mouse handlers for drag end detection
@@ -643,7 +627,6 @@ const saveEntry = async () => {
     formEntry.value.notes = formEntry.value.notes.trim();
     
     // Log entry data for debugging
-    console.log('Saving entry with data:', {
       entry_id: formEntry.value.entry_id,
       billing_code_id: formEntry.value.billing_code_id,
       start: formEntry.value.start,
@@ -668,7 +651,6 @@ const saveEntry = async () => {
           throw new Error(`Invalid entry ID: ${formEntry.value.entry_id}`);
         }
         
-        console.log(`Attempting to update entry ${formEntry.value.entry_id}`);
         await updateEntry(formEntry.value);
         
         // Successfully updated - close modal and refresh
@@ -717,11 +699,9 @@ const deleteEntry = async () => {
   if (!formEntry.value || formEntry.value.entry_id === 0) return;
   
   error.value = null; // Clear previous errors
-  console.log('Deleting entry with ID:', formEntry.value.entry_id);
   
   try {
     const result = await deleteEntryAPI(formEntry.value.entry_id);
-    console.log('Deleted entry result:', result);
     
     // Refresh entries after delete
     await fetchWeeklyEntries();
@@ -860,7 +840,6 @@ const updateDateTime = (field: 'date' | 'start-time' | 'end-time', value: string
   
   // Get current date and time values
   const startDate = formEntry.value.start.split('T')[0];
-  const endDate = formEntry.value.end.split('T')[0];
   const startTime = formEntry.value.start.split('T')[1].split(':').slice(0, 2).join(':');
   const endTime = formEntry.value.end.split('T')[1].split(':').slice(0, 2).join(':');
   
@@ -885,7 +864,6 @@ const updateDateTime = (field: 'date' | 'start-time' | 'end-time', value: string
   }
   
   // Log the updated values
-  console.log(`Updated ${field} to ${value}. New values: start=${formEntry.value.start}, end=${formEntry.value.end}`);
 };
 
 // Filter billing codes based on search query

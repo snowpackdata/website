@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted } from 'vue';
 import { getDraftInvoices } from '../../api/draftInvoices';
 import { type DraftInvoice, type DraftEntry, type DraftAdjustment, formatDate, formatCurrency, getEntryStateClass, getEntryStateDisplayName } from '../../types/DraftInvoice';
 import axios from 'axios';
@@ -27,19 +27,6 @@ const inlineAdjustment = ref<{
 
 // Replace modal state with inline editing state
 const isAddingAdjustment = ref<Record<number, boolean>>({});
-
-// Modal state for adding adjustment
-const showAdjustmentModal = ref(false);
-const currentInvoiceId = ref<number | null>(null);
-const newAdjustment = ref<{
-  type: string;
-  amount: number;
-  notes: string;
-}>({
-  type: 'ADJUSTMENT_TYPE_CREDIT',
-  amount: 0,
-  notes: '',
-});
 
 // Fetch draft invoices on component mount
 onMounted(async () => {
@@ -158,23 +145,6 @@ const handleVoidInvoice = async (invoiceId: number) => {
       error.value = 'Failed to void invoice. Please try again.';
     }
   }
-};
-
-// Show adjustment modal - replaced with inline function
-const openAdjustmentModal = (invoiceId: number) => {
-  currentInvoiceId.value = invoiceId;
-  newAdjustment.value = {
-    type: 'ADJUSTMENT_TYPE_CREDIT',
-    amount: 0,
-    notes: '',
-  };
-  showAdjustmentModal.value = true;
-};
-
-// Close adjustment modal - replaced with inline function
-const closeAdjustmentModal = () => {
-  showAdjustmentModal.value = false;
-  currentInvoiceId.value = null;
 };
 
 // New inline adjustment functions

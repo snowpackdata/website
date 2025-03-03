@@ -41,7 +41,6 @@ function validateRate(rate: Partial<Rate>): { isValid: boolean; errors: string[]
  * @returns FormData object ready for API submission
  */
 function prepareRateForApi(rate: Rate): FormData {
-  console.log('Preparing rate for API:', rate);
   
   const formData = new FormData();
   
@@ -57,13 +56,11 @@ function prepareRateForApi(rate: Rate): FormData {
     const formattedDate = `${today.getUTCFullYear()}-${String(today.getUTCMonth() + 1).padStart(2, '0')}-${String(today.getUTCDate()).padStart(2, '0')}`;
     formData.set("active_from", formattedDate);
   } else {
-    console.log('Setting active_from date:', rate.active_from);
     formData.set("active_from", rate.active_from);
   }
   
   // Add optional fields
   if (rate.active_to) {
-    console.log('Setting active_to date:', rate.active_to);
     formData.set("active_to", rate.active_to);
   }
   
@@ -71,10 +68,8 @@ function prepareRateForApi(rate: Rate): FormData {
     formData.set("internal_only", rate.internal_only ? "true" : "false");
   }
   
-  console.log('FormData entries:');
   // @ts-ignore - For debug purposes only
   for (const [key, value] of formData.entries()) {
-    console.log(`${key}: ${value}`);
   }
   
   return formData;
@@ -204,7 +199,6 @@ export const createRate = async (rateData: any) => {
  * @returns Promise with updated rate data
  */
 export const updateRate = async (rateData: any) => {
-  console.log('Updating rate with data:', rateData);
   // Ensure ID is provided in the rate data
   if (!rateData.ID) {
     throw new Error('Rate ID is required for updates');

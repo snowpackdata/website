@@ -63,7 +63,6 @@ function prepareAccountForApi(account: Account): FormData {
   formData.set("budget_dollars", account.budget_dollars.toString());
   formData.set("projects_single_invoice", account.projects_single_invoice ? "true" : "false");
   
-  console.log('Preparing account FormData with billing_frequency:', account.billing_frequency);
   
   return formData;
 }

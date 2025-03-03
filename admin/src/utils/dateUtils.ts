@@ -75,21 +75,17 @@ export function formatDate(dateValue: string | Date | null | undefined, format: 
  * @returns Normalized date string in YYYY-MM-DD format
  */
 export function parseServerDate(dateString: string | null | undefined): string {
-  console.log('parseServerDate input:', dateString);
   
   if (!dateString) return '';
   
   try {
     // If the string already looks like YYYY-MM-DD, just return it
     if (typeof dateString === 'string' && dateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
-      console.log('Input was already in YYYY-MM-DD format');
       return dateString;
     }
     
     // Parse the date in UTC
     const date = new Date(dateString);
-    console.log('Parsed date:', date);
-    console.log('Date components (UTC):', {
       year: date.getUTCFullYear(),
       month: date.getUTCMonth() + 1,
       day: date.getUTCDate(),
@@ -108,7 +104,6 @@ export function parseServerDate(dateString: string | null | undefined): string {
     const day = date.getUTCDate().toString().padStart(2, '0');
     
     const formattedDate = `${year}-${month}-${day}`;
-    console.log('Returning formatted date (UTC):', formattedDate);
     return formattedDate;
   } catch (error) {
     console.error('Error parsing server date:', error);
@@ -122,10 +117,8 @@ export function parseServerDate(dateString: string | null | undefined): string {
  * @returns Date string in YYYY-MM-DD format (with UTC conversion)
  */
 export function formatDateForServer(dateStr: string): string {
-  console.log('formatDateForServer input:', dateStr);
   
   if (!dateStr) {
-    console.log('Empty date input, returning empty string');
     return '';
   }
   
@@ -135,7 +128,6 @@ export function formatDateForServer(dateStr: string): string {
     const match = dateStr.match(dateRegex);
     
     if (match) {
-      console.log('Date is already in YYYY-MM-DD format, using as is:', dateStr);
       return dateStr; // The format is already correct for the server
     }
     
@@ -154,7 +146,6 @@ export function formatDateForServer(dateStr: string): string {
     const day = String(date.getUTCDate()).padStart(2, '0');
     
     const formatted = `${year}-${month}-${day}`;
-    console.log('Formatted date for server (UTC):', formatted);
     return formatted;
   } catch (error) {
     console.error('Error formatting date for server:', error);

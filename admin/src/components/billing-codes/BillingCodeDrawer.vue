@@ -96,7 +96,6 @@
                             name="billing-code-rate" 
                             v-model="billingCode.rateId"
                             class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-sage sm:text-sm/6"
-                            @change="val => console.log('Rate selected:', billingCode.rateId)"
                           >
                             <option :value="0">Select a rate</option>
                             <option v-for="rate in rates" :key="rate.ID" :value="Number(rate.ID)">
@@ -117,7 +116,6 @@
                             name="billing-code-internal-rate" 
                             v-model="billingCode.internal_rate_id"
                             class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-sage sm:text-sm/6"
-                            @change="val => console.log('Internal rate selected:', billingCode.internal_rate_id)"
                           >
                             <option :value="0">Select an internal rate (optional)</option>
                             <option v-for="rate in rates.filter(r => r.internal_only)" :key="rate.ID" :value="Number(rate.ID)">
@@ -301,7 +299,6 @@ watch(() => props.billingCodeData, (newVal) => {
       // Ensure internal_rate_id is always a number (default to 0 if not provided)
       internal_rate_id: newVal.internal_rate_id ? Number(newVal.internal_rate_id) : 0
     };
-    console.log('Updated billing code form with data:', billingCode.value);
   }
 }, { deep: true });
 
@@ -313,14 +310,11 @@ onMounted(async () => {
   try {
     const projectsData = await fetchProjects();
     projects.value = projectsData || [];
-    console.log('Loaded projects:', projects.value);
     
     const ratesData = await fetchRates();
     rates.value = ratesData || [];
-    console.log('Loaded rates:', rates.value);
     
     // Log the current billing code data for debugging
-    console.log('Current billing code data:', billingCode.value);
   } catch (error) {
     console.error('Failed to fetch data:', error);
   }
@@ -380,9 +374,6 @@ const handleSubmit = () => {
     internal_rate_id: Number(billingCode.value.internal_rate_id || 0)
   };
 
-  console.log('Submitting billing code with data:', formattedBillingCode);
-  console.log('Rate ID:', formattedBillingCode.rateId, 'type:', typeof formattedBillingCode.rateId);
-  console.log('Internal Rate ID:', formattedBillingCode.internal_rate_id, 'type:', typeof formattedBillingCode.internal_rate_id);
 
   // Emit save event with billing code data
   emit('save', formattedBillingCode);

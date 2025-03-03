@@ -300,8 +300,6 @@ const isEditing = computed(() => {
 
 // Watch isEditing for debugging purposes
 watch(isEditing, (newValue) => {
-  console.log('isEditing changed:', newValue);
-  console.log('projectData:', props.projectData);
 });
 
 // Initialize project with default values or provided data

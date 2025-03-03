@@ -62,23 +62,17 @@ const fetchRatesData = async () => {
   error.value = null;
   
   try {
-    console.log('Fetching rates from API...');
     
     // Add direct fetch attempt for debugging
     try {
-      console.log('Attempting direct fetch with fetch API...');
       const directResponse = await fetch('/api/rates');
-      console.log('Direct fetch status:', directResponse.status);
       const directData = await directResponse.json();
-      console.log('Direct fetch data:', directData);
     } catch (directErr) {
       console.error('Direct fetch error:', directErr);
     }
     
     // Use the exported fetchRates function
-    console.log('Now trying the fetchRates function...');
     const response = await fetchRates();
-    console.log('Raw API response from fetchRates:', response);
     
     if (!response || !Array.isArray(response)) {
       console.error('Invalid response format - expected array but got:', typeof response);
@@ -103,16 +97,13 @@ const fetchRatesData = async () => {
 
 // Save rate
 const saveRate = async (rateData: Rate) => {
-  console.log('RatesView saveRate called with data:', rateData);
   try {
     if (rateData.ID && rateData.ID > 0) {
       // Use the exported updateRate function
       const response = await updateRate(rateData);
-      console.log('Updated rate:', response);
     } else {
       // Use the exported createRate function
       const response = await createRate(rateData);
-      console.log('Created rate:', response);
     }
     
     // Refresh rates
@@ -167,19 +158,55 @@ const isRateActive = (rate: Rate): boolean => {
   // Ensure we have a valid rate object
   if (!rate) return false;
   
-  // Parse start and end dates using our utility functions
-  const startDate = rate.active_from ? new Date(rate.active_from) : null;
-  const endDate = rate.active_to ? new Date(rate.active_to) : null;
-  
-  // Get current date at midnight in UTC
+  // Get current date at midnight UTC
   const now = new Date();
   now.setUTCHours(0, 0, 0, 0);
   
+  // Parse start and end dates
+  let startDate: Date | null = null;
+  let endDate: Date | null = null;
+  
+  // Handle active_from date
+  if (rate.active_from) {
+    if (typeof rate.active_from === 'string' && rate.active_from.match(/^\d{4}-\d{2}-\d{2}$/)) {
+      // For YYYY-MM-DD strings, parse in UTC
+      const [year, month, day] = rate.active_from.split('-').map(Number);
+      startDate = new Date(Date.UTC(year, month - 1, day));
+    } else {
+      startDate = new Date(rate.active_from);
+    }
+    // Normalize to midnight UTC
+    startDate.setUTCHours(0, 0, 0, 0);
+  }
+  
+  // Handle active_to date
+  if (rate.active_to) {
+    if (typeof rate.active_to === 'string' && rate.active_to.match(/^\d{4}-\d{2}-\d{2}$/)) {
+      // For YYYY-MM-DD strings, parse in UTC
+      const [year, month, day] = rate.active_to.split('-').map(Number);
+      endDate = new Date(Date.UTC(year, month - 1, day));
+    } else {
+      endDate = new Date(rate.active_to);
+    }
+    // Normalize to midnight UTC
+    endDate.setUTCHours(0, 0, 0, 0);
+  }
+  
   // Rate is active if: 
   // 1. Current date is after or equal to the start date (if a start date exists)
-  // 2. Current date is before the end date (if an end date exists)
+  // 2. Current date is before or equal to the end date (if an end date exists)
   const isAfterStart = startDate ? now >= startDate : true;
-  const isBeforeEnd = endDate ? now < endDate : true;
+  
+  // IMPORTANT: For end dates, we want to include the entire day as active
+  // So we compare with the day AFTER the end date
+  const isBeforeEnd = endDate ? now <= endDate : true;
+  
+    now: now.toISOString(), 
+    startDate: startDate?.toISOString(), 
+    endDate: endDate?.toISOString(),
+    isAfterStart,
+    isBeforeEnd
+  });
   
   return isAfterStart && isBeforeEnd;
 };

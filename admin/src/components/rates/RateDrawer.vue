@@ -213,7 +213,6 @@ const handleDelete = () => {
 const isEditing = computed(() => !!props.rateData?.ID);
 
 // Log when component is initialized
-console.log('RateDrawer initialized with rateData:', props.rateData);
 
 // Initialize rate with default values or provided data
 const rate = ref({
@@ -229,7 +228,6 @@ const rate = ref({
 // Update rate data when rateData prop changes
 watch(() => props.rateData, (newVal) => {
   if (newVal) {
-    console.log('Raw date values from server:', {
       active_from: newVal.active_from,
       active_to: newVal.active_to
     });
@@ -244,14 +242,12 @@ watch(() => props.rateData, (newVal) => {
       internal_only: newVal.internal_only || false
     };
     
-    console.log('Parsed date values:', {
       startDate: rate.value.startDate,
       endDate: rate.value.endDate
     });
   } else {
     // Reset form when no data is provided (for new rates)
     const today = getCurrentDate();
-    console.log('Setting default date for new rate:', today);
     
     rate.value = {
       ID: null,
@@ -267,7 +263,6 @@ watch(() => props.rateData, (newVal) => {
 
 // Handle form submission
 const handleSubmit = () => {
-  console.log('Submitting form with rate data:', rate.value);
   
   // Validate form
   if (!rate.value.name || !rate.value.amount || !rate.value.startDate) {
@@ -287,7 +282,6 @@ const handleSubmit = () => {
   };
   
   // Format dates for API
-  console.log('Formatting dates for API submission:', {
     startDateInput: rate.value.startDate,
     endDateInput: rate.value.endDate
   });
@@ -297,24 +291,20 @@ const handleSubmit = () => {
   if (rate.value.startDate) {
     // Directly set the YYYY-MM-DD string from the date input
     formattedRate.active_from = rate.value.startDate;
-    console.log('Using startDate directly:', rate.value.startDate);
   } else {
     // Fallback to today if somehow missing
     const today = new Date();
     formattedRate.active_from = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-    console.log('Using today as fallback for startDate:', formattedRate.active_from);
   }
   
   // Only set endDate if provided
   if (rate.value.endDate) {
     // Directly set the YYYY-MM-DD string from the date input
     formattedRate.active_to = rate.value.endDate;
-    console.log('Using endDate directly:', rate.value.endDate);
   } else {
     formattedRate.active_to = '';
   }
   
-  console.log('Dates formatted for API:', {
     active_from: formattedRate.active_from,
     active_to: formattedRate.active_to
   });
@@ -323,7 +313,6 @@ const handleSubmit = () => {
   delete formattedRate.startDate;
   delete formattedRate.endDate;
   
-  console.log('Final rate data being sent to API:', formattedRate);
 
   emit('save', formattedRate);
 };

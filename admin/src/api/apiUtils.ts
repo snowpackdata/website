@@ -62,12 +62,10 @@ api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
     if (config.headers) {
       delete config.headers['Content-Type'];
     }
-    console.log('FormData detected, allowing axios to set Content-Type header');
   }
 
   // Log request details in development
   if (isDevelopmentMode) {
-    console.log(`Request: ${config.method?.toUpperCase() || 'GET'} ${config.url}`);
   }
   
   const token = getToken();
@@ -87,7 +85,6 @@ api.interceptors.response.use(
   (response: AxiosResponse) => {
     // Log successful responses in development
     if (isDevelopmentMode) {
-      console.log(`Response from ${response.config.url}: Status ${response.status}`);
     }
     return response;
   },
@@ -119,6 +116,11 @@ api.interceptors.response.use(
 export async function fetchAll<T>(endpoint: string): Promise<T[]> {
   const normalizedUrl = normalizeApiUrl(endpoint);
   const response = await api.get<T[]>(normalizedUrl);
+  
+  // Special case for bills endpoint debugging
+  if (endpoint === 'bills') {
+  }
+  
   return response.data;
 }
 
@@ -143,7 +145,6 @@ export async function update<T>(endpoint: string, id: number, data: any): Promis
   }
   
   const normalizedUrl = normalizeApiUrl(`${endpoint}/${id}`);
-  console.log(`Executing PUT request to ${normalizedUrl} with ID ${id}`, data);
   
   try {
     const response = await api.put<T>(normalizedUrl, data);

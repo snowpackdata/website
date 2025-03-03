@@ -122,8 +122,8 @@ const route = useRoute();
 const navigationItems = [
   { name: 'Timesheet', path: '/timesheet', icon: 'fa-clock' },
   { name: 'Timesheet Admin', path: '/timesheet-admin', icon: 'fa-toolbox' },
-  { name: 'Invoices', path: '/invoices', icon: 'fa-file-invoice-dollar' },
-  { name: 'Bills', path: '/bills', icon: 'fa-file-invoice-dollar' },
+  { name: 'Accounts Receivable', path: '/accounts-receivable', icon: 'fa-file-invoice-dollar' },
+  { name: 'Accounts Payable', path: '/accounts-payable', icon: 'fa-file-invoice' },
   { name: 'Accounts', path: '/accounts', icon: 'fa-building' },
   { name: 'Projects', path: '/projects', icon: 'fa-bars-progress' },
   { name: 'Billing Codes', path: '/billing-codes', icon: 'fa-barcode' },
@@ -151,26 +151,19 @@ const testToken = () => {
   const token = localStorage.getItem('snowpack_token');
   
   if (token) {
-    console.log('Found token in local storage');
     
     // Log the full URL to see exactly what's being requested
     const apiUrl = '/api/projects';
-    console.log('Making API request to:', window.location.origin + apiUrl);
     
     // Use the standard API pattern with proxy
-    console.log('Verifying API connection...');
     fetch(apiUrl, {
       headers: {
         'x-access-token': token
       }
     })
     .then(response => {
-      console.log('API Response Status:', response.status);
-      console.log('API Response URL:', response.url);
-      console.log('API Response Type:', response.headers.get('content-type'));
       
       if (response.ok) {
-        console.log('API call successful!');
         // Check if the response is JSON before trying to parse it
         const contentType = response.headers.get('content-type');
         if (contentType && contentType.includes('application/json')) {
@@ -180,7 +173,6 @@ const testToken = () => {
           // If in development, just continue with an empty object
           if (import.meta.env.DEV) {
             return response.text().then(text => {
-              console.log('First 100 chars of response:', text.substring(0, 100));
               console.warn('API returned non-JSON response in development - using empty object');
               
               // For HTML responses (common when server returns a login page)
@@ -212,17 +204,14 @@ const testToken = () => {
         }
         
         return response.text().then(text => {
-          console.log('Error response body (first 100 chars):', text.substring(0, 100));
           throw new Error(`API call failed with status ${response.status}`);
         });
       }
     })
     .then(data => {
-      console.log('API Data:', data);
     })
     .catch(error => {
       console.error('API call error:', error);
-      console.log('Token validation failed, please check server connection');
     });
   } else {
     console.error('No token found in localStorage!');

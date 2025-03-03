@@ -17,8 +17,18 @@ export interface Invoice {
   ID: number;
   account_id: number;
   account_name: string;
+  account?: {
+    name: string;
+    id: number;
+  };
+  project?: {
+    name: string;
+    id: number;
+  };
+  project_id?: number;
   invoice_number: string;
   state: string;
+  type: string;
   date_created: string;
   date_approved: string;
   date_sent: string;
@@ -32,6 +42,14 @@ export interface Invoice {
   total_fees: number;
   total_adjustments: number;
   total_amount: number;
+  // Additional properties from the backend model
+  accepted_at?: string;
+  sent_at?: string;
+  due_at: string;
+  closed_at?: string;
+  period_start: string;
+  period_end: string;
+  file?: string; // GCS file URL for the invoice PDF
 }
 
 /**
@@ -75,6 +93,7 @@ export function createEmptyInvoice(): Invoice {
     account_name: '',
     invoice_number: '',
     state: 'INVOICE_STATE_DRAFT',
+    type: 'INVOICE_TYPE_AR',
     date_created: today.toISOString(),
     date_approved: '',
     date_sent: '',
@@ -87,7 +106,10 @@ export function createEmptyInvoice(): Invoice {
     total_hours: 0,
     total_fees: 0,
     total_adjustments: 0,
-    total_amount: 0
+    total_amount: 0,
+    due_at: dueDate.toISOString(),
+    period_start: today.toISOString(),
+    period_end: dueDate.toISOString()
   };
 }
 

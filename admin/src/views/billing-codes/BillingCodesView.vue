@@ -322,7 +322,6 @@ const openBillingCodeDrawer = (billingCode = null) => {
       internal_rate_id: billingCode.internal_rate_id || ''
     };
     
-    console.log('Opening billing code drawer with data:', selectedBillingCode.value);
   } else {
     selectedBillingCode.value = null;
   }
@@ -349,7 +348,6 @@ const saveBillingCode = async (billingCodeData) => {
       return;
     }
     
-    console.log('Saving billing code with data:', billingCodeData);
     
     // Ensure rateId is a valid number, default to 0 if undefined/null
     const rateId = billingCodeData.rateId !== undefined ? Number(billingCodeData.rateId) : 
@@ -358,7 +356,6 @@ const saveBillingCode = async (billingCodeData) => {
     // Ensure internal_rate_id is a valid number, default to 0 if undefined/null
     const internalRateId = billingCodeData.internal_rate_id !== undefined ? Number(billingCodeData.internal_rate_id) : 0;
     
-    console.log('Rate values being used:', { rateId, internalRateId });
     
     // Create a FormData object directly with all required fields
     const formData = new FormData();
@@ -389,23 +386,18 @@ const saveBillingCode = async (billingCodeData) => {
     formData.append('rounded_to', '15');
     
     // Log the form data for debugging
-    console.log('Form data prepared for submission:');
     for (const [key, value] of formData.entries()) {
-      console.log(`${key}: ${value}`);
     }
     
     let newBillingCode;
     if (billingCodeData.id) {
       // Update existing billing code
-      console.log(`Updating billing code with ID: ${billingCodeData.id}`);
       newBillingCode = await updateWithFormData('billing_codes', billingCodeData.id, formData);
     } else {
       // Create new billing code
-      console.log('Creating new billing code');
       newBillingCode = await createWithFormData('billing_codes', formData);
     }
     
-    console.log('API response:', newBillingCode);
     
     // Refresh billing codes
     await fetchBillingCodesData();
@@ -432,7 +424,6 @@ const confirmDelete = (billingCode) => {
     name: billingCode.name
   };
   
-  console.log('Preparing to delete billing code:', billingCodeToDelete.value);
   showDeleteModal.value = true;
   // Close the drawer when confirming delete
   isBillingCodeDrawerOpen.value = false;
@@ -451,7 +442,6 @@ const deleteBillingCode = async () => {
       return;
     }
     
-    console.log('Deleting billing code with ID:', billingCodeId);
     await deleteBillingCodeAPI(billingCodeId);
     
     // Refresh billing codes
