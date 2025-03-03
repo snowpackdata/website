@@ -194,6 +194,9 @@ func (a *App) ProjectHandler(w http.ResponseWriter, r *http.Request) {
 		if r.FormValue("project_type") != "" {
 			project.ProjectType = r.FormValue("project_type")
 		}
+		if r.FormValue("billing_frequency") != "" {
+			project.BillingFrequency = r.FormValue("billing_frequency")
+		}
 		if r.FormValue("ae_id") != "" && r.FormValue("ae_id") != "null" {
 			aeID, _ := strconv.ParseUint(r.FormValue("ae_id"), 10, 64)
 			uintAEID := uint(aeID)
@@ -220,6 +223,7 @@ func (a *App) ProjectHandler(w http.ResponseWriter, r *http.Request) {
 		project.BudgetDollars, _ = strconv.Atoi(r.FormValue("budget_dollars"))
 		project.Internal, _ = strconv.ParseBool(r.FormValue("internal"))
 		project.ProjectType = r.FormValue("project_type")
+		project.BillingFrequency = r.FormValue("billing_frequency")
 
 		if r.FormValue("ae_id") != "" && r.FormValue("ae_id") != "null" {
 			aeID, _ := strconv.ParseUint(r.FormValue("ae_id"), 10, 64)
@@ -252,6 +256,105 @@ func (a *App) ProjectHandler(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+}
+
+// ProjectAnalyticsHandler provides analytics for a given project
+func (a *App) ProjectAnalyticsHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	var project cronos.Project
+	a.cronosApp.DB.First(&project, vars["id"])
+
+	// We want to get both the Total Hours, Total Fees for the lifetime entries of this project
+	// As well as the Total Hours, Total Fees for the current billing period (Weekly, Bi-Weekly, Monthly, Bi-Monthly, Project)
+
+	// Get all non-voided, non-deleted entries for this project
+	var entries []cronos.Entry
+	a.cronosApp.DB.Where("project_id = ? AND state != ? AND deleted_at IS NULL", project.ID, "ENTRY_STATE_VOID").
+		Find(&entries)
+
+	// Calculate total hours based on duration between start and end times
+	var totalHours float64
+	var totalFees float64
+	for _, entry := range entries {
+		// Calculate hours from duration
+		duration := entry.End.Sub(entry.Start)
+		hours := duration.Hours()
+		totalHours += hours
+
+		// Convert fee from cents to dollars
+		totalFees += float64(entry.Fee) / 100.0
+	}
+
+	// Get billing period start based on frequency
+	var periodStart time.Time
+	now := time.Now()
+	switch project.BillingFrequency {
+	case "BILLING_TYPE_WEEKLY":
+		// Start of current week
+		periodStart = now.AddDate(0, 0, -int(now.Weekday()))
+	case "BILLING_TYPE_BIWEEKLY":
+		// Start of current or previous week depending on billing cycle
+		weekNum := (now.YearDay() / 7) + 1
+		if weekNum%2 == 0 {
+			periodStart = now.AddDate(0, 0, -int(now.Weekday())-7)
+		} else {
+			periodStart = now.AddDate(0, 0, -int(now.Weekday()))
+		}
+	case "BILLING_TYPE_MONTHLY":
+		// Start of current month
+		periodStart = time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, now.Location())
+	case "BILLING_TYPE_BIMONTHLY":
+		// Start of current or previous month depending on billing cycle
+		if now.Month()%2 == 0 {
+			periodStart = time.Date(now.Year(), now.Month()-1, 1, 0, 0, 0, 0, now.Location())
+		} else {
+			periodStart = time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, now.Location())
+		}
+	case "BILLING_TYPE_PROJECT":
+		// Use project start date
+		periodStart = project.ActiveStart
+	default:
+		// Default to start of month
+		periodStart = time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, now.Location())
+	}
+
+	// Calculate period totals for non-voided, non-deleted entries
+	var periodHours float64
+	var periodFees float64
+
+	// Get entries for the current period
+	var periodEntries []cronos.Entry
+	a.cronosApp.DB.Where("project_id = ? AND state != ? AND deleted_at IS NULL AND start >= ?",
+		project.ID, "ENTRY_STATE_VOID", periodStart).Find(&periodEntries)
+
+	// Calculate period hours and fees
+	for _, entry := range periodEntries {
+		// Calculate hours from duration
+		duration := entry.End.Sub(entry.Start)
+		hours := duration.Hours()
+		periodHours += hours
+
+		// Convert fee from cents to dollars
+		periodFees += float64(entry.Fee) / 100.0
+	}
+
+	analytics := struct {
+		TotalHours  float64   `json:"total_hours"`
+		TotalFees   float64   `json:"total_fees"`
+		PeriodStart time.Time `json:"period_start"`
+		PeriodHours float64   `json:"period_hours"`
+		PeriodFees  float64   `json:"period_fees"`
+	}{
+		TotalHours:  totalHours,
+		TotalFees:   totalFees,
+		PeriodStart: periodStart,
+		PeriodHours: periodHours,
+		PeriodFees:  periodFees,
+	}
+
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	w.WriteHeader(http.StatusOK)
+	_ = json.NewEncoder(w).Encode(&analytics)
 }
 
 // AccountHandler Provides CRUD interface for the account object
@@ -517,6 +620,11 @@ func (a *App) EntryHandler(w http.ResponseWriter, r *http.Request) {
 	userIDInt := r.Context().Value("user_id")
 	a.cronosApp.DB.Where("user_id = ?", userIDInt).First(&employee)
 
+	// Get the current user to check if they're an admin
+	var currentUser cronos.User
+	a.cronosApp.DB.First(&currentUser, employee.UserID)
+	isAdmin := currentUser.Role == cronos.UserRoleAdmin.String()
+
 	switch {
 	case r.Method == "GET":
 		a.cronosApp.DB.Preload("BillingCode.Rate").Preload("BillingCode.InternalRate").Preload("Employee").Preload("ImpersonateAsUser").First(&entry, vars["id"])
@@ -537,14 +645,21 @@ func (a *App) EntryHandler(w http.ResponseWriter, r *http.Request) {
 
 		// We cannot edit entries that are approved, paid, or voided
 		if entry.State == cronos.EntryStateApproved.String() || entry.State == cronos.EntryStatePaid.String() || entry.State == cronos.EntryStateVoid.String() {
-			w.WriteHeader(http.StatusNotFound)
+			w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+			w.WriteHeader(http.StatusConflict) // 409 Conflict is more appropriate than 404
+			errorResponse := map[string]string{
+				"error": fmt.Sprintf("Cannot edit entry in %s state. Only entries in DRAFT state can be modified.", entry.State),
+				"state": entry.State,
+			}
+			_ = json.NewEncoder(w).Encode(errorResponse)
 			return
 		}
 
 		// Check if user has permission to edit this entry:
 		// 1. They created it (employee_id = employee.ID), OR
-		// 2. They are being impersonated in it (impersonate_as_user_id = employee.ID)
-		if entry.EmployeeID != employee.ID && (entry.ImpersonateAsUserID == nil || *entry.ImpersonateAsUserID != employee.ID) {
+		// 2. They are being impersonated in it (impersonate_as_user_id = employee.ID), OR
+		// 3. They are an admin
+		if !isAdmin && entry.EmployeeID != employee.ID && (entry.ImpersonateAsUserID == nil || *entry.ImpersonateAsUserID != employee.ID) {
 			w.WriteHeader(http.StatusForbidden)
 			_ = json.NewEncoder(w).Encode(map[string]string{"error": "You do not have permission to edit this entry"})
 			return
@@ -970,14 +1085,47 @@ func (a *App) AdjustmentHandler(w http.ResponseWriter, r *http.Request) {
 		_ = json.NewEncoder(w).Encode(&adjustment)
 		return
 	case r.Method == "POST":
-		invoiceID, _ := strconv.Atoi(r.FormValue("invoice_id"))
-		*adjustment.InvoiceID = uint(invoiceID)
-		adjustment.Type = r.FormValue("type")
-		amountFloat, _ := strconv.ParseFloat(r.FormValue("amount"), 64)
+		// Get the invoice ID and convert it to uint
+		invoiceID, err := strconv.Atoi(r.FormValue("invoice_id"))
+		if err != nil {
+			log.Printf("Error parsing invoice_id: %v", err)
+			http.Error(w, "Invalid invoice_id", http.StatusBadRequest)
+			return
+		}
+
+		// Create a uint value for the invoice ID
+		uintInvoiceID := uint(invoiceID)
+		adjustment.InvoiceID = &uintInvoiceID // Assign the pointer to the uint value
+
+		// Validate adjustment type
+		adjustmentType := r.FormValue("type")
+		if adjustmentType != cronos.AdjustmentTypeCredit.String() && adjustmentType != cronos.AdjustmentTypeFee.String() {
+			log.Printf("Invalid adjustment type: %s", adjustmentType)
+			http.Error(w, "Adjustment type must be ADJUSTMENT_TYPE_CREDIT or ADJUSTMENT_TYPE_FEE", http.StatusBadRequest)
+			return
+		}
+		adjustment.Type = adjustmentType
+
+		// Parse amount
+		amountFloat, err := strconv.ParseFloat(r.FormValue("amount"), 64)
+		if err != nil {
+			log.Printf("Error parsing amount: %v", err)
+			http.Error(w, "Invalid amount", http.StatusBadRequest)
+			return
+		}
 		adjustment.Amount = amountFloat
+
+		// Set notes and state
 		adjustment.Notes = r.FormValue("notes")
 		adjustment.State = cronos.AdjustmentStateDraft.String()
-		a.cronosApp.DB.Create(&adjustment)
+
+		// Create the adjustment in the database
+		if err := a.cronosApp.DB.Create(&adjustment).Error; err != nil {
+			log.Printf("Error creating adjustment: %v", err)
+			http.Error(w, "Failed to create adjustment", http.StatusInternalServerError)
+			return
+		}
+
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(http.StatusCreated)
 		_ = json.NewEncoder(w).Encode(&adjustment)
